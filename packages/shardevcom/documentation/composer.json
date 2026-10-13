@@ -1,0 +1,27 @@
+{
+    "name": "shardevcom/documentation",
+    "description": "API documentation generator for Shardev Platform (OpenAPI 3.1 + GraphQL)",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Documentation\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Documentation\\DocumentationServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardevcom/core": "@dev",
+        "symfony/yaml": "^6.0|^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "orchestra/testbench": "^9.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

@@ -1,0 +1,21 @@
+{
+    "name": "shardev/widgets",
+    "description": "Shardev platform Widgets: dashboard widgets registry and API",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Widgets\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Widgets\\WidgetsServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardev/core": "@dev",
+        "shardev/configuration": "@dev"
+    }
+}

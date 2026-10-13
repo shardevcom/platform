@@ -1,0 +1,16 @@
+{
+    "name": "shardev/resources",
+    "description": "Shardev Resource system: definitions, registry, query abstractions.",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Resources\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Resources\\ResourcesServiceProvider"
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "name": "shardevcom/graphql",
+    "description": "Shardev GraphQL adapter (thin resolvers over shared use cases).",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Graphql\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "nuwave/lighthouse": "^6.0"
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Graphql\\GraphqlServiceProvider"
+        }
+    }
+}

@@ -1,0 +1,612 @@
+{
+    "__schema": {
+        "queryType": {
+            "name": "Query"
+        },
+        "mutationType": {
+            "name": "Mutation"
+        },
+        "subscriptionType": null,
+        "types": [
+            {
+                "kind": "SCALAR",
+                "name": "String",
+                "description": "Built-in scalar type"
+            },
+            {
+                "kind": "SCALAR",
+                "name": "Int",
+                "description": "Built-in scalar type"
+            },
+            {
+                "kind": "SCALAR",
+                "name": "Float",
+                "description": "Built-in scalar type"
+            },
+            {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "description": "Built-in scalar type"
+            },
+            {
+                "kind": "SCALAR",
+                "name": "ID",
+                "description": "Built-in scalar type"
+            },
+            {
+                "kind": "OBJECT",
+                "name": "Product",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "ID",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "sku",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "ean",
+                        "description": "",
+                        "type": {
+                            "kind": "SCALAR",
+                            "name": "String",
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "brand_id",
+                        "description": "",
+                        "type": {
+                            "kind": "SCALAR",
+                            "name": "Int",
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "Boolean",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "brand",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "created_at",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "updated_at",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "Brand",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "id",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "ID",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "created_at",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "updated_at",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "ProductConnection",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "data",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "pagination",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "PaginationInfo",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "total",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "Int",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "count",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "Int",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "Int",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "current_page",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "Int",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "last_page",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "Int",
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "FilterInput",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "field",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "value",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "SortInput",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "field",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "CreateProductInput",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "sku",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "String",
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "ean",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "brand_id",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "UpdateProductInput",
+                "description": "",
+                "fields": [
+                    {
+                        "name": "sku",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "ean",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "brand_id",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "Query",
+                "description": "Root query type",
+                "fields": [
+                    {
+                        "name": "filter",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "include",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "description": "",
+                        "type": {
+                            "kind": "OBJECT",
+                            "name": null,
+                            "ofType": null
+                        }
+                    },
+                    {
+                        "name": "fields",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "ID",
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "kind": "OBJECT",
+                "name": "Mutation",
+                "description": "Root mutation type",
+                "fields": [
+                    {
+                        "name": "input",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "OBJECT",
+                                "name": null,
+                                "ofType": null
+                            }
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "description": "",
+                        "type": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                                "kind": "SCALAR",
+                                "name": "ID",
+                                "ofType": null
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "directives": []
+    }
+}

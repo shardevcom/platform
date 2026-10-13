@@ -1,0 +1,22 @@
+{
+    "name": "shardev/twofactor",
+    "description": "Shardev platform Two-Factor Authentication (2FA) with TOTP support",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\TwoFactor\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\TwoFactor\\TwoFactorServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardev/core": "@dev",
+        "shardev/socialite": "@dev",
+        "pragmarx/google2fa-laravel": "^1.0"
+    }
+}

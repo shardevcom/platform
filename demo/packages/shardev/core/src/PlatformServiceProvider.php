@@ -1,0 +1,51 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Shardevcom\Core;
+
+use Illuminate\Support\ServiceProvider;
+use Shardevcom\Core\Http\Middleware\BindGuard;
+
+/**
+ * Platform bootstrapper.
+ *
+ * Integration-only provider: auto-registers every ServiceProvider declared
+ * via `extra.platform.provider` in each package composer.json.
+ * No business logic lives here.
+ */
+final class PlatformServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        // Register platforms config
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/platforms.php',
+            'platforms'
+        );
+
+        // Register auth bootstrap provider
+        $this->app->register(AuthBootstrapServiceProvider::class);
+
+        $manifest = new PackageManifest();
+        $projectRoot = $this->app->basePath();
+
+        foreach ($manifest->providers($this->app->basePath()) as $provider) {
+            if ($provider === static::class || ! class_exists($provider)) {
+                continue;
+            }
+
+            $this->app->register($provider);
+        }
+    }
+
+    public function boot(): void
+    {
+        $this->publishes([
+            __DIR__.'/../config/platforms.php' => config_path('platforms.php'),
+        ], 'platform-config');
+
+        // Register bind.guard middleware alias
+        $this->app->router->aliasMiddleware('bind.guard', BindGuard::class);
+    }
+}

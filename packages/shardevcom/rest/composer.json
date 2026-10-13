@@ -1,0 +1,16 @@
+{
+    "name": "shardevcom/rest",
+    "description": "Shardev REST adapter (thin controllers over shared use cases).",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Rest\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Rest\\RestServiceProvider"
+        }
+    }
+}

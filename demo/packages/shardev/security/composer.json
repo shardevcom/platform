@@ -1,0 +1,20 @@
+{
+    "name": "shardev/security",
+    "description": "Shardev platform Security: Cross-tenant IDOR protection, CSP headers, security middleware",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Security\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Security\\SecurityServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardev/core": "@dev"
+    }
+}

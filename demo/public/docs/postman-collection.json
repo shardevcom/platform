@@ -1,0 +1,24 @@
+{
+    "info": {
+        "title": "Shardev",
+        "version": "1.0",
+        "description": "API documentation for Shardev Platform",
+        "contact": {
+            "name": "Shardev Platform",
+            "url": "https:\/\/shardev.com",
+            "email": "support@shardev.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https:\/\/opensource.org\/licenses\/MIT"
+        }
+    },
+    "item": [],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http:\/\/localhost",
+            "description": "Local development server"
+        }
+    ]
+}

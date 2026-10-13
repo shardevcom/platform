@@ -1,0 +1,16 @@
+{
+    "name": "shardevcom/authorization",
+    "description": "Shardev centralized authorization manager and permission resolution.",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Authorization\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Authorization\\AuthorizationServiceProvider"
+        }
+    }
+}

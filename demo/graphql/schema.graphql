@@ -1,0 +1,158 @@
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+"An arbitrary JSON value, used by filter conditions."
+scalar Mixed @scalar(class: "Shardevcom\\Product\\Graphql\\Scalars\\MixedScalar")
+
+"Query root type."
+type Query {
+    "List products with filtering, sorting, pagination, and field selection."
+    products(
+        "Filter by declared fields (sku, ean, brand_id, active)."
+        filter: [FilterInput!]
+        "Include related resources (brand)."
+        include: [String!]
+        "Sort by declared fields (id, sku, name, created_at, updated_at)."
+        sort: [SortInput!]
+        "Page number (1-indexed)."
+        page: Int @rules(apply: ["min:1"])
+        "Items per page (max 100)."
+        per_page: Int @rules(apply: ["min:1"])
+        "Select specific fields."
+        fields: [String!]
+    ): ProductConnection!
+        @field(resolver: "Shardevcom\\Product\\Graphql\\Resolvers\\ProductQueryResolver@products")
+
+    "Select the reduced projection declared on the resource (id/selectFields). fields can only narrow it, never widen it."
+    productsSelect(
+        "Filter by declared fields (sku, ean, brand_id, active)."
+        filter: [FilterInput!]
+        "Include related resources (brand)."
+        include: [String!]
+        "Sort by declared fields (id, sku, name, created_at, updated_at)."
+        sort: [SortInput!]
+        "Page number (1-indexed)."
+        page: Int @rules(apply: ["min:1"])
+        "Items per page (max 100)."
+        per_page: Int @rules(apply: ["min:1"])
+        "A subset of the select projection (id, sku, name)."
+        fields: [String!]
+    ): ProductConnection!
+        @field(resolver: "Shardevcom\\Product\\Graphql\\Resolvers\\ProductQueryResolver@productsSelect")
+
+    "Get a single product by ID."
+    product(
+        "Product ID."
+        id: ID!
+        "Include related resources (brand)."
+        include: [String!]
+        "Select specific fields."
+        fields: [String!]
+    ): Product
+        @field(resolver: "Shardevcom\\Product\\Graphql\\Resolvers\\ProductQueryResolver@product")
+}
+
+"Product type."
+type Product {
+    id: ID!
+    sku: String!
+    name: String!
+    ean: String
+    brand_id: Int
+    active: Boolean!
+    "Brand relation with DataLoader batching."
+    brand: Brand @hasMany(relation: "brand", batch: true)
+    created_at: DateTime!
+    updated_at: DateTime!
+}
+
+"Brand type."
+type Brand {
+    id: ID!
+    name: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+}
+
+"Connection for paginated products."
+type ProductConnection {
+    "List of products."
+    data: [Product!]!
+    "Pagination information."
+    pagination: PaginationInfo!
+}
+
+"Pagination metadata, shaped like Lighthouse's PaginatorInfo."
+type PaginationInfo {
+    total: Int!
+    count: Int!
+    per_page: Int!
+    current_page: Int!
+    last_page: Int!
+}
+
+"Input for filter conditions."
+input FilterInput {
+    "Field to filter by."
+    field: String!
+    "Value to match. The core vocabulary is field => value; there are no operators."
+    value: Mixed!
+}
+
+"Sort direction."
+enum SortDirection {
+    asc
+    desc
+}
+
+"Input for sort conditions."
+input SortInput {
+    "Field to sort by."
+    field: String!
+    "Sort direction."
+    direction: SortDirection = asc
+}
+
+"Mutation root type."
+type Mutation {
+    "Create a new product."
+    createProduct(
+        "Product data."
+        input: CreateProductInput!
+    ): Product
+        @field(resolver: "Shardevcom\\Product\\Graphql\\Resolvers\\ProductMutationResolver@createProduct")
+
+    "Update an existing product."
+    updateProduct(
+        "Product ID."
+        id: ID!
+        "Product data."
+        input: UpdateProductInput!
+    ): Product
+        @field(resolver: "Shardevcom\\Product\\Graphql\\Resolvers\\ProductMutationResolver@updateProduct")
+
+    "Delete a product."
+    deleteProduct(
+        "Product ID."
+        id: ID!
+    ): Boolean
+        @field(resolver: "Shardevcom\\Product\\Graphql\\Resolvers\\ProductMutationResolver@deleteProduct")
+}
+
+"Input for creating a product."
+input CreateProductInput {
+    sku: String! @rules(apply: ["required", "string", "max:64"])
+    name: String! @rules(apply: ["required", "string", "max:255"])
+    ean: String @rules(apply: ["nullable", "string", "max:32"])
+    brand_id: Int @rules(apply: ["nullable", "integer", "min:1"])
+    active: Boolean @rules(apply: ["boolean"])
+}
+
+"Input for updating a product."
+input UpdateProductInput {
+    sku: String @rules(apply: ["nullable", "string", "max:64"])
+    name: String @rules(apply: ["nullable", "string", "max:255"])
+    ean: String @rules(apply: ["nullable", "string", "max:32"])
+    brand_id: Int @rules(apply: ["nullable", "integer", "min:1"])
+    active: Boolean @rules(apply: ["boolean"])
+}

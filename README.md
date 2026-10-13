@@ -1,0 +1,617 @@
+# Shardev Platform
+
+> **Este repo es el framework** — como `laravel/framework` + installer — no una app generada.
+> El CLI instala una versión de Laravel y acondiciona el sistema (`packages/`, providers,
+> `config/platform.php`, `.env`, migraciones, seed demo) para iniciar cualquier proyecto nuevo.
+
+## Layout
+
+```text
+./                          # framework: CLI + fuente de packages + backlog
+├── bin/platform            # CLI (new/list/doctor) — cero dependencias
+├── src/                    # instalador (Framework, matriz compatibilidad, ...)
+├── packages/               # FUENTE oficial: core, resources, authorization,
+│                           # configuration, persistence, rest, graphql
+├── tests/                  # tests del framework (phpunit, sin Laravel)
+├── backlog/ + BACKLOG.md   # backlog técnico por fases
+├── AGENTS.md / CLAUDE.md   # instrucciones para IAs
+└── demo/                   # app generada de REFERENCIA (fixture manual hasta T-003)
+```
+
+`demo/` es el output que `platform new demo --laravel=12` producirá cuando T-003 exista.
+Hoy está scaffoldeada a mano (`laravel/laravel` 12.x + copia de `packages/` + `config/platform.php`).
+`demo/tests/` corre la suite de la app generada (Feature); `tests/` la del framework (Unit).
+
+## 1. Qué es Shardev Platform
+
+Plataforma API modular sobre Laravel. Proporciona:
+
+- **Core reutilizable**: Contratos, contexto de aplicación, acciones de recurso, excepciones de dominio, respuestas API estandarizadas
+- **Repository pattern con autorización integrada**: Frontera autorizada a recursos (auth + validación + query constraints + lifecycle) — no un wrapper de Model
+- **REST y GraphQL como adapters delgados**: Comparten Use Cases + Repository. Cero duplicación de auth/validación/reglas
+- **Sistema de configuración extensible**: Providers con visibilidad (public/authenticated/admin) y resultados parciales (207)
+- **CLI cero-dependencias**: `platform new`, `platform package make`, `platform doctor`
+
+## 2. Versiones soportadas
+
+| Componente | Versión |
+|------------|---------|
+| PHP        | ^8.2 (visión ^8.4) |
+| Laravel    | ^12.0 |
+| SQLite     | Default local DB |
+
+`platform doctor` verifica la matriz de compatibilidad.
+
+## 3. Crear un proyecto nuevo
+
+```bash
+# Instalar el framework
+composer install
+
+# Crear proyecto (no-interactivo)
+bin/platform new mi-proyecto --laravel=12 --no-interaction
+
+# Crear proyecto con demo (product package como base)
+bin/platform new mi-proyecto --laravel=12 --no-interaction --demo=product
+
+# O interactivo (elige versión Laravel)
+bin/platform new mi-proyecto
+```
+
+El comando ejecuta 16 pasos: valida nombre/matriz → crea Laravel → instala packages oficiales → autoload → registra providers → config → .env → migra → seed demo → dump-autoload → verifica rutas → (opcional) instala demo package.
+
+```bash
+# Verificar que funciona
+cd mi-proyecto
+php artisan serve
+# GET http://localhost:8000/admin/api/v1/products → 200
+```
+
+## 4. Packages
+
+La carpeta `packages/` en el proyecto generado contiene los módulos de la plataforma. Cada package sigue la estructura:
+
+```text
+packages/<nombre>/
+├── src/
+│   ├── ServiceProvider.php
+│   ├── Application/      # Use Cases, DTOs, Validación
+│   ├── Contracts/        # Interfaces de frontera
+│   ├── Infrastructure/   # Adapters (Eloquent, etc.)
+│   ├── Repositories/     # Repository + Eloquent persistence
+│   ├── Rest/             # Controllers, FormRequests
+│   ├── Graphql/          # Resolvers, Types
+│   ├── Resources/        # ResourceDefinition
+│   └── ...
+├── config/
+├── routes/
+├── database/migrations/
+├── tests/
+└── composer.json         # extra.platform.provider
+```
+
+### Crear un package
+
+```bash
+# Desde el proyecto generado
+platform package make catalogo --dry-run  # muestra árbol esperado
+platform package make catalogo            # crea scaffold + registra provider
+platform package:list                     # lista oficiales + usuario
+```
+
+### Configurar directorios de packages y vendor
+
+El CLI permite personalizar dónde viven los packages y el namespace del vendor:
+
+```bash
+# Ver configuración actual
+platform config
+
+# Cambiar directorio de packages (relativo al proyecto)
+platform config packages src/platform
+
+# Cambiar vendor namespace para nuevos packages
+platform config vendor acme
+```
+
+**Importante:**
+- Los packages **oficiales** del framework se instalan siempre en `packages/shardevcom/` (o el directorio configurado)
+- Los packages **demo** y los generados con `platform package make` viven en el vendor configurado (`packages/<vendor>/`)
+- El directorio `vendor/` real de Composer (dependencias externas) **no se altera** — solo es para packages de la plataforma
+
+---
+
+## 5. Documentación Automática — `shardevcom/documentation`
+
+Genera documentación OpenAPI 3.1 y GraphQL automáticamente desde rutas, controladores y esquemas.
+
+```bash
+# Generar documentación (todos los formatos)
+php artisan docs:generate
+
+# Formatos específicos
+php artisan docs:generate --format=openapi-json --format=html --format=markdown
+
+# Con servidor de vista previa
+php artisan docs:generate --serve
+
+# Directorio de salida personalizado
+php artisan docs:generate --output=storage/app/docs
+```
+
+**Formatos soportados:**
+- `openapi-json` / `openapi-yaml` — Especificación OpenAPI 3.1
+- `html` — Swagger UI + Redoc + GraphiQL
+- `markdown` — Documentación legible en `.md`
+- `graphql-sdl` — Schema Definition Language
+- `graphql-introspection` — Introspection JSON
+- `postman` — Colección Postman
+- `insomnia` — Colección Insomnia
+
+**UI Web integrada:**
+```
+/docs          # Swagger UI
+/docs/redoc    # Redoc
+/docs/graphql  # GraphiQL Explorer
+/docs/openapi.json
+```
+
+**Configuración** (`config/documentation.php`):
+```php
+'generation' => [
+    'formats' => ['openapi-json', 'html', 'graphql-sdl'],
+    'output_dir' => 'public/docs',
+    'info' => [
+        'title' => 'Mi API',
+        'version' => '1.0.0',
+    ],
+],
+'parsing' => [
+    'routes' => ['include' => ['api/*'], 'exclude' => ['_debugbar/*']],
+    'controllers' => ['enabled' => true, 'paths' => ['app/Http/Controllers']],
+    'graphql' => ['enabled' => true, 'schema_path' => 'graphql/schema.graphql'],
+],
+```
+
+---
+
+## 6. REST API — `/api/v1`
+
+Versionado solo en capa REST (`/api/v1`), nunca en Core.
+
+```bash
+# Listar productos con filtros, includes, paginación, campos
+GET /api/v1/products?filter[active]=true&include=brand&sort=-created_at&page=1&per_page=15&fields=id,sku,name
+
+# Crear producto
+POST /api/v1/products
+Content-Type: application/json
+Authorization: Bearer <token>
+{
+  "sku": "ABC-123",
+  "name": "Producto Demo",
+  "brand_id": 1,
+  "active": true
+}
+
+# Obtener producto
+GET /api/v1/products/{id}
+
+# Actualizar producto (PATCH parcial)
+PATCH /api/v1/products/{id}
+{
+  "name": "Nuevo nombre"
+}
+
+# Eliminar producto
+DELETE /api/v1/products/{id}
+```
+
+**Respuesta envelope estándar:**
+```json
+{
+  "status": "success",
+  "code": 200,
+  "message": "Products retrieved.",
+  "data": [...],
+  "meta": {
+    "pagination": { "total": 100, "per_page": 15, "current_page": 1, "last_page": 7 }
+  }
+}
+```
+
+**Errores mapeados desde dominio:**
+- `Unauthorized` → 401
+- `Forbidden` → 403
+- `ResourceNotFound` → 404
+- `ValidationFailed` → 422
+- `Conflict` → 409
+- `BusinessRuleViolation` → 422
+- `ResourceOperationNotSupported` → 405
+
+Sin leak de SQL/trace con `APP_DEBUG=false`.
+
+## 6. GraphQL API — `/graphql`
+
+Mismos Use Cases + Repository que REST. Mapeo args → `QueryOptions`.
+
+```graphql
+# Query con filtros, paginación, selección de campos
+query {
+  products(filter: {active: true}, orderBy: "-created_at", page: 1, perPage: 15, fields: ["id", "sku", "name"]) {
+    data {
+      id
+      sku
+      name
+      brand { id name }
+    }
+    pagination {
+      total
+      count
+      per_page
+      current_page
+      last_page
+    }
+  }
+}
+
+# Mutation
+mutation {
+  createProduct(input: {sku: "ABC-123", name: "Producto", brandId: 1, active: true}) {
+    id
+    sku
+    name
+  }
+}
+```
+
+**Límites obligatorios:** `maxDepth`, `maxComplexity`, `maxFirst`, `pagination caps`, DataLoader/batching para evitar N+1.
+
+**Errores GraphQL spec:**
+```json
+{
+  "errors": [{
+    "message": "Action [update] on resource [products] is forbidden.",
+    "extensions": { "code": "FORBIDDEN" }
+  }]
+}
+```
+
+## 7. Autorización — `AuthorizationManager`
+
+Punto centralizado. Repository pregunta `authorize('products', UPDATE, $context)`; no sabe cómo se almacenan permisos. Permiso derivado `{resource}.{action}`.
+
+```php
+// En Repository (automático vía lifecycle)
+$manager->authorize('products', ResourceAction::UPDATE, $context);
+
+// Adapter por defecto: Laravel Gate + config
+// Intercambiable: Spatie, servicio externo, RBAC, ABAC vía PermissionResolver
+```
+
+**Regla:** NUNCA `Gate::authorize` ni `$user->can` en controllers/resolvers. Solo en `AuthorizationManager`/adapter.
+
+## 8. Configuración — `ConfigurationRegistry`
+
+Providers registrados desde cualquier package con visibilidad:
+
+```php
+// Provider demo 'core'
+ConfigurationProvider::make('core', fn () => [
+    'locale' => 'es-CO',
+    'timezone' => 'America/Bogota',
+], ConfigurationVisibility::PUBLIC);
+
+// Endpoint unificado con resultados parciales (207)
+GET /api/configuration?include=core,preferences,inexistente
+```
+
+## 9. Extender la plataforma
+
+### Nuevo recurso (ej. `orders`)
+
+1. `platform package make orders`
+2. Definir `OrderResourceDefinition` (filters, includes, sorts, fields, repositoryClass, policy)
+3. Crear `OrderRepository` extendiendo `AbstractResourceRepository`
+4. Implementar Use Cases (`ListOrders`, `CreateOrder`, etc.)
+5. Registrar en `ResourceRegistry` vía ServiceProvider
+6. Adapters REST/GraphQL delgados → Use Cases
+
+### Nuevo adapter de persistencia
+
+Implementar `QueryExecutor` + `EloquentResourcePersistence` (o otro ORM) en `Infrastructure/`.
+
+## 10. Testing
+
+### Suite del framework (root)
+```bash
+composer test
+# phpunit + composer validate
+```
+
+### Suite de la app generada (demo/)
+```bash
+composer test --working-dir=demo
+# 141 tests: Repository, Use Cases, REST, GraphQL, Config, Parity, Arch
+```
+
+### Parity REST ↔ GraphQL
+Mismo seed/usuario: crear con dato inválido, leer sin permiso, filtrar no permitido, paginar → misma decisión/validación en ambos transports.
+
+### Architecture tests (T-110)
+```bash
+cd demo && php artisan test --filter=LayeringRulesTest
+# Core↛Eloquent/HTTP, Adapters↛Model/::query(), Auth solo en AuthorizationManager, etc.
+```
+
+## 11. Health Check — `platform doctor`
+
+```bash
+# Desde el proyecto generado
+../bin/platform doctor
+# o desde root del framework apuntando al proyecto
+bin/platform doctor --project=../mi-proyecto
+```
+
+**46 checks en 8 suites:**
+- **Toolchain**: PHP, Composer, Laravel version, Framework version
+- **Project files**: .env, autoloader, config/platform.php, writable dirs
+- **Packages**: discovery, providers, bootstrapper, autoload wiring
+- **Package Integration**: providers loadable, migrations, routes registered, autoload working, per-package verification
+- **Database**: sqlite connection
+- **Running application**: REST routes, GraphQL route
+- **API Functionality**: REST Products, GraphQL, Configuration, Widgets endpoints
+- **Authentication**: Passport installed, keys generated, guards/providers configured, password reset tables, personal access clients
+
+**Salida sana:**
+```
++ Application is ready.
+Exit: 0
+```
+
+**Con fallos:** lista accionable + exit != 0.
+
+---
+
+## 12. Smoke Test — Verificación rápida (< 10 min)
+
+Objetivo: un dev nuevo llega a `GET /api/v1/products → 200` y `{ products { id name } }` con sqlite.
+
+```bash
+# 1. Crear proyecto (o usar demo/ existente)
+cd /ruta/al/framework
+bin/platform new mi-proyecto --laravel=12 --no-interaction
+cd mi-proyecto
+
+# 2. Levantar servidor
+php artisan serve
+# → http://127.0.0.1:8000
+
+# 3. Obtener token (Passport) — crear usuario admin + personal access token
+php artisan tinker --execute="
+\$u = App\Models\AdminUser::factory()->create();
+\$token = \$u->createToken('smoke-test', ['products.view', 'products.create'])->accessToken;
+echo \$token . PHP_EOL;
+"
+# Copia el token que imprime (ej. eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...)
+
+# 4. Probar REST — lista productos (debe devolver 200 con data vacía [])
+curl -H "Authorization: Bearer <TOKEN>" http://127.0.0.1:8000/admin/api/v1/products
+# → {"status":"success","code":"OK","message":"Products retrieved.","data":[],"meta":{"pagination":{...}}}
+
+# 5. Crear un producto
+curl -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" \
+  -d '{"sku":"SMK-1","name":"Smoke Product"}' \
+  http://127.0.0.1:8000/admin/api/v1/products
+# → 201 con el producto creado
+
+# 6. Probar GraphQL — query básica
+curl -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" \
+  -d '{"query":"{ products { data { id sku name } } }"}' \
+  http://127.0.0.1:8000/admin/graphql
+# → {"data":{"products":{"data":[{"id":"...","sku":"SMK-1","name":"Smoke Product"}]}}}
+
+# 7. Health check
+../bin/platform doctor
+# → 17 checks ✓ + "Application is ready."
+```
+
+**Notas:**
+- Las rutas usan prefijo multi-plataforma (`admin/`, `employee/`, `web/`). El guard `admin` es el default.
+- El token necesita scope `products.view` (lectura) y `products.create` (escritura).
+- SQLite se crea automático en `database/database.sqlite` (`.env` ya configurado).
+
+---
+
+## 13. Uso rápido
+
+```bash
+# Framework
+composer install
+composer test
+bin/platform --version
+bin/platform list
+bin/platform new mi-app --laravel=12 --no-interaction
+bin/platform config
+bin/platform config packages src/platform
+bin/platform config vendor acme
+bin/platform demo list
+bin/platform demo add product
+bin/platform doctor
+
+# App generada
+composer test --working-dir=demo
+php artisan route:list | grep -E "products|configuration"
+```
+
+## Gate completo (CI)
+
+```bash
+composer ci
+# Ejecuta: composer validate + phpunit (framework) + composer test (demo)
+```
+
+## Decisiones clave
+
+- CLI sin dependencias (solo `composer` externo vía shell)
+- `packages/` del root es fuente única: el instalador los copia al proyecto generado
+- PHP floor `^8.2` (entorno actual 8.4; visión apunta a ^8.4)
+- REST y GraphQL son adapters delgados — Core no sabe quién llama
+- Repository = frontera autorizada (auth + validación + query + lifecycle), no wrapper de Model
+- Validación en un solo lugar (DTO en Use Case). Auth en un solo lugar (AuthorizationManager)
+- `config/platform.php` mínimo; `.env` sqlite por defecto
+
+---
+
+## 14. Observabilidad (T-121)
+
+### Contratos sin vendor lock
+
+La plataforma define interfaces para logging, métricas y tracing que puedes implementar con tu proveedor favorito (Monolog, Prometheus, OpenTelemetry, etc.):
+
+```php
+// packages/shardevcom/core/src/Contracts/Logger.php
+interface Logger {
+    public function emergency(string $message, array $context = []): void;
+    public function alert(string $message, array $context = []): void;
+    public function critical(string $message, array $context = []): void;
+    public function error(string $message, array $context = []): void;
+    public function warning(string $message, array $context = []): void;
+    public function notice(string $message, array $context = []): void;
+    public function info(string $message, array $context = []): void;
+    public function debug(string $message, array $context = []): void;
+    public function log(string $level, string $message, array $context = []): void;
+}
+
+// packages/shardevcom/core/src/Contracts/Meter.php
+interface Meter {
+    public function counter(string $name, array $tags = []): void;
+    public function gauge(string $name, float $value, array $tags = []): void;
+    public function histogram(string $name, float $value, array $tags = []): void;
+    public function time(string $name, callable $callable, array $tags = []): mixed;
+    public function withTags(array $defaultTags): self;
+}
+
+// packages/shardevcom/core/src/Contracts/Tracer.php
+interface Tracer {
+    public function startSpan(string $name, array $attributes = []): Span;
+    public function currentSpan(): ?Span;
+    public function inSpan(string $name, callable $callable, array $attributes = []): mixed;
+}
+```
+
+### `request_id` / `correlation_id` en el lifecycle
+
+El `ApplicationContext` genera y propaga automáticamente `request_id` (UUID v4) y `correlation_id` (heredado del header `X-Correlation-ID` o igual a `request_id`):
+
+```php
+$context = ApplicationContext::create([
+    'requestId' => $request->header('X-Request-ID'),     // opcional
+    'correlationId' => $request->header('X-Correlation-ID'), // opcional
+]);
+// $context->requestId() y $context->correlationId() disponibles en hooks
+```
+
+Estos IDs llegan a los hooks del lifecycle (`beforeAction`, `afterAction`, `onActionFailure`) vía `ActionInvocation::context()`:
+
+```php
+class AuditHook implements LifecycleHooks {
+    public function beforeAction(ActionInvocation $invocation): void {
+        $ctx = $invocation->context();
+        Logger::info('action.started', [
+            'resource' => $invocation->resource(),
+            'action' => $invocation->action(),
+            'request_id' => $ctx->requestId(),
+            'correlation_id' => $ctx->correlationId(),
+            'user_id' => $ctx->userId(),
+            'tenant_id' => $ctx->tenantId(),
+        ]);
+    }
+}
+```
+
+### Patrón Cache Decorator (ejemplo compilable)
+
+En lugar de cache manual dentro del Repository, usa un decorador que invalida vía eventos del lifecycle:
+
+```php
+// packages/shardevcom/product/src/Repositories/CachedProductRepository.php
+final class CachedProductRepository extends AbstractResourceRepository {
+    public function __construct(
+        private AbstractResourceRepository $inner,
+        private \Illuminate\Contracts\Cache\Repository $cache,
+        private \Illuminate\Contracts\Events\Dispatcher $events,
+        ActionLifecycle $lifecycle,
+        QueryExecutor $executor,
+    ) {
+        parent::__construct($lifecycle, $executor);
+        $this->listenInvalidation();
+    }
+
+    private function listenInvalidation(): void {
+        $this->events->listen('product.updated', fn ($id) => $this->cache->forget("product:{$id}"));
+        $this->events->listen('product.deleted', fn ($id) => $this->cache->forget("product:{$id}"));
+    }
+
+    protected function persistFind(string $id, ApplicationContext $context, array $includes = []): ?array {
+        return $this->cache->remember("product:{$id}", 300, fn () => $this->inner->find($id, $context));
+    }
+
+    // Delega el resto al inner repository...
+    protected function persistNew(array $attributes, ApplicationContext $context): ?array {
+        $result = $this->inner->create($attributes, $context);
+        $this->events->dispatch('product.created', $result['id']);
+        return $result;
+    }
+}
+```
+
+**Diagrama:**
+```
+┌─────────────┐     ┌─────────────────┐     ┌──────────────┐
+│  Use Case   │────▶│ CachedProduct   │────▶│ ProductRepo  │
+│             │     │ Repository      │     │ (Eloquent)   │
+└─────────────┘     │  - cache get/set│     └──────────────┘
+                    │  - events listen│
+                    └─────────────────┘
+                           ▲
+                           │ events: product.updated/deleted
+                           │ (from lifecycle afterAction)
+```
+
+El decorador se registra en el container en lugar del `ProductRepository` real. El inner repository sigue sin saber nada de cache.
+
+---
+
+## 15. Hardening Checklist (T-122)
+
+| # | Control | Evidencia (test/grep) | Estado |
+|---|---------|----------------------|--------|
+| 1 | **Auth before persistence** | `test_denied_action_never_reaches_persistence` (AbstractResourceRepositoryTest) | ✅ |
+| 2 | **Validación única (DTO en Use Case)** | `ProductUseCaseParityTest` — mismos errores REST/GraphQL | ✅ |
+| 3 | **Allow-list Filters/Includes/Sorts** | `QueryOptionsTest` — `ValidationFailed` si no declarado | ✅ |
+| 4 | **Mass assignment** | `EloquentResourcePersistenceTest::mass_assignment_goes_through_fillable` | ✅ |
+| 5 | **Rate limiting** | `ProductRestEndpointTest::the_api_version_middleware_actually_runs` + config rest.php | ✅ |
+| 6 | **Token expiry/revocación** | `SanctumAuthenticationTest` — expired/revoked = 401 | ✅ |
+| 7 | **Auditabilidad** | `ActionLifecycle` hooks + `request_id/correlation_id` en contexto | ✅ |
+| 8 | **Errores seguros (sin leak SQL/trace)** | `ErrorMappingTest` — `APP_DEBUG=false` nunca expone trace | ✅ |
+| 9 | **Sin whereRaw/SQL arbitrario** | `grep -rn "whereRaw" packages/` → solo `PlatformUser` (multi-platform feature) | ✅ |
+| 10 | **Sin eager arbitrario** | `EloquentQueryExecutor` usa `IncludeSet` validado contra Definition | ✅ |
+| 11 | **N+1 controlado** | `EloquentQueryExecutorTest::includes_eager_load_without_n_plus_one` | ✅ |
+| 12 | **Límites page/complexity/depth** | GraphQL config + `ProductGraphqlEndpointTest::oversized_page_size_is_clamped` | ✅ |
+
+**Verificación automática:**
+```bash
+# Framework
+composer test
+grep -rn "Eloquent" packages/shardevcom/core/src || echo "CORE LIMPIO OK"
+grep -rn "whereRaw" packages/ || echo "SIN WHERERAW OK"
+
+# App generada
+composer test --working-dir=demo
+cd demo && php artisan test --filter=LayeringRulesTest
+```
+
+---
+
+*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-11 visión, 12 Smoke Test, 13 Uso rápido, 14 Observabilidad (T-121), 15 Hardening (T-122).*

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shardev - Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; }
+        #swagger-ui { height: 100vh; }
+        .topbar { display: none; }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        const spec = {
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Shardev",
+        "version": "1.0",
+        "description": "API documentation for Shardev Platform",
+        "contact": {
+            "name": "Shardev Platform",
+            "url": "https://shardev.com",
+            "email": "support@shardev.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Local development server"
+        }
+    ],
+    "paths": [],
+    "components": {
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "error"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "VALIDATION_FAILED"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Validation failed"
+                    },
+                    "data": {
+                        "type": "null"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "request_id": {
+                                "type": "string"
+                            },
+                            "correlation_id": {
+                                "type": "string"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            },
+            "Pagination": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 7
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "success"
+                        ],
+                        "example": "success"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "OK"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation successful"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "pagination": {
+                                "$ref": "#/components/schemas/Pagination"
+                            },
+                            "request_id": {
+                                "type": "string"
+                            },
+                            "correlation_id": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Laravel Passport access token"
+            },
+            "apiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "API key authentication"
+            }
+        }
+    },
+    "security": [
+        {
+            "bearerAuth": []
+        },
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Products",
+            "description": "Product management endpoints"
+        },
+        {
+            "name": "Configuration",
+            "description": "Platform configuration endpoints"
+        },
+        {
+            "name": "Widgets",
+            "description": "Dashboard widget endpoints"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication and authorization"
+        },
+        {
+            "name": "Import/Export",
+            "description": "Data import and export operations"
+        }
+    ]
+};
+        const graphqlSdl = `type Product {
+  id: ID!!
+  sku: String!!
+  name: String!!
+  ean: String
+  brand_id: Int
+  active: Boolean!!
+  brand: Brand @hasMany(relation: "brand", batch: true)
+  created_at: DateTime!!
+  updated_at: DateTime!!
+}
+
+type Brand {
+  id: ID!!
+  name: String!!
+  created_at: DateTime!!
+  updated_at: DateTime!!
+}
+
+type ProductConnection {
+  data: [Product!!
+  pagination: PaginationInfo!!
+}
+
+type PaginationInfo {
+  total: Int!!
+  count: Int!!
+  per_page: Int!!
+  current_page: Int!!
+  last_page: Int!!
+}
+
+input FilterInput {
+  field: String!!
+  value: Mixed!!
+}
+
+input SortInput {
+  field: String!!
+  direction: SortDirection = asc
+}
+
+input CreateProductInput {
+  sku: String!!
+  name: String!!
+  ean: String @rules(apply: ["nullable", "string", "max:32"])
+  brand_id: Int @rules(apply: ["nullable", "integer", "min:1"])
+  active: Boolean @rules(apply: ["boolean"])
+}
+
+input UpdateProductInput {
+  sku: String @rules(apply: ["nullable", "string", "max:64"])
+  name: String @rules(apply: ["nullable", "string", "max:255"])
+  ean: String @rules(apply: ["nullable", "string", "max:32"])
+  brand_id: Int @rules(apply: ["nullable", "integer", "min:1"])
+  active: Boolean @rules(apply: ["boolean"])
+}
+
+type Query {
+  filter: [FilterInput!!
+  include: [String!!
+  sort: [SortInput!!
+  page: Int @rules(apply: ["min:1"])
+  per_page: Int @rules(apply: ["min:1"])
+  fields: [String!!
+  id: ID!!
+}
+
+type Mutation {
+  input: UpdateProductInput!!
+  id: ID!!
+}
+`;
+
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                spec: spec,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                persistAuthorization: true,
+                displayRequestDuration: true,
+                filter: true,
+            });
+
+            // Add GraphQL tab
+            setTimeout(() => {
+                const navbar = document.querySelector('.swagger-ui .topbar');
+                if (navbar) {
+                    const graphqlLink = document.createElement('a');
+                    graphqlLink.href = 'docs-graphql.html';
+                    graphqlLink.textContent = 'GraphQL';
+                    graphqlLink.style.marginLeft = '20px';
+                    graphqlLink.style.color = '#3b4151';
+                    graphqlLink.style.textDecoration = 'none';
+                    graphqlLink.style.fontWeight = '500';
+                    navbar.appendChild(graphqlLink);
+                }
+            }, 100);
+        };
+    </script>
+</body>
+</html>

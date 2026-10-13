@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shardev - Redoc</title>
+    <style>
+        body { margin: 0; padding: 0; }
+        redoc { display: block; height: 100vh; }
+    </style>
+</head>
+<body>
+    <redoc spec-url='data:application/json;charset=utf-8,'.encodeURIComponent(JSON.stringify({
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Shardev",
+        "version": "1.0",
+        "description": "API documentation for Shardev Platform",
+        "contact": {
+            "name": "Shardev Platform",
+            "url": "https://shardev.com",
+            "email": "support@shardev.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Local development server"
+        }
+    ],
+    "paths": [],
+    "components": {
+        "schemas": {
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "error"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "VALIDATION_FAILED"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Validation failed"
+                    },
+                    "data": {
+                        "type": "null"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "request_id": {
+                                "type": "string"
+                            },
+                            "correlation_id": {
+                                "type": "string"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            },
+            "Pagination": {
+                "type": "object",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 7
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "success"
+                        ],
+                        "example": "success"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "OK"
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation successful"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "pagination": {
+                                "$ref": "#/components/schemas/Pagination"
+                            },
+                            "request_id": {
+                                "type": "string"
+                            },
+                            "correlation_id": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Laravel Passport access token"
+            },
+            "apiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "API key authentication"
+            }
+        }
+    },
+    "security": [
+        {
+            "bearerAuth": []
+        },
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Products",
+            "description": "Product management endpoints"
+        },
+        {
+            "name": "Configuration",
+            "description": "Platform configuration endpoints"
+        },
+        {
+            "name": "Widgets",
+            "description": "Dashboard widget endpoints"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication and authorization"
+        },
+        {
+            "name": "Import/Export",
+            "description": "Data import and export operations"
+        }
+    ]
+}))'></redoc>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+</body>
+</html>

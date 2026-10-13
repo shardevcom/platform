@@ -1,0 +1,19 @@
+{
+    "name": "shardevcom/core",
+    "description": "Shardev platform Core: contracts, context, actions, domain errors, API result envelope.",
+    "type": "platform-package",
+    "license": "MIT",
+    "require": {
+        "laravel/passport": "^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Core\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Core\\PlatformServiceProvider"
+        }
+    }
+}

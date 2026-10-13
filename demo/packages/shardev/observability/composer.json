@@ -1,0 +1,24 @@
+{
+    "name": "shardev/observability",
+    "description": "Shardev platform Observability: structured logging (Logger/Meter/Tracer adapters), correlation/request id middleware and lifecycle logging hooks",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Observability\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Observability\\ObservabilityServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardev/core": "@dev",
+        "shardev/application": "@dev",
+        "shardev/authorization": "@dev",
+        "monolog/monolog": "^3.0",
+        "psr/log": "^3.0"
+    }
+}

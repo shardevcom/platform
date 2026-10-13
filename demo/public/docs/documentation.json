@@ -1,0 +1,1063 @@
+{
+    "rest": {
+        "openapi": "3.1.0",
+        "info": {
+            "title": "Shardev",
+            "version": "1.0",
+            "description": "API documentation for Shardev Platform",
+            "contact": {
+                "name": "Shardev Platform",
+                "url": "https:\/\/shardev.com",
+                "email": "support@shardev.com"
+            },
+            "license": {
+                "name": "MIT",
+                "url": "https:\/\/opensource.org\/licenses\/MIT"
+            }
+        },
+        "servers": [
+            {
+                "url": "http:\/\/localhost",
+                "description": "Local development server"
+            }
+        ],
+        "paths": [],
+        "components": {
+            "schemas": {
+                "Error": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "example": "error"
+                        },
+                        "code": {
+                            "type": "string",
+                            "example": "VALIDATION_FAILED"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Validation failed"
+                        },
+                        "data": {
+                            "type": "null"
+                        },
+                        "meta": {
+                            "type": "object",
+                            "properties": {
+                                "request_id": {
+                                    "type": "string"
+                                },
+                                "correlation_id": {
+                                    "type": "string"
+                                },
+                                "details": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "Pagination": {
+                    "type": "object",
+                    "properties": {
+                        "page": {
+                            "type": "integer",
+                            "example": 1
+                        },
+                        "per_page": {
+                            "type": "integer",
+                            "example": 15
+                        },
+                        "total": {
+                            "type": "integer",
+                            "example": 100
+                        },
+                        "last_page": {
+                            "type": "integer",
+                            "example": 7
+                        }
+                    }
+                },
+                "SuccessResponse": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "success"
+                            ],
+                            "example": "success"
+                        },
+                        "code": {
+                            "type": "string",
+                            "example": "OK"
+                        },
+                        "message": {
+                            "type": "string",
+                            "example": "Operation successful"
+                        },
+                        "data": {
+                            "type": "object"
+                        },
+                        "meta": {
+                            "type": "object",
+                            "properties": {
+                                "pagination": {
+                                    "$ref": "#\/components\/schemas\/Pagination"
+                                },
+                                "request_id": {
+                                    "type": "string"
+                                },
+                                "correlation_id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "securitySchemes": {
+                "bearerAuth": {
+                    "type": "http",
+                    "scheme": "bearer",
+                    "bearerFormat": "JWT",
+                    "description": "Laravel Passport access token"
+                },
+                "apiKey": {
+                    "type": "apiKey",
+                    "in": "header",
+                    "name": "X-API-Key",
+                    "description": "API key authentication"
+                }
+            }
+        },
+        "security": [
+            {
+                "bearerAuth": []
+            },
+            {
+                "apiKey": []
+            }
+        ],
+        "tags": [
+            {
+                "name": "Products",
+                "description": "Product management endpoints"
+            },
+            {
+                "name": "Configuration",
+                "description": "Platform configuration endpoints"
+            },
+            {
+                "name": "Widgets",
+                "description": "Dashboard widget endpoints"
+            },
+            {
+                "name": "Authentication",
+                "description": "Authentication and authorization"
+            },
+            {
+                "name": "Import\/Export",
+                "description": "Data import and export operations"
+            }
+        ]
+    },
+    "graphql": {
+        "schemaSdl": "type Product {\n  id: ID!!\n  sku: String!!\n  name: String!!\n  ean: String\n  brand_id: Int\n  active: Boolean!!\n  brand: Brand @hasMany(relation: \"brand\", batch: true)\n  created_at: DateTime!!\n  updated_at: DateTime!!\n}\n\ntype Brand {\n  id: ID!!\n  name: String!!\n  created_at: DateTime!!\n  updated_at: DateTime!!\n}\n\ntype ProductConnection {\n  data: [Product!!\n  pagination: PaginationInfo!!\n}\n\ntype PaginationInfo {\n  total: Int!!\n  count: Int!!\n  per_page: Int!!\n  current_page: Int!!\n  last_page: Int!!\n}\n\ninput FilterInput {\n  field: String!!\n  value: Mixed!!\n}\n\ninput SortInput {\n  field: String!!\n  direction: SortDirection = asc\n}\n\ninput CreateProductInput {\n  sku: String!!\n  name: String!!\n  ean: String @rules(apply: [\"nullable\", \"string\", \"max:32\"])\n  brand_id: Int @rules(apply: [\"nullable\", \"integer\", \"min:1\"])\n  active: Boolean @rules(apply: [\"boolean\"])\n}\n\ninput UpdateProductInput {\n  sku: String @rules(apply: [\"nullable\", \"string\", \"max:64\"])\n  name: String @rules(apply: [\"nullable\", \"string\", \"max:255\"])\n  ean: String @rules(apply: [\"nullable\", \"string\", \"max:32\"])\n  brand_id: Int @rules(apply: [\"nullable\", \"integer\", \"min:1\"])\n  active: Boolean @rules(apply: [\"boolean\"])\n}\n\ntype Query {\n  filter: [FilterInput!!\n  include: [String!!\n  sort: [SortInput!!\n  page: Int @rules(apply: [\"min:1\"])\n  per_page: Int @rules(apply: [\"min:1\"])\n  fields: [String!!\n  id: ID!!\n}\n\ntype Mutation {\n  input: UpdateProductInput!!\n  id: ID!!\n}\n",
+        "types": {
+            "Product": {
+                "name": "Product",
+                "kind": "type",
+                "fields": {
+                    "id": {
+                        "type": "ID!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "sku": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "name": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "ean": {
+                        "type": "String",
+                        "required": false,
+                        "description": ""
+                    },
+                    "brand_id": {
+                        "type": "Int",
+                        "required": false,
+                        "description": ""
+                    },
+                    "active": {
+                        "type": "Boolean!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "brand": {
+                        "type": "Brand @hasMany(relation: \"brand\", batch: true)",
+                        "required": false,
+                        "description": ""
+                    },
+                    "created_at": {
+                        "type": "DateTime!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "updated_at": {
+                        "type": "DateTime!",
+                        "required": true,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "Brand": {
+                "name": "Brand",
+                "kind": "type",
+                "fields": {
+                    "id": {
+                        "type": "ID!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "name": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "created_at": {
+                        "type": "DateTime!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "updated_at": {
+                        "type": "DateTime!",
+                        "required": true,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "ProductConnection": {
+                "name": "ProductConnection",
+                "kind": "type",
+                "fields": {
+                    "data": {
+                        "type": "[Product!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "pagination": {
+                        "type": "PaginationInfo!",
+                        "required": true,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "PaginationInfo": {
+                "name": "PaginationInfo",
+                "kind": "type",
+                "fields": {
+                    "total": {
+                        "type": "Int!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "count": {
+                        "type": "Int!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "per_page": {
+                        "type": "Int!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "current_page": {
+                        "type": "Int!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "last_page": {
+                        "type": "Int!",
+                        "required": true,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "FilterInput": {
+                "name": "FilterInput",
+                "kind": "input",
+                "fields": {
+                    "field": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "value": {
+                        "type": "Mixed!",
+                        "required": true,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "SortInput": {
+                "name": "SortInput",
+                "kind": "input",
+                "fields": {
+                    "field": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "direction": {
+                        "type": "SortDirection = asc",
+                        "required": false,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "CreateProductInput": {
+                "name": "CreateProductInput",
+                "kind": "input",
+                "fields": {
+                    "sku": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "name": {
+                        "type": "String!",
+                        "required": true,
+                        "description": ""
+                    },
+                    "ean": {
+                        "type": "String @rules(apply: [\"nullable\", \"string\", \"max:32\"])",
+                        "required": false,
+                        "description": ""
+                    },
+                    "brand_id": {
+                        "type": "Int @rules(apply: [\"nullable\", \"integer\", \"min:1\"])",
+                        "required": false,
+                        "description": ""
+                    },
+                    "active": {
+                        "type": "Boolean @rules(apply: [\"boolean\"])",
+                        "required": false,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            },
+            "UpdateProductInput": {
+                "name": "UpdateProductInput",
+                "kind": "input",
+                "fields": {
+                    "sku": {
+                        "type": "String @rules(apply: [\"nullable\", \"string\", \"max:64\"])",
+                        "required": false,
+                        "description": ""
+                    },
+                    "name": {
+                        "type": "String @rules(apply: [\"nullable\", \"string\", \"max:255\"])",
+                        "required": false,
+                        "description": ""
+                    },
+                    "ean": {
+                        "type": "String @rules(apply: [\"nullable\", \"string\", \"max:32\"])",
+                        "required": false,
+                        "description": ""
+                    },
+                    "brand_id": {
+                        "type": "Int @rules(apply: [\"nullable\", \"integer\", \"min:1\"])",
+                        "required": false,
+                        "description": ""
+                    },
+                    "active": {
+                        "type": "Boolean @rules(apply: [\"boolean\"])",
+                        "required": false,
+                        "description": ""
+                    }
+                },
+                "description": ""
+            }
+        },
+        "queries": {
+            "filter": {
+                "type": "[FilterInput!",
+                "required": true,
+                "description": ""
+            },
+            "include": {
+                "type": "[String!",
+                "required": true,
+                "description": ""
+            },
+            "sort": {
+                "type": "[SortInput!",
+                "required": true,
+                "description": ""
+            },
+            "page": {
+                "type": "Int @rules(apply: [\"min:1\"])",
+                "required": false,
+                "description": ""
+            },
+            "per_page": {
+                "type": "Int @rules(apply: [\"min:1\"])",
+                "required": false,
+                "description": ""
+            },
+            "fields": {
+                "type": "[String!",
+                "required": true,
+                "description": ""
+            },
+            "id": {
+                "type": "ID!",
+                "required": true,
+                "description": ""
+            }
+        },
+        "mutations": {
+            "input": {
+                "type": "UpdateProductInput!",
+                "required": true,
+                "description": ""
+            },
+            "id": {
+                "type": "ID!",
+                "required": true,
+                "description": ""
+            }
+        },
+        "subscriptions": [],
+        "directives": [],
+        "scalars": [],
+        "introspection": {
+            "__schema": {
+                "queryType": {
+                    "name": "Query"
+                },
+                "mutationType": {
+                    "name": "Mutation"
+                },
+                "subscriptionType": null,
+                "types": [
+                    {
+                        "kind": "SCALAR",
+                        "name": "String",
+                        "description": "Built-in scalar type"
+                    },
+                    {
+                        "kind": "SCALAR",
+                        "name": "Int",
+                        "description": "Built-in scalar type"
+                    },
+                    {
+                        "kind": "SCALAR",
+                        "name": "Float",
+                        "description": "Built-in scalar type"
+                    },
+                    {
+                        "kind": "SCALAR",
+                        "name": "Boolean",
+                        "description": "Built-in scalar type"
+                    },
+                    {
+                        "kind": "SCALAR",
+                        "name": "ID",
+                        "description": "Built-in scalar type"
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "Product",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "id",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "ID",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "sku",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "name",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "ean",
+                                "description": "",
+                                "type": {
+                                    "kind": "SCALAR",
+                                    "name": "String",
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "brand_id",
+                                "description": "",
+                                "type": {
+                                    "kind": "SCALAR",
+                                    "name": "Int",
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "active",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "Boolean",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "brand",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "created_at",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "updated_at",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "Brand",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "id",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "ID",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "name",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "created_at",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "updated_at",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "ProductConnection",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "data",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "pagination",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "PaginationInfo",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "total",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "Int",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "count",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "Int",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "per_page",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "Int",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "current_page",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "Int",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "last_page",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "Int",
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "FilterInput",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "field",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "value",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "SortInput",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "field",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "direction",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "CreateProductInput",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "sku",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "name",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "String",
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "ean",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "brand_id",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "active",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "UpdateProductInput",
+                        "description": "",
+                        "fields": [
+                            {
+                                "name": "sku",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "name",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "ean",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "brand_id",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "active",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "Query",
+                        "description": "Root query type",
+                        "fields": [
+                            {
+                                "name": "filter",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "include",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "sort",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "page",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "per_page",
+                                "description": "",
+                                "type": {
+                                    "kind": "OBJECT",
+                                    "name": null,
+                                    "ofType": null
+                                }
+                            },
+                            {
+                                "name": "fields",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "id",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "ID",
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "OBJECT",
+                        "name": "Mutation",
+                        "description": "Root mutation type",
+                        "fields": [
+                            {
+                                "name": "input",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "OBJECT",
+                                        "name": null,
+                                        "ofType": null
+                                    }
+                                }
+                            },
+                            {
+                                "name": "id",
+                                "description": "",
+                                "type": {
+                                    "kind": "NON_NULL",
+                                    "name": null,
+                                    "ofType": {
+                                        "kind": "SCALAR",
+                                        "name": "ID",
+                                        "ofType": null
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "directives": []
+            }
+        }
+    },
+    "generated_at": "2026-10-09T13:15:48.559125Z",
+    "generator": "shardev\/documentation"
+}

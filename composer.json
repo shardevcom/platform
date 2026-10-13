@@ -1,0 +1,67 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "shardevcom/framework",
+    "description": "Shardev platform: Laravel bootstrapper + modular package ecosystem. Installs and conditions Laravel projects via the platform CLI.",
+    "keywords": [
+        "laravel",
+        "framework",
+        "platform",
+        "installer"
+    ],
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "monolog/monolog": "^3.0",
+        "phpunit/phpunit": "^11.5.50",
+        "symfony/console": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\": "src/",
+            "Shardevcom\\Application\\": "packages/shardevcom/application/src/",
+            "Shardevcom\\Authorization\\": "packages/shardevcom/authorization/src/",
+            "Shardevcom\\Catalog\\": "packages/shardevcom/catalog/src/",
+            "Shardevcom\\Configuration\\": "packages/shardevcom/configuration/src/",
+            "Shardevcom\\Core\\": "packages/shardevcom/core/src/",
+            "Shardevcom\\Graphql\\": "packages/shardevcom/graphql/src/",
+            "Shardevcom\\Observability\\": "packages/shardevcom/observability/src/",
+            "Shardevcom\\Persistence\\": "packages/shardevcom/persistence/src/",
+            "Shardevcom\\Product\\": "packages/shardevcom/product/src/",
+            "Shardevcom\\Resources\\": "packages/shardevcom/resources/src/",
+            "Shardevcom\\Rest\\": "packages/shardevcom/rest/src/",
+            "Shardevcom\\Security\\": "packages/shardevcom/security/src/",
+            "Shardevcom\\Socialite\\": "packages/shardevcom/socialite/src/",
+            "Shardevcom\\TwoFactor\\": "packages/shardevcom/twofactor/src/",
+            "Shardevcom\\Widgets\\": "packages/shardevcom/widgets/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/platform"
+    ],
+    "scripts": {
+        "test:unit": "@php vendor/bin/phpunit",
+        "test:validate": "@composer validate --no-check-publish",
+        "test": [
+            "@test:validate",
+            "@test:unit"
+        ],
+        "ci": [
+            "@test",
+            "@php scripts/ci-demo.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

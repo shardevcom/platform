@@ -1,0 +1,16 @@
+{
+    "name": "shardevcom/persistence",
+    "description": "Shardev persistence adapters (Eloquent query executor, Eloquent persistence).",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Persistence\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Persistence\\PersistenceServiceProvider"
+        }
+    }
+}

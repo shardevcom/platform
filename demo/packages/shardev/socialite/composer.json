@@ -1,0 +1,21 @@
+{
+    "name": "shardev/socialite",
+    "description": "Shardev platform Socialite: OAuth2 authentication with Google, GitHub, Microsoft, GitLab",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Socialite\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Socialite\\SocialiteServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardev/core": "@dev",
+        "laravel/socialite": "^5.0"
+    }
+}

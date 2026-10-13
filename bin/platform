@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Shardev platform CLI entrypoint.
+ *
+ * Zero-dependency on purpose: the installer must run before any project (and
+ * its vendor dir) exists, shelling out to `composer` when needed.
+ *
+ * This file only wires the application; every behaviour lives in src/Cli
+ * behind contracts (Filesystem, ProcessRunner, OutputInterface) so commands
+ * can be tested without touching disk, shell or terminal.
+ */
+
+$autoload = __DIR__.'/../vendor/autoload.php';
+
+if (! is_file($autoload)) {
+    fwrite(STDERR, "Framework dependencies missing. Run `composer install` in the framework root first.\n");
+    exit(1);
+}
+
+require $autoload;
+
+exit((new Shardevcom\Cli\Application(Shardevcom\Cli\Context::create(dirname(__DIR__))))
+    ->run($argv ?? ['platform']));

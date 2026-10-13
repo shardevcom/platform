@@ -1,0 +1,16 @@
+{
+    "name": "shardev/configuration",
+    "description": "Shardev extensible configuration providers and registry.",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Configuration\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Configuration\\ConfigurationServiceProvider"
+        }
+    }
+}

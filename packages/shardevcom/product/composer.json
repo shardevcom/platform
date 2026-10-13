@@ -1,0 +1,23 @@
+{
+    "name": "shardevcom/product",
+    "description": "Demo product resource for Shardev platform",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Product\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Product\\ProductServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardevcom/core": "@dev",
+        "shardevcom/resources": "@dev",
+        "shardevcom/persistence": "@dev",
+        "maatwebsite/excel": "^4.0"
+    }
+}
