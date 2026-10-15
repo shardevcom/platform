@@ -1,0 +1,2413 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\ApplicationContextBuilderFactory\:\:fromRequest\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/ApplicationContextBuilderFactory.php
+
+		-
+			message: '#^Property Shardevcom\\Application\\ApplicationContext\\BaseApplicationContextBuilder\:\:\$permissions is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/BaseApplicationContextBuilder.php
+
+		-
+			message: '#^Access to property \$attributes on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 7
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Call to method getPreferredLanguage\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Call to method header\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 13
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Call to method route\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:tryFromRequest\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:attach\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:buildAuthenticatedContext\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:buildGuestContext\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:extractBearerToken\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:fromRequest\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Application\\ApplicationContext\\HttpApplicationContextBuilder\:\:tryFromRequest\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationContext/HttpApplicationContextBuilder.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Application\\ApplicationServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 7
+			path: packages/shardevcom/application/src/ApplicationServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Application\\ApplicationServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationServiceProvider.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/application/src/ApplicationServiceProvider.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Authorization\\AuthorizationServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 3
+			path: packages/shardevcom/authorization/src/AuthorizationServiceProvider.php
+
+		-
+			message: '#^Call to static method allows\(\) on an unknown class Illuminate\\Support\\Facades\\Gate\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/authorization/src/LaravelGatePermissionResolver.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Configuration\\ConfigurationServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/ConfigurationServiceProvider.php
+
+		-
+			message: '#^Call to static method get\(\) on an unknown class Illuminate\\Support\\Facades\\Config\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/ConfigurationServiceProvider.php
+
+		-
+			message: '#^Call to static method middleware\(\) on an unknown class Illuminate\\Support\\Facades\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/ConfigurationServiceProvider.php
+
+		-
+			message: '#^Call to method query\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/Http/Controllers/ConfigurationController.php
+
+		-
+			message: '#^Function response not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/Http/Controllers/ConfigurationController.php
+
+		-
+			message: '#^Method Shardevcom\\Configuration\\Http\\Controllers\\ConfigurationController\:\:index\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/Http/Controllers/ConfigurationController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Configuration\\Http\\Controllers\\ConfigurationController\:\:index\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/Http/Controllers/ConfigurationController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Configuration\\Http\\Controllers\\ConfigurationController\:\:requestedKeys\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/configuration/src/Http/Controllers/ConfigurationController.php
+
+		-
+			message: '#^Anonymous function has an unused use \$table\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Call to static method extend\(\) on an unknown class Illuminate\\Support\\Facades\\Auth\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Call to static method get\(\) on an unknown class Illuminate\\Support\\Facades\\Config\.$#'
+			identifier: class.notFound
+			count: 4
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Call to static method provider\(\) on an unknown class Illuminate\\Support\\Facades\\Auth\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Call to static method set\(\) on an unknown class Illuminate\\Support\\Facades\\Config\.$#'
+			identifier: class.notFound
+			count: 4
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Class Illuminate\\Contracts\\Auth\\Factory not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Class Illuminate\\Contracts\\Auth\\UserProvider not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Class Illuminate\\Contracts\\Hashing\\Hasher not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Class Illuminate\\Http\\Request not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Instantiated class Illuminate\\Auth\\EloquentUserProvider not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Instantiated class Illuminate\\Auth\\TokenGuard not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/AuthBootstrapServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: packages/shardevcom/core/src/Authentication/EffectivePermissions.php
+
+		-
+			message: '#^Function env not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/core/src/Framework.php
+
+		-
+			message: '#^Call to method bound\(\) on an unknown class Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Call to method get\(\) on an unknown class Illuminate\\Contracts\\Config\\Repository\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Call to method instance\(\) on an unknown class Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Call to method make\(\) on an unknown class Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Call to method route\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Call to method shouldUse\(\) on an unknown class Illuminate\\Contracts\\Auth\\Factory\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Function abort not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Parameter \$app of method Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:__construct\(\) has invalid type Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Parameter \$auth of method Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:__construct\(\) has invalid type Illuminate\\Contracts\\Auth\\Factory\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Parameter \$config of method Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:__construct\(\) has invalid type Illuminate\\Contracts\\Config\\Repository\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Property Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:\$app has unknown class Illuminate\\Contracts\\Foundation\\Application as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Property Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:\$auth has unknown class Illuminate\\Contracts\\Auth\\Factory as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^Property Shardevcom\\Core\\Http\\Middleware\\BindGuard\:\:\$config has unknown class Illuminate\\Contracts\\Config\\Repository as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Http/Middleware/BindGuard.php
+
+		-
+			message: '#^PHPDoc tag @var for property Shardevcom\\Core\\PackageManifest\:\:\$readManifest with type \(Closure\)\|null is not subtype of native type Closure\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: packages/shardevcom/core/src/PackageManifest.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Core\\PlatformServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 5
+			path: packages/shardevcom/core/src/PlatformServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Core\\PlatformServiceProvider\:\:loadMigrationsFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/core/src/PlatformServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Core\\PlatformServiceProvider\:\:mergeConfigFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/core/src/PlatformServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Core\\PlatformServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/core/src/PlatformServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/core/src/PlatformServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Core\\Repositories\\AbstractResourceRepository\:\:resourceDefinition\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/core/src/Repositories/AbstractResourceRepository.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 2
+			path: packages/shardevcom/core/src/Repositories/AbstractResourceRepository.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:\$output\.$#'
+			identifier: property.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Access to undefined constant Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:SUCCESS\.$#'
+			identifier: classConstant.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:info\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:line\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:newLine\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:option\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\Console\\Commands\\GenerateDocumentationCommand\:\:warn\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to static method makeDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Call to static method put\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Console/Commands/GenerateDocumentationCommand.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Documentation\\DocumentationServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 10
+			path: packages/shardevcom/documentation/src/DocumentationServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\DocumentationServiceProvider\:\:commands\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/DocumentationServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\DocumentationServiceProvider\:\:loadRoutesFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/DocumentationServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\DocumentationServiceProvider\:\:mergeConfigFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/DocumentationServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Documentation\\DocumentationServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/DocumentationServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/DocumentationServiceProvider.php
+
+		-
+			message: '#^Call to static method endsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/GraphQLExporter.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/GraphQLExporter.php
+
+		-
+			message: '#^Call to static method makeDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/GraphQLExporter.php
+
+		-
+			message: '#^Call to static method put\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/GraphQLExporter.php
+
+		-
+			message: '#^Call to static method startsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Exporters/GraphQLExporter.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Exporters/HtmlExporter.php
+
+		-
+			message: '#^Call to static method makeDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Exporters/HtmlExporter.php
+
+		-
+			message: '#^Call to static method put\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Exporters/HtmlExporter.php
+
+		-
+			message: '#^Call to static method replaceLast\(\) on an unknown class Shardevcom\\Documentation\\Exporters\\Str\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/HtmlExporter.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Exporters/MarkdownExporter.php
+
+		-
+			message: '#^Call to static method makeDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Exporters/MarkdownExporter.php
+
+		-
+			message: '#^Call to static method put\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Exporters/MarkdownExporter.php
+
+		-
+			message: '#^Call to static method replace\(\) on an unknown class Shardevcom\\Documentation\\Exporters\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Exporters/MarkdownExporter.php
+
+		-
+			message: '#^Access to constant DUMP_MULTI_LINE_LITERAL_BLOCK on an unknown class Symfony\\Component\\Yaml\\Yaml\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Exporters/OpenApiExporter.php
+
+		-
+			message: '#^Call to static method dump\(\) on an unknown class Symfony\\Component\\Yaml\\Yaml\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Exporters/OpenApiExporter.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/OpenApiExporter.php
+
+		-
+			message: '#^Call to static method makeDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/OpenApiExporter.php
+
+		-
+			message: '#^Call to static method put\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Exporters/OpenApiExporter.php
+
+		-
+			message: '#^Call to static method put\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Generators/DocumentationGeneratorImpl.php
+
+		-
+			message: '#^Function now not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Generators/DocumentationGeneratorImpl.php
+
+		-
+			message: '#^Call to an undefined method SplFileInfo\:\:getRelativePathname\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method allFiles\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method camel\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 4
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method contains\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method endsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method replace\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method replaceFirst\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method replaceLast\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method singular\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method startsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 9
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method studly\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Class Illuminate\\Foundation\\Http\\FormRequest not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 3
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Function base_path not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Offset 2 on array\{non\-falsy\-string, non\-falsy\-string&numeric\-string, string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Offset 3 on array\{non\-falsy\-string, non\-empty\-string, non\-empty\-string, string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/ControllerParser.php
+
+		-
+			message: '#^Call to static method allFiles\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Call to static method endsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Call to static method exists\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Call to static method get\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Call to static method isDirectory\(\) on an unknown class Illuminate\\Support\\Facades\\File\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Call to static method startsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Function base_path not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/GraphQLParser.php
+
+		-
+			message: '#^Call to method gatherMiddleware\(\) on an unknown class Illuminate\\Routing\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to method getAction\(\) on an unknown class Illuminate\\Routing\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to method parameterNames\(\) on an unknown class Illuminate\\Routing\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method camel\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method contains\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 4
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method getRoutes\(\) on an unknown class Illuminate\\Support\\Facades\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method replace\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method singular\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method startsWith\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to static method studly\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Function class_basename not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Method Shardevcom\\Documentation\\Parsers\\RouteParser\:\:extractTags\(\) should return array\<int, array\<string, mixed\>\> but returns array\<int, string\>\.$#'
+			identifier: return.type
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Method Shardevcom\\Documentation\\Parsers\\RouteParser\:\:generateDefaultResponses\(\) should return array\<string, mixed\> but returns array\<int\|string, array\<string, array\<string, array\<string, array\<string, string\>\>\>\|string\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Parameter \$route of method Shardevcom\\Documentation\\Parsers\\RouteParser\:\:extractParameters\(\) has invalid type Illuminate\\Routing\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Parameter \$route of method Shardevcom\\Documentation\\Parsers\\RouteParser\:\:extractSecurity\(\) has invalid type Illuminate\\Routing\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Parameter \$route of method Shardevcom\\Documentation\\Parsers\\RouteParser\:\:parseRoute\(\) has invalid type Illuminate\\Routing\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/documentation/src/Parsers/RouteParser.php
+
+		-
+			message: '#^Call to method getMessage\(\) on an unknown class GraphQL\\Error\\Error\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/Exceptions/GraphQLErrorHandler.php
+
+		-
+			message: '#^Call to method getPrevious\(\) on an unknown class GraphQL\\Error\\Error\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/Exceptions/GraphQLErrorHandler.php
+
+		-
+			message: '#^Parameter \$error of method Shardevcom\\Graphql\\Exceptions\\GraphQLErrorHandler\:\:__invoke\(\) has invalid type GraphQL\\Error\\Error\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/Exceptions/GraphQLErrorHandler.php
+
+		-
+			message: '#^Parameter \$error of method Shardevcom\\Graphql\\Exceptions\\GraphQLErrorHandler\:\:map\(\) has invalid type GraphQL\\Error\\Error\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/Exceptions/GraphQLErrorHandler.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Graphql\\GraphqlServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 2
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to constant DISABLED on an unknown class GraphQL\\Validator\\Rules\\DisableIntrospection\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to constant DISABLED on an unknown class GraphQL\\Validator\\Rules\\QueryComplexity\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to constant DISABLED on an unknown class GraphQL\\Validator\\Rules\\QueryDepth\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to constant ENABLED on an unknown class GraphQL\\Validator\\Rules\\DisableIntrospection\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to constant INCLUDE_DEBUG_MESSAGE on an unknown class GraphQL\\Error\\DebugFlag\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to constant INCLUDE_TRACE on an unknown class GraphQL\\Error\\DebugFlag\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Function app not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Function base_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 10
+			path: packages/shardevcom/graphql/src/GraphqlServiceProvider.php
+
+		-
+			message: '#^Access to property \$attributes on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 6
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Call to method header\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Call to method ip\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Call to method method\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Call to method path\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Call to method userAgent\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Observability\\Http\\CorrelationMiddleware\:\:dimensions\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Observability\\Http\\CorrelationMiddleware\:\:guessGuard\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Observability\\Http\\CorrelationMiddleware\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Observability\\Http\\CorrelationMiddleware\:\:incomingCorrelationId\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Observability\\Http\\CorrelationMiddleware\:\:logTerminal\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/Http/CorrelationMiddleware.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: packages/shardevcom/observability/src/Logging/JsonFormatter.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed~\(''''\|null\) and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: packages/shardevcom/observability/src/Logging/JsonFormatter.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: packages/shardevcom/observability/src/Logging/JsonFormatter.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed~\(''''\|null\) and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: packages/shardevcom/observability/src/Logging/JsonFormatter.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Observability\\ObservabilityServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 6
+			path: packages/shardevcom/observability/src/ObservabilityServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Observability\\ObservabilityServiceProvider\:\:mergeConfigFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/ObservabilityServiceProvider.php
+
+		-
+			message: '#^Call to static method pushProcessor\(\) on an unknown class Illuminate\\Support\\Facades\\Log\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/observability/src/ObservabilityServiceProvider.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Database\\Eloquent\\Model\:\:query\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method get\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method orWhere\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method orderBy\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method paginate\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method where\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method whereIn\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Call to method with\(\) on an unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Class Illuminate\\Database\\Eloquent\\Model not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$query contains unknown class Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$query contains unknown class Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Parameter \$nested of anonymous function has invalid type Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Parameter \$query of method Shardevcom\\Persistence\\EloquentQueryExecutor\:\:applyIncludes\(\) has invalid type Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Parameter \$query of method Shardevcom\\Persistence\\EloquentQueryExecutor\:\:applySearch\(\) has invalid type Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Parameter \$query of method Shardevcom\\Persistence\\EloquentQueryExecutor\:\:applySort\(\) has invalid type Illuminate\\Database\\Eloquent\\Builder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentQueryExecutor.php
+
+		-
+			message: '#^Trait Shardevcom\\Persistence\\EloquentResourcePersistence is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: packages/shardevcom/persistence/src/EloquentResourcePersistence.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: packages/shardevcom/resources/src/FieldSet.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: packages/shardevcom/resources/src/IncludeSet.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: packages/shardevcom/resources/src/QueryOptions.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: packages/shardevcom/resources/src/ResourceDefinition.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 6
+			path: packages/shardevcom/resources/src/ResourceDefinition.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Resources\\ResourcesServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 1
+			path: packages/shardevcom/resources/src/ResourcesServiceProvider.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: packages/shardevcom/resources/src/SortSet.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderable\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Call to method errors\(\) on an unknown class Illuminate\\Validation\\ValidationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Call to method getMessage\(\) on an unknown class Illuminate\\Auth\\AuthenticationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Call to method getMessage\(\) on an unknown class Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Call to method getStatusCode\(\) on an unknown class Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Class Illuminate\\Validation\\ValidationException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Function report not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Function response not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderAuthenticationException\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderDomainException\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderHttpException\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderHttpException\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderUnexpected\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderValidationException\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$e of anonymous function has invalid type Illuminate\\Auth\\AuthenticationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$e of anonymous function has invalid type Illuminate\\Validation\\ValidationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$e of anonymous function has invalid type Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$e of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderAuthenticationException\(\) has invalid type Illuminate\\Auth\\AuthenticationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$e of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderHttpException\(\) has invalid type Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$e of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderValidationException\(\) has invalid type Illuminate\\Validation\\ValidationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$request of anonymous function has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 5
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderAuthenticationException\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderDomainException\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderUnexpected\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:renderValidationException\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Property Shardevcom\\Rest\\Exceptions\\RestExceptionHandler\:\:\$dontReport \(array\<class\-string\<Throwable\>\>\) does not accept default value of type array\<int, string\>\.$#'
+			identifier: property.defaultValue
+			count: 1
+			path: packages/shardevcom/rest/src/Exceptions/RestExceptionHandler.php
+
+		-
+			message: '#^Call to method header\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Call to method path\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Call to method query\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Method Shardevcom\\Rest\\Http\\Middleware\\ApiVersionMiddleware\:\:handle\(\) has invalid return type Symfony\\Component\\HttpFoundation\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Http\\Middleware\\ApiVersionMiddleware\:\:getApiVersion\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Http\\Middleware\\ApiVersionMiddleware\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Rest\\Http\\Middleware\\ApiVersionMiddleware\:\:isApiRoute\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/Http/Middleware/ApiVersionMiddleware.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Rest\\RestServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 4
+			path: packages/shardevcom/rest/src/RestServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Rest\\RestServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/RestServiceProvider.php
+
+		-
+			message: '#^Class Illuminate\\Contracts\\Debug\\ExceptionHandler not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/rest/src/RestServiceProvider.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: packages/shardevcom/rest/src/RestServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/rest/src/RestServiceProvider.php
+
+		-
+			message: '#^Access to property \$attributes on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Call to method all\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Call to method has\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Call to method is\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Call to method isMethod\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Call to method query\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Call to method route\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Method Shardevcom\\Security\\Http\\Middleware\\CrossTenantIdorMiddleware\:\:handle\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\CrossTenantIdorMiddleware\:\:extractTenantIdFromRoute\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\CrossTenantIdorMiddleware\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\CrossTenantIdorMiddleware\:\:isProtectedRoute\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Readonly property Shardevcom\\Security\\Http\\Middleware\\CrossTenantIdorMiddleware\:\:\$protectedRoutes is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CrossTenantIdorMiddleware.php
+
+		-
+			message: '#^Access to property \$headers on an unknown class Illuminate\\Http\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^Method Shardevcom\\Security\\Http\\Middleware\\CspMiddleware\:\:handle\(\) has invalid return type Illuminate\\Http\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$response contains unknown class Illuminate\\Http\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\CspMiddleware\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^Readonly property Shardevcom\\Security\\Http\\Middleware\\CspMiddleware\:\:\$directives is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 2
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^Readonly property Shardevcom\\Security\\Http\\Middleware\\CspMiddleware\:\:\$reportOnly is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^Readonly property Shardevcom\\Security\\Http\\Middleware\\CspMiddleware\:\:\$reportUri is assigned outside of the constructor\.$#'
+			identifier: property.readOnlyAssignNotInConstructor
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/CspMiddleware.php
+
+		-
+			message: '#^Call to method attempts\(\) on an unknown class Illuminate\\Cache\\RateLimiter\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method availableIn\(\) on an unknown class Illuminate\\Cache\\RateLimiter\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method header\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method hit\(\) on an unknown class Illuminate\\Cache\\RateLimiter\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method input\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method ip\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method route\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method store\(\) on an unknown class Illuminate\\Contracts\\Cache\\Factory\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Call to method tooManyAttempts\(\) on an unknown class Illuminate\\Cache\\RateLimiter\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Function response not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Instantiated class Illuminate\\Cache\\RateLimiter not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:handle\(\) has invalid return type Symfony\\Component\\HttpFoundation\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:limiter\(\) has invalid return type Illuminate\\Cache\\RateLimiter\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Parameter \$cache of method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:__construct\(\) has invalid type Illuminate\\Contracts\\Cache\\Factory\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Parameter \$limiter of method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:__construct\(\) has invalid type Illuminate\\Cache\\RateLimiter\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:isGraphqlMutation\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:operationKey\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:resolveUserId\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Property Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:\$cache has unknown class Illuminate\\Contracts\\Cache\\Factory as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Property Shardevcom\\Security\\Http\\Middleware\\RateLimitMiddleware\:\:\$limiter has unknown class Illuminate\\Cache\\RateLimiter as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/RateLimitMiddleware.php
+
+		-
+			message: '#^Access to property \$headers on an unknown class Symfony\\Component\\HttpFoundation\\Response\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Call to method isSecure\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Method Shardevcom\\Security\\Http\\Middleware\\SecurityHeadersMiddleware\:\:handle\(\) has invalid return type Symfony\\Component\\HttpFoundation\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Security\\Http\\Middleware\\SecurityHeadersMiddleware\:\:handle\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Parameter \$response of method Shardevcom\\Security\\Http\\Middleware\\SecurityHeadersMiddleware\:\:isHtml\(\) has invalid type Symfony\\Component\\HttpFoundation\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Parameter \$response of method Shardevcom\\Security\\Http\\Middleware\\SecurityHeadersMiddleware\:\:put\(\) has invalid type Symfony\\Component\\HttpFoundation\\Response\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/Http/Middleware/SecurityHeadersMiddleware.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Security\\SecurityServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 1
+			path: packages/shardevcom/security/src/SecurityServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Security\\SecurityServiceProvider\:\:mergeConfigFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/security/src/SecurityServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Security\\SecurityServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/security/src/SecurityServiceProvider.php
+
+		-
+			message: '#^Call to static method middleware\(\) on an unknown class Illuminate\\Support\\Facades\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/security/src/SecurityServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/security/src/SecurityServiceProvider.php
+
+		-
+			message: '#^Call to method getAvatar\(\) on an unknown class Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to method getEmail\(\) on an unknown class Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to method getId\(\) on an unknown class Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to method getName\(\) on an unknown class Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method driver\(\) on an unknown class Laravel\\Socialite\\Facades\\Socialite\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method error\(\) on an unknown class Illuminate\\Support\\Facades\\Log\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method get\(\) on an unknown class Illuminate\\Support\\Facades\\Config\.$#'
+			identifier: class.notFound
+			count: 4
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method make\(\) on an unknown class Illuminate\\Support\\Facades\\Hash\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method random\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Call to static method where\(\) on an unknown class App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Function now not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Method Shardevcom\\Socialite\\Contracts\\AbstractSocialiteDriver\:\:findOrCreateUser\(\) has invalid return type App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Method Shardevcom\\Socialite\\Contracts\\AbstractSocialiteDriver\:\:handleCallback\(\) has invalid return type Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Parameter \$socialiteUser of method Shardevcom\\Socialite\\Contracts\\AbstractSocialiteDriver\:\:findOrCreateUser\(\) has invalid type Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/AbstractSocialiteDriver.php
+
+		-
+			message: '#^Method Shardevcom\\Socialite\\Contracts\\SocialiteDriver\:\:findOrCreateUser\(\) has invalid return type App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/SocialiteDriver.php
+
+		-
+			message: '#^Method Shardevcom\\Socialite\\Contracts\\SocialiteDriver\:\:handleCallback\(\) has invalid return type Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/SocialiteDriver.php
+
+		-
+			message: '#^Parameter \$socialiteUser of method Shardevcom\\Socialite\\Contracts\\SocialiteDriver\:\:findOrCreateUser\(\) has invalid type Laravel\\Socialite\\Contracts\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Contracts/SocialiteDriver.php
+
+		-
+			message: '#^Access to property \$email on an unknown class App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Access to property \$id on an unknown class App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Access to property \$name on an unknown class App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Call to method createToken\(\) on an unknown class App\\Models\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Call to static method error\(\) on an unknown class Illuminate\\Support\\Facades\\Log\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Call to static method get\(\) on an unknown class Illuminate\\Support\\Facades\\Config\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Function response not found\.$#'
+			identifier: function.notFound
+			count: 8
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Method Shardevcom\\Socialite\\Http\\Controllers\\SocialiteController\:\:callback\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Method Shardevcom\\Socialite\\Http\\Controllers\\SocialiteController\:\:redirect\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Parameter \#1 \$error of static method Shardevcom\\Core\\Results\\ApiResponse\:\:error\(\) expects Shardevcom\\Core\\Results\\ApiError, Shardevcom\\Core\\Exceptions\\BusinessRuleViolation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Socialite\\Http\\Controllers\\SocialiteController\:\:callback\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Property Shardevcom\\Socialite\\Http\\Controllers\\SocialiteController\:\:\$authProvider is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: packages/shardevcom/socialite/src/Http/Controllers/SocialiteController.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Providers/GoogleDriver.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/Providers/MicrosoftDriver.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Socialite\\SocialiteServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 2
+			path: packages/shardevcom/socialite/src/SocialiteServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Socialite\\SocialiteServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/SocialiteServiceProvider.php
+
+		-
+			message: '#^Call to static method middleware\(\) on an unknown class Illuminate\\Support\\Facades\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/SocialiteServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/socialite/src/SocialiteServiceProvider.php
+
+		-
+			message: '#^Call to method has\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to method input\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 3
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to method render\(\) on an unknown class BaconQrCode\\Renderer\\ImageRenderer\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to method user\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 6
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to method validate\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method check\(\) on an unknown class Illuminate\\Support\\Facades\\Hash\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method encode\(\) on an unknown class BaconQrCode\\Encoder\\Encoder\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method generateSecretKey\(\) on an unknown class PragmaRX\\Google2FALaravel\\Facade\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method getQRCodeUrl\(\) on an unknown class PragmaRX\\Google2FALaravel\\Facade\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method random\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method upper\(\) on an unknown class Illuminate\\Support\\Str\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to static method verifyKey\(\) on an unknown class PragmaRX\\Google2FALaravel\\Facade\.$#'
+			identifier: class.notFound
+			count: 2
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Function config not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Function now not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Function response not found\.$#'
+			identifier: function.notFound
+			count: 7
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Instantiated class BaconQrCode\\Renderer\\ImageRenderer not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Instantiated class BaconQrCode\\Renderer\\Image\\SvgImageBackEnd not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Instantiated class BaconQrCode\\Renderer\\RendererStyle\\RendererStyle not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:disable\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:enable\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:error\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:qrCode\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:recoveryCodes\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:regenerateRecoveryCodes\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:verify\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$error of static method Shardevcom\\Core\\Results\\ApiResponse\:\:error\(\) expects Shardevcom\\Core\\Results\\ApiError, Shardevcom\\Core\\Exceptions\\BusinessRuleViolation given\.$#'
+			identifier: argument.type
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:disable\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:enable\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:qrCode\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:recoveryCodes\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:regenerateRecoveryCodes\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\TwoFactor\\Http\\Controllers\\TwoFactorController\:\:verify\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/Http/Controllers/TwoFactorController.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\TwoFactor\\TwoFactorServiceProvider\:\:loadMigrationsFrom\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/TwoFactorServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\TwoFactor\\TwoFactorServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/TwoFactorServiceProvider.php
+
+		-
+			message: '#^Call to static method middleware\(\) on an unknown class Illuminate\\Support\\Facades\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/TwoFactorServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/TwoFactorServiceProvider.php
+
+		-
+			message: '#^Function database_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/twofactor/src/TwoFactorServiceProvider.php
+
+		-
+			message: '#^Call to method query\(\) on an unknown class Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/Http/Controllers/WidgetsController.php
+
+		-
+			message: '#^Function response not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: packages/shardevcom/widgets/src/Http/Controllers/WidgetsController.php
+
+		-
+			message: '#^Method Shardevcom\\Widgets\\Http\\Controllers\\WidgetsController\:\:index\(\) has invalid return type Illuminate\\Http\\JsonResponse\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/Http/Controllers/WidgetsController.php
+
+		-
+			message: '#^Parameter \$request of method Shardevcom\\Widgets\\Http\\Controllers\\WidgetsController\:\:index\(\) has invalid type Illuminate\\Http\\Request\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/Http/Controllers/WidgetsController.php
+
+		-
+			message: '#^Access to an undefined property Shardevcom\\Widgets\\WidgetsServiceProvider\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/WidgetsServiceProvider.php
+
+		-
+			message: '#^Call to an undefined method Shardevcom\\Widgets\\WidgetsServiceProvider\:\:publishes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/WidgetsServiceProvider.php
+
+		-
+			message: '#^Call to static method middleware\(\) on an unknown class Illuminate\\Support\\Facades\\Route\.$#'
+			identifier: class.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/WidgetsServiceProvider.php
+
+		-
+			message: '#^Function config_path not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: packages/shardevcom/widgets/src/WidgetsServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Cli/Application.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<Shardevcom\\Cli\\Doctor\\CheckResult\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Cli/Command/DoctorCommand.php
+
+		-
+			message: '#^Anonymous function has an unused use \$printer\.$#'
+			identifier: closure.unusedUse
+			count: 1
+			path: src/Cli/Command/NewCommand.php
+
+		-
+			message: '#^Parameter \#2 \$expectations of method Shardevcom\\Cli\\Scaffold\\ProjectScaffolder\:\:verify\(\) expects list\<string\>, array\{array\{''php artisan route…'', ''api/v1'', ''REST routes are…''\}, array\{''php artisan route…'', ''graphql'', ''The GraphQL route…''\}, array\{''php artisan config…'', ''platform'', ''config/platform\.php…''\}, array\{''php artisan \-…'', ''Laravel Framework'', ''The generated…''\}\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Cli/Command/NewCommand.php
+
+		-
+			message: '#^Parameter \$options of static method Shardevcom\\Cli\\Input\\InputDefinition\:\:create\(\) expects array\<string, array\{description\: string, value\?\: bool, shortcut\?\: string, default\?\: string\}\>, array\{laravel\: array\{description\: ''Laravel version to…'', value\: true, default\: ''12''\}, no\-interaction\: array\{description\: ''Never prompt…'', shortcut\: ''n''\}, demo\: array\{description\: ''Install a demo…'', value\: true, default\: null\}\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Cli/Command/NewCommand.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: src/Cli/Console/Printer.php
+
+		-
+			message: '#^Offset ''laravel/framework'' on string in isset\(\) does not exist\.$#'
+			identifier: isset.offset
+			count: 2
+			path: src/Cli/Context.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: src/Cli/Context.php
+
+		-
+			message: '#^Property Shardevcom\\Cli\\Doctor\\ApiSuite\:\:\$filesystem is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Cli/Doctor/ApiSuite.php
+
+		-
+			message: '#^Call to function is_string\(\) with null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/Cli/Doctor/EnvironmentSuite.php
+
+		-
+			message: '#^Offset ''laravel/framework'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Cli/Doctor/EnvironmentSuite.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: src/Cli/Doctor/EnvironmentSuite.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and '''' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Cli/Doctor/EnvironmentSuite.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Cli/Doctor/EnvironmentSuite.php
+
+		-
+			message: '#^Offset ''psr\-4'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Cli/Doctor/PackagesSuite.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: src/Cli/Filesystem/LocalFilesystem.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 2
+			path: src/Cli/Filesystem/LocalFilesystem.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Cli/Input/InputDefinition.php
+
+		-
+			message: '#^Offset ''description'' on array\{description\: string, value\?\: bool, shortcut\?\: string, default\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Cli/Input/InputDefinition.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Cli/Input/InputDefinition.php
+
+		-
+			message: '#^Call to function is_string\(\) with \*NEVER\* will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Cli/Packages/PackageCatalog.php
+
+		-
+			message: '#^Call to function is_string\(\) with 0 will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/Cli/Packages/PackageCatalog.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: src/Cli/Packages/PackageCatalog.php
+
+		-
+			message: '#^Offset ''psr\-4'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Cli/Packages/PackageCatalog.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{\}\) to function array_values is empty, call has no effect\.$#'
+			identifier: arrayValues.empty
+			count: 1
+			path: src/Cli/Packages/PackageCatalog.php
+
+		-
+			message: '#^Cannot assign offset ''psr\-4'' to string\.$#'
+			identifier: offsetAssign.dimType
+			count: 1
+			path: src/Cli/Scaffold/ComposerEditor.php
+
+		-
+			message: '#^Offset ''psr\-4'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Cli/Scaffold/ComposerEditor.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Cli/Scaffold/DemoInstaller.php
+
+		-
+			message: '#^Cannot use array destructuring on string\.$#'
+			identifier: offsetAccess.nonArray
+			count: 1
+			path: src/Cli/Scaffold/ProjectScaffolder.php

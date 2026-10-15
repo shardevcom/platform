@@ -5408,7 +5408,7 @@
         },
         {
             "name": "shardev/core",
-            "version": "dev-main",
+            "version": "dev-master",
             "dist": {
                 "type": "path",
                 "url": "packages/shardev/core",
@@ -5438,11 +5438,11 @@
         },
         {
             "name": "shardev/documentation",
-            "version": "dev-main",
+            "version": "dev-master",
             "dist": {
                 "type": "path",
                 "url": "packages/shardev/documentation",
-                "reference": "44aca44030802d0f4d5ce0974e74a3c4879488b5"
+                "reference": "d0f06eb8d936816de24cbec25c6ac3020aa07054"
             },
             "require": {
                 "php": "^8.3",
@@ -5456,12 +5456,12 @@
             "type": "platform-package",
             "extra": {
                 "platform": {
-                    "provider": "Shardev\\Documentation\\DocumentationServiceProvider"
+                    "provider": "Shardevcom\\Documentation\\DocumentationServiceProvider"
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Shardev\\Documentation\\": "src/"
+                    "Shardevcom\\Documentation\\": "src/"
                 }
             },
             "license": [

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Contracts;
+namespace Shardevcom\Documentation\Contracts;
 
-use Shardev\Documentation\DTO\EndpointDocumentation;
-use Shardev\Documentation\DTO\GraphQLDocumentation;
+use Shardevcom\Documentation\DTO\EndpointDocumentation;
+use Shardevcom\Documentation\DTO\GraphQLDocumentation;
 
 /**
  * Contract for generating API documentation from various sources.

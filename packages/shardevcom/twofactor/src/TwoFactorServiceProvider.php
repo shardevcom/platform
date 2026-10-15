@@ -7,6 +7,8 @@ namespace Shardevcom\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Shardevcom\TwoFactor\Http\Controllers\TwoFactorController;
+use Shardevcom\TwoFactor\Http\Controllers\StepUpChallengeController;
+use Shardevcom\TwoFactor\Http\Middleware\RequireStepUpMfa;
 
 /**
  * Two-Factor Authentication package integration.
@@ -17,7 +19,8 @@ final class TwoFactorServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->singleton(\Shardevcom\TwoFactor\StepUpMfa::class);
+        $this->app->singleton(\Shardevcom\TwoFactor\Http\Middleware\RequireStepUpMfa::class);
     }
 
     public function boot(): void
@@ -29,17 +32,51 @@ final class TwoFactorServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
+        // Register middleware alias
+        $this->app->router->aliasMiddleware('2fa.step-up', \Shardevcom\TwoFactor\Http\Middleware\RequireStepUpMfa::class);
+
         $this->loadRoutes();
     }
 
     private function loadRoutes(): void
     {
-        // These routes sit under the un-prefixed /api/v1 surface, which belongs
-        // to the web platform. That platform's guard is session-based, so a
-        // token-bearing request authenticates against its api_guard instead
-        // (see config/platforms.php).
+        // Register 2FA routes under each platform
+        $platforms = config('platforms.platforms', []);
+
+        foreach ($platforms as $platform) {
+            $guard = $platform['guard'];
+            $prefix = $platform['prefix'] !== '' ? $platform['prefix'].'/api/v1' : 'api/v1';
+            $middleware = array_merge(['bind.guard'], $platform['middleware'] ?? []);
+
+            // Standard 2FA routes
+            Route::middleware($middleware)
+                ->prefix($prefix)
+                ->group(function () use ($guard) {
+                    Route::middleware('auth:'.$guard)
+                        ->group(__DIR__.'/../routes/api.php');
+                });
+
+            // Dynamic {guard} prefix for BindGuard middleware
+            Route::middleware($middleware)
+                ->prefix('{guard}/'.$platform['prefix'].'/api/v1')
+                ->group(function () use ($guard) {
+                    Route::middleware('auth:'.$guard)
+                        ->group(__DIR__.'/../routes/api.php');
+                });
+        }
+
+        // Step-up MFA routes (no specific guard, uses auth:api)
         Route::middleware(['api', 'auth:api'])
-            ->prefix('api/v1/auth/2fa')
-            ->group(__DIR__.'/../routes/api.php');
+            ->prefix('api/v1/auth/2fa/step-up')
+            ->group(function () {
+                Route::get('challenge', [\Shardevcom\TwoFactor\Http\Controllers\StepUpChallengeController::class, 'challenge'])
+                    ->name('2fa.step-up.challenge');
+                Route::post('verify', [\Shardevcom\TwoFactor\Http\Controllers\StepUpChallengeController::class, 'verify'])
+                    ->name('2fa.step-up.verify');
+                Route::get('devices', [\Shardevcom\TwoFactor\Http\Controllers\StepUpChallengeController::class, 'trustedDevices'])
+                    ->name('2fa.step-up.devices');
+                Route::delete('devices/{fingerprint}', [\Shardevcom\TwoFactor\Http\Controllers\StepUpChallengeController::class, 'revokeDevice'])
+                    ->name('2fa.step-up.revoke-device');
+            });
     }
 }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Exporters;
+namespace Shardevcom\Documentation\Exporters;
 
 use Illuminate\Support\Facades\File;
-use Shardev\Documentation\DTO\GraphQLDocumentation;
+use Shardevcom\Documentation\DTO\GraphQLDocumentation;
 
 /**
  * Exports documentation as Markdown files.

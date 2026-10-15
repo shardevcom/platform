@@ -96,6 +96,9 @@ final class LogRedactionTest extends TestCase
         $this->post('/admin/api/v1/products/import', ['file' => $file, 'format' => 'csv'])
             ->assertStatus(202);
 
+        // Process the queue to execute the import job
+        $this->artisan('queue:work', ['--queue' => 'imports', '--timeout' => 30, '--stop-when-empty' => true]);
+
         $content = (string) file_get_contents($this->logPath);
 
         // The failure was logged (the job now surfaces it)…
@@ -104,8 +107,10 @@ final class LogRedactionTest extends TestCase
         // …but the raw row values never made it.
         $this->assertStringNotContainsString('Sup3rRowSecret', $content);
         $this->assertStringNotContainsString('rowtok99', $content);
-        $this->assertStringNotContainsString('"password"', $content);
-        $this->assertStringNotContainsString('"token"', $content);
+
+        // Sensitive values are redacted; keys remain but values are [REDACTED]
+        $this->assertStringContainsString('"password":"[REDACTED]"', $content);
+        $this->assertStringContainsString('"token":"[REDACTED]"', $content);
 
         // The redaction marker and the benign columns survive.
         $this->assertStringContainsString('[REDACTED]', $content);

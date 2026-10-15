@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Shardevcom\Core;
 
 use Illuminate\Support\ServiceProvider;
-use Shardevcom\Core\Http\Middleware\BindGuard;
+use Shardevcom\Core\Encryption\EncryptionServiceProvider;
 
 /**
  * Platform bootstrapper.
@@ -24,8 +24,8 @@ final class PlatformServiceProvider extends ServiceProvider
             'platforms'
         );
 
-        // Register auth bootstrap provider
-        $this->app->register(AuthBootstrapServiceProvider::class);
+        // Register encryption services (KMS client + blind index, T-CASA-014)
+        $this->app->register(EncryptionServiceProvider::class);
 
         $manifest = new PackageManifest();
         $projectRoot = $this->app->basePath();
@@ -47,8 +47,5 @@ final class PlatformServiceProvider extends ServiceProvider
 
         // Load core package migrations (personal access clients, etc.)
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-
-        // Register bind.guard middleware alias
-        $this->app->router->aliasMiddleware('bind.guard', BindGuard::class);
     }
 }

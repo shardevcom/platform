@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Console\Commands;
+namespace Shardevcom\Documentation\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Shardev\Documentation\Contracts\DocumentationGenerator;
+use Shardevcom\Documentation\Contracts\DocumentationGenerator;
 
 /**
  * Generate API documentation command.

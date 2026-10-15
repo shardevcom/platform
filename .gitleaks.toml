@@ -1,0 +1,35 @@
+# Gitleaks configuration for Shardev Platform
+# Excludes test fixtures and known false positives
+
+[allowlist]
+description = "Test files with fake credentials for testing redaction + local dev files + docs"
+paths = [
+    "(?i)test[s]?/.*\\.php$",
+    "(?i)_test\\.php$",
+    "(?i)Test\\.php$",
+    "tests/",
+    "Tests/",
+    "^.env\\.example$",
+    "^.env\\.local$",
+    "\\.example\\.php$",
+    "README\\.md$",
+    "\\.md$",
+    "docs/",
+    "config/",
+]
+regexes = [
+    '''k-0987654321''',
+    '''eyJciOiJIUzI1NiJ9\\.some\\.payload\\.sign''',
+    '''S3cr3t-Pw!''',
+    '''Sup3rRowSecret''',
+    '''rowtok99''',
+    '''test[_-]?key''',
+    '''test[_-]?secret''',
+    '''fake[_-]?token''',
+    '''example[_-]?key''',
+    '''dummy[_-]?secret''',
+    '''placeholder''',
+    '''changeme''',
+    '''your[_-]?key''',
+    '''your[_-]?secret''',
+]

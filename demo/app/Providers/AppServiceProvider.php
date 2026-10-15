@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Platform\Authentication\PassportTokenResolver;
 use App\Platform\Authentication\StatelessPassportGuard;
 use App\Platform\Authentication\TokenScopeCatalogue;
+use App\Platform\Authentication\RefreshTokenRotation;
+use App\Platform\Authentication\StepUpMfa;
 use App\Platform\Authorization\ContextPermissionResolver;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Support\ServiceProvider;
@@ -31,6 +35,51 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TokenResolver::class, PassportTokenResolver::class);
         $this->app->singleton(AuthenticationProvider::class, BearerTokenAuthentication::class);
         $this->app->singleton(PermissionResolver::class, ContextPermissionResolver::class);
+        $this->app->singleton(RefreshTokenRotation::class);
+        $this->app->singleton(StepUpMfa::class);
+
+        // Configure Passport token lifetimes
+        $this->configurePassportLifetimes();
+    }
+
+    /**
+     * Configure Passport token lifetimes from config.
+     */
+    private function configurePassportLifetimes(): void
+    {
+        $accessTokenTtl = config('passport.access_token_expires_in', '1 hour');
+        $refreshTokenTtl = config('passport.refresh_token_expires_in', '7 days');
+        $personalAccessTokenTtl = config('passport.personal_access_token_expires_in', '1 year');
+
+        Passport::tokensExpireIn($this->parseDuration($accessTokenTtl));
+        Passport::refreshTokensExpireIn($this->parseDuration($refreshTokenTtl));
+        Passport::personalAccessTokensExpireIn($this->parseDuration($personalAccessTokenTtl));
+
+        // Refresh token rotation is handled by Passport's default behavior
+        // when using the refresh_token grant. T-CASA-007.
+    }
+
+    private function parseDuration(string $duration): \DateInterval
+    {
+        // Parse strings like "1 hour", "7 days", "1 year" into DateInterval
+        $parts = preg_split('/\s+/', trim($duration), 2);
+        if (count($parts) !== 2) {
+            return new \DateInterval('PT1H'); // default 1 hour
+        }
+
+        [$value, $unit] = $parts;
+        $value = (int) $value;
+
+        return match (strtolower($unit)) {
+            'second', 'seconds' => new \DateInterval('PT'.$value.'S'),
+            'minute', 'minutes' => new \DateInterval('PT'.$value.'M'),
+            'hour', 'hours' => new \DateInterval('PT'.$value.'H'),
+            'day', 'days' => new \DateInterval('P'.$value.'D'),
+            'week', 'weeks' => new \DateInterval('P'.$value.'W'),
+            'month', 'months' => new \DateInterval('P'.$value.'M'),
+            'year', 'years' => new \DateInterval('P'.$value.'Y'),
+            default => new \DateInterval('PT1H'),
+        };
     }
 
     /**

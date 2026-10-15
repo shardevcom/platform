@@ -38,6 +38,7 @@ final class SecretRedactionProcessor implements ProcessorInterface
         'set_cookie',
         'x_api_key',
         'apikey',
+        'api_key',
         'password',
         'password_confirmation',
         'secret',
@@ -87,7 +88,7 @@ final class SecretRedactionProcessor implements ProcessorInterface
     private function redactValue(mixed $value, string $key = ''): mixed
     {
         if ($this->isSensitiveKey($key)) {
-            return $value === null ? null : self::REPLACEMENT;
+            return $this->redactSensitiveValue($key, $value);
         }
 
         if (!is_array($value)) {
@@ -101,6 +102,25 @@ final class SecretRedactionProcessor implements ProcessorInterface
         }
 
         return $redacted;
+    }
+
+    /**
+     * Replaces a sensitive value. An Authorization header keeps its "Bearer "
+     * scheme at any depth for audit clarity; the credential itself is gone.
+     */
+    private function redactSensitiveValue(string $key, mixed $value): mixed
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (strcasecmp($key, 'authorization') === 0
+            && is_string($value)
+            && str_starts_with(strtolower($value), 'bearer ')) {
+            return 'Bearer '.self::REPLACEMENT;
+        }
+
+        return self::REPLACEMENT;
     }
 
     private function isSensitiveKey(string $key): bool

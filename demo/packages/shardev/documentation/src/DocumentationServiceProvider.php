@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation;
+namespace Shardevcom\Documentation;
 
 use Illuminate\Support\ServiceProvider;
-use Shardev\Documentation\Contracts\DocumentationGenerator;
-use Shardev\Documentation\Generators\DocumentationGeneratorImpl;
-use Shardev\Documentation\Parsers\ControllerParser;
-use Shardev\Documentation\Parsers\GraphQLParser;
-use Shardev\Documentation\Parsers\RouteParser;
-use Shardev\Documentation\Exporters\OpenApiExporter;
-use Shardev\Documentation\Exporters\GraphQLExporter;
-use Shardev\Documentation\Exporters\HtmlExporter;
-use Shardev\Documentation\Exporters\MarkdownExporter;
+use Shardevcom\Documentation\Contracts\DocumentationGenerator;
+use Shardevcom\Documentation\Generators\DocumentationGeneratorImpl;
+use Shardevcom\Documentation\Parsers\ControllerParser;
+use Shardevcom\Documentation\Parsers\GraphQLParser;
+use Shardevcom\Documentation\Parsers\RouteParser;
+use Shardevcom\Documentation\Exporters\OpenApiExporter;
+use Shardevcom\Documentation\Exporters\GraphQLExporter;
+use Shardevcom\Documentation\Exporters\HtmlExporter;
+use Shardevcom\Documentation\Exporters\MarkdownExporter;
 
 /**
  * Documentation package service provider.

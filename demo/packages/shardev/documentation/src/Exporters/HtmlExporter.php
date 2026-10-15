@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Exporters;
+namespace Shardevcom\Documentation\Exporters;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use Shardev\Documentation\DTO\GraphQLDocumentation;
+use Shardevcom\Documentation\DTO\GraphQLDocumentation;
 
 /**
  * Exports documentation as HTML (Swagger UI / Redoc compatible).

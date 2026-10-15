@@ -99,20 +99,21 @@ final class ProcessProductImportChunk implements ShouldQueue
                 // values that must never reach the logs (T-CASA-024); the
                 // redaction processor scrubs the sensitive columns before
                 // anything is written.
+                $rowArray = is_array($row) ? $row : $row->toArray();
                 app(LoggerInterface::class)->warning('Import row failed', [
                     'action' => 'import',
                     'resource' => 'products',
                     'row_number' => $rowNumber,
                     'error_code' => $errorCode,
                     'error_message' => $e->getMessage(),
-                    'row' => $row->toArray(),
+                    'row' => $rowArray,
                 ]);
 
                 // Record failure
                 ProductImportRow::createFailure(
                     $this->importId,
                     $rowNumber,
-                    $data ?? $row->toArray(),
+                    $data ?? $rowArray,
                     $errorCode,
                     $e->getMessage(),
                     $errorDetails

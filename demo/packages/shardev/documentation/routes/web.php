@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Shardev\Documentation\Contracts\DocumentationGenerator;
+use Shardevcom\Documentation\Contracts\DocumentationGenerator;
 
 /*
  |--------------------------------------------------------------------------

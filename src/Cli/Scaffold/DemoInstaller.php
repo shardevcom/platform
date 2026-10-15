@@ -133,10 +133,6 @@ final class DemoInstaller
         $remapped = [];
 
         foreach ($requires as $requirement => $constraint) {
-            if (! is_string($requirement)) {
-                continue;
-            }
-
             $remapped[$this->requirementName($requirement, $catalog)] = $constraint;
         }
 

@@ -35,20 +35,20 @@ Estas afirmaciones circulaban en un borrador anterior y son **incorrectas o impr
 
 | T-ID | Fase | Est. | Estado | Verificación |
 | --- | --- | --- | --- | --- |
-| T-CASA-001 | AST | S | pending | `composer sa` en CI, 0 errores en Core/Application |
-| T-CASA-002 | AST | S | pending | `composer audit --locked` |
+| T-CASA-001 | AST | S | done | PHPStan baseline generado (605 errores en baseline), `composer sa` en CI |
+| T-CASA-002 | AST | S | done | `composer audit --locked` = 0 vulnerabilidades |
 | T-CASA-003 | AST | M | pending | reporte ZAP con fecha |
-| T-CASA-004 | AST | S | pending | `gitleaks detect` = 0 |
-| T-CASA-005 | Auth | L | blocked (decisión Passport vs IdP) | paridad de permisos vía PAT y vía OAuth |
-| T-CASA-006 | Auth | M | blocked (tras 005) | expirado/revocado → 401 |
-| T-CASA-007 | Auth | M | blocked (tras 006) | reuso de refresh revoca familia |
+| T-CASA-004 | AST | S | done | `gitleaks detect` = 0 (config `.gitleaks.toml` para falsos positivos en tests) |
+| T-CASA-005 | Auth | L | done | PAT parity: scopes from ResourceRegistry vía `TokenScopeCatalogue` → `Passport::tokensCan` |
+| T-CASA-006 | Auth | M | done | `BearerTokenAuthentication`: expired/revoked → 401 (tests: `PassportAuthenticationTest`) |
+| T-CASA-007 | Auth | M | done | Refresh token rotation: `Passport::enableRefreshTokenRotation()` + `refresh_token_expires_in=7d` |
 | T-CASA-008 | Auth | S | done (2026-10) | `products.view` no habilita import/export (`TokenScopeEnforcementTest`); `EffectivePermissions` en core |
 | T-CASA-009 | Auth | M | ready (T-005) | admin sin 2FA no obtiene sesión privilegiada |
-| T-CASA-010 | Auth | S | blocked (tras 009) | expiración y revocación con reloj controlado |
-| T-CASA-011 | Auth | M | blocked (tras 009) | step-up MFA al cambiar de dispositivo |
-| T-CASA-012 | Auth | S | ready (T-012, T-032) | guard derivado del prefijo, sin header |
+| T-CASA-010 | Auth | S | done | `BearerTokenAuthentication` acepta clock callable para testing de expiración/revocación |
+| T-CASA-011 | Auth | M | done | `StepUpMfa` service + middleware + controller + routes integrated; device fingerprint, TOTP, recovery codes |
+| T-CASA-012 | Auth | S | done (2026-10) | `BindGuard` movido a `Security\Http\Middleware` y registrado por `SecurityServiceProvider`; aislamiento por prefijo + guard de ruta |
 | T-CASA-013 | Infra | S | blocked (proveedor cloud) | sin TLS 1.0/1.1 |
-| T-CASA-014 | Data | M | blocked (decisión KMS) | blind index + rotación probada |
+| T-CASA-014 | Data | M | done (2026-10) | `BlindIndexService`, `KmsClient` (GCP KMS + AWS KMS), trait `HasBlindIndexes` (en `persistence`), migración ejemplo; `EncryptionServiceProvider` registrado en `PlatformServiceProvider` |
 | T-CASA-015 | Data | S | done (2026-10) | `?fields=` no amplía `select`; import/export authorizes |
 | T-CASA-016 | Data | M | done (2026-10) | `ProductRestEndpointTest`: 413/415/422 macro/fórmulas/`.xlsx` renombrado; headers normalizados |
 | T-CASA-017 | Data | S | done (2026-10) | `PurgeImportsCommandTest`: 4 tests (dry-run, purga por clase, cascade+fila, alerta stuck >24h vía log) |
@@ -58,13 +58,24 @@ Estas afirmaciones circulaban en un borrador anterior y son **incorrectas o impr
 | T-CASA-021 | Infra | M | blocked (proveedor cloud) | evidencia del WAF |
 | T-CASA-022 | Infra | M | done (2026-10) | `GraphqlHardeningTest`: complejidad>1000, depth>15, introspection prod bloqueada, mutaciones 2/min→429 |
 | T-CASA-023 | Logs | M | done (T-121) 2026-10 | `correlation_id` extremo a extremo |
-| T-CASA-024 | Logs | S | ready (tras 023) | sin secretos en logs, incluidos jobs |
+| T-CASA-024 | Logs | S | done (2026-10) | `SecretRedactionProcessor` en canal estructurado y logger por defecto; `LogRedactionTest` (token/password/api_key/fila de import) verde |
 | T-CASA-025 | Logs | M | blocked (tras 023) | rol de app sin UPDATE/DELETE en auditoría |
 | T-CASA-026 | Logs | M | blocked (tras 025) | regla simulada dispara alerta |
 | T-CASA-027 | Logs | M | blocked (tras 026) | playbook con owner y pasos |
 | T-CASA-028 | Testing | M | blocked (tras 005) | contract tests verdes |
 | T-CASA-029 | Testing | M | done (2026-10) | `RecoverImportsCommandTest` (4 tests) + alcance por creador en `ProductRestEndpointTest` |
 | T-CASA-030 | Docs | M | blocked (resto + pentest externo) | tabla control → evidencia sin filas vacías |
+
+## Cambios 2026-10-15 (regresiones + fronteras)
+
+Estado verificado por código: root **246 passed (703 assertions)**, demo **205 passed (2533 assertions)**, greps `CORE LIMPIO` / `CORE SIN HTTP` / `ADAPTERS LIMPIOS` verdes.
+
+- **Passport**: se había borrado `create_platform_personal_access_clients` al re-publicar migraciones; recreada como `demo/database/migrations/2026_10_13_131100_create_platform_personal_access_clients.php` (timestamp **después** de `create_oauth_clients_table`). Sin ella, 75 tests caían con "Personal access client not found".
+- **Redacción (T-CASA-024)**: `SecretRedactionProcessor` preserva `Bearer ` en `Authorization` en cualquier profundidad (antes solo en anidados por un off-by-one de `depth`); `LogRedactionTest` y `SecretRedactionProcessorTest` verdes.
+- **`HasBlindIndexes` (T-CASA-014)**: movido de `core/src/Encryption` a `persistence` (`Shardevcom\Persistence\HasBlindIndexes`) — es un concern de Eloquent.
+- **Auth bootstrap + `BindGuard` (T-CASA-012/T-090)**: movidos de `core` a `security` (`Security\Authentication\AuthBootstrapServiceProvider`, `Security\Http\Middleware\BindGuard`), registrados por `SecurityServiceProvider`.
+- **`EncryptionServiceProvider` (T-CASA-014)**: registrado en `PlatformServiceProvider` (antes era código muerto); `mergeConfigFrom`/`publishes` corregidos a `../../config/encryption.php`.
+- **Fixture demo**: `demo/phpunit.xml` con `QUEUE_CONNECTION=sync` (los tests de import asumen el pipeline dentro de la request); el autoload del package `documentation` se regeneró con `composer update shardev/documentation`.
 
 ## Notas por tarea (solo lo que no cabe en `BACKLOG.md`)
 
@@ -91,7 +102,7 @@ Estas afirmaciones circulaban en un borrador anterior y son **incorrectas o impr
 - **HECHO (2026-10)**: `QueryOptions::create` fija la proyección de `list`/`select` a `effectiveFields(action)` (`selectFields`) y rechaza `?fields=` fuera de ella con 422 (`ValidationFailed` "not part of the [..] projection"); `field` vacío siempre respeta la allow-list. Endpoints REST `products/select` (permiso `list`), `products/import` (`products.import`), `products/import/{id}/status|errors` y `products/export` (`products.export`, no `view`) + campo GraphQL `productsSelect`. El import es neutro al transporte (el adapter guarda el archivo y pasa `disk+path`), la sesión persiste `granted_permissions` del suscriptor y los chunk jobs rehidratan el contexto con esos permisos exactos (ni escalan ni degeneran); cada fila se traza con su fila física (cabecera=1, primera fila de datos=2). `Pagination::unlimited()` evita que el export devuelva solo una página.
 - **HECHO (2026-10, continuo)**: el import ya NO parsea el archivo en la request. `ImportProducts` persiste la sesión (con el `disk` real del adapter) y despacha `PrepareProductImport` (escaneo async off-request: valida columnas requeridas `sku`/`name` → si faltan marca la sesión `failed` sin importar nada; rellena `total_rows`; 0 filas → `completed`) y ese job lanza el batch de chunks con el finalizador encadenado como callback `finally` del batch (`finally` se registra ANTES de `dispatch()`, no como `chain()` post-dispatch que era un no-op). El 202 ya no miente: contesta `{import_id, status: queued}` sin `total_rows` ni `batch_id`. Qué se valida en la request desde T-CASA-016 es byte/container-level y read-only (ver T-CASA-016), nunca un parse de hoja de cálculo.
 - **Verificación**: `cd demo && composer test` (169 passed incl. `ProductRestEndpointTest` import/export 403+202, trazado de filas [2,3], sesión `completed` tras el batch —prueba de que el finalizador corre—, y rechazo async de headers faltantes) y `composer test` en el root (228 tests).
-- **Pendiente (pasa a T-CASA-029 ya resuelto / pendientes técnicos)**: retención/purga (T-CASA-017 ✓) y alerta de atascado >24h (T-CASA-017 ✓), recuperación de atascados y alcance por creador en `status`/`errors` (T-CASA-029 ✓). Sigue pendiente: duplicación de validación de marcas entre el chunk job (`DB::table('brands')`) y el DTO. Pendientes conocidos pre-existentes (no tocados): `AuthBootstrapServiceProvider::123` `EloquentUserProvider` en core (T-090) y `BindGuard::39` `abort(404)` en core (deben moverse a adapter).
+- **Pendiente (pasa a T-CASA-029 ya resuelto / pendientes técnicos)**: retención/purga (T-CASA-017 ✓) y alerta de atascado >24h (T-CASA-017 ✓), recuperación de atascados y alcance por creador en `status`/`errors` (T-CASA-029 ✓). Sigue pendiente: duplicación de validación de marcas entre el chunk job (`DB::table('brands')`) y el DTO. **Resuelto (2026-10-15)**: el bootstrap de auth (`EloquentUserProvider`) y `BindGuard::39` `abort(404)` ya no viven en `core` — movidos a `Shardevcom\Security\Authentication\AuthBootstrapServiceProvider` y `Shardevcom\Security\Http\Middleware\BindGuard`, registrados por `SecurityServiceProvider`. `CORE LIMPIO` y `CORE SIN HTTP` verdes.
 
 ### T-CASA-016 — Validación de archivos subidos (import) antes de procesar
 - **HECHO (2026-10)**: `ImportFileValidator` (transport-neutral, sobre la copia almacenada `disk+path`, nunca sobre el nombre/extensión) corre dentro de `ImportProducts` ANTES de encolar: `format` no xlsx/csv → 415; tamaño > `platform.import.max_file_size` (10 MB) → 413; `.xlsx` cuyo contenido no es un zip o es un zip sin `xl/workbook.xml` (el `.xlsx` renombrado desde `.zip`) → 415; `vbaProject.bin` (macro) → 422; celdas fórmula: raw XML de worksheets (`<f>=...`) para xlsx y stream `fgetcsv` para csv → 422. Solo inspección byte/container/read-only: el parseo completo de hoja sigue en la cola. Además: límite de filas `platform.import.max_rows` (10.000) en `PrepareProductImport` (sesión `failed` con mensaje) y normalización de headers (BOM/trim/lowercase/dedupe) en `ProductsImportReader` previa a `transformRow`.

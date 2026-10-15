@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Parsers;
+namespace Shardevcom\Documentation\Parsers;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
-use Shardev\Documentation\DTO\EndpointDocumentation;
+use Shardevcom\Documentation\DTO\EndpointDocumentation;
 
 /**
  * Parses controller classes and FormRequests to enrich endpoint documentation.

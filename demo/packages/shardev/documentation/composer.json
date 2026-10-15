@@ -5,12 +5,12 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Shardev\\Documentation\\": "src/"
+            "Shardevcom\\Documentation\\": "src/"
         }
     },
     "extra": {
         "platform": {
-            "provider": "Shardev\\Documentation\\DocumentationServiceProvider"
+            "provider": "Shardevcom\\Documentation\\DocumentationServiceProvider"
         }
     },
     "require": {

@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Generators;
+namespace Shardevcom\Documentation\Generators;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
-use Shardev\Documentation\Contracts\DocumentationGenerator;
-use Shardev\Documentation\DTO\EndpointDocumentation;
-use Shardev\Documentation\DTO\GraphQLDocumentation;
-use Shardev\Documentation\Parsers\RouteParser;
-use Shardev\Documentation\Parsers\ControllerParser;
-use Shardev\Documentation\Parsers\GraphQLParser;
-use Shardev\Documentation\Exporters\OpenApiExporter;
-use Shardev\Documentation\Exporters\GraphQLExporter;
-use Shardev\Documentation\Exporters\HtmlExporter;
-use Shardev\Documentation\Exporters\MarkdownExporter;
+use Shardevcom\Documentation\Contracts\DocumentationGenerator;
+use Shardevcom\Documentation\DTO\EndpointDocumentation;
+use Shardevcom\Documentation\DTO\GraphQLDocumentation;
+use Shardevcom\Documentation\Parsers\RouteParser;
+use Shardevcom\Documentation\Parsers\ControllerParser;
+use Shardevcom\Documentation\Parsers\GraphQLParser;
+use Shardevcom\Documentation\Exporters\OpenApiExporter;
+use Shardevcom\Documentation\Exporters\GraphQLExporter;
+use Shardevcom\Documentation\Exporters\HtmlExporter;
+use Shardevcom\Documentation\Exporters\MarkdownExporter;
 
 /**
  * Main documentation generator implementation.

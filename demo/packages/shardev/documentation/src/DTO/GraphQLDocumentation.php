@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\DTO;
+namespace Shardevcom\Documentation\DTO;
 
 /**
  * Represents GraphQL API documentation (SDL + introspection).

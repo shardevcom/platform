@@ -22,7 +22,9 @@ final class ProductsImportReader implements ToCollection, WithHeadingRow
         $this->rowCount = $rows->count();
 
         if ($rows->isNotEmpty()) {
-            $this->headers = $this->normalizeHeaders(array_keys($rows->first()->toArray()));
+            $first = $rows->first();
+            $firstArray = is_array($first) ? $first : $first->toArray();
+            $this->headers = $this->normalizeHeaders(array_keys($firstArray));
         }
     }
 

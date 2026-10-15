@@ -15,6 +15,9 @@
     },
     "require-dev": {
         "monolog/monolog": "^3.0",
+        "phpstan/phpstan": "^2.3",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.1",
         "phpunit/phpunit": "^11.5.50",
         "symfony/console": "^7.0"
     },

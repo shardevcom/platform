@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\DTO;
+namespace Shardevcom\Documentation\DTO;
 
 /**
  * Represents a single API endpoint documentation.

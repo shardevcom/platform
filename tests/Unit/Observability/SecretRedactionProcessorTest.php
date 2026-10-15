@@ -47,8 +47,8 @@ final class SecretRedactionProcessorTest extends TestCase
         $line = (new SecretRedactionProcessor())($record);
         $context = $line->context;
 
-        // Sensitive keys replaced.
-        $this->assertSame('[REDACTED]', $context['Authorization']);
+        // Sensitive keys replaced. Authorization keeps its "Bearer " scheme.
+        $this->assertSame('Bearer [REDACTED]', $context['Authorization']);
         $this->assertSame('[REDACTED]', $context['password']);
         $this->assertSame('[REDACTED]', $context['api_token']);
         $this->assertSame('[REDACTED]', $context['X-API-Key']);
@@ -56,7 +56,8 @@ final class SecretRedactionProcessorTest extends TestCase
         $this->assertSame('[REDACTED]', $context['Set-Cookie']);
 
         // Nested (headers map, failed-import row).
-        $this->assertSame('[REDACTED]', $context['headers']['authorization']);
+        // Authorization header preserves "Bearer " prefix at all depths for audit clarity
+        $this->assertSame('Bearer [REDACTED]', $context['headers']['authorization']);
         $this->assertSame('[REDACTED]', $context['headers']['x-api-key']);
         $this->assertSame('[REDACTED]', $context['headers']['cookie']);
         $this->assertSame('[REDACTED]', $context['row']['password']);

@@ -16,6 +16,9 @@ use Shardevcom\Cli\Doctor\EnvironmentSuite;
 use Shardevcom\Cli\Doctor\PackageIntegrationSuite;
 use Shardevcom\Cli\Doctor\PackagesSuite;
 use Shardevcom\Cli\Doctor\ProjectSuite;
+use Shardevcom\Cli\Doctor\SecurityRuleRegistry;
+use Shardevcom\Cli\Doctor\SecuritySuite;
+use Shardevcom\Cli\Doctor\SecuritySeverity;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Packages\PackageCatalog;
@@ -53,14 +56,53 @@ final class DoctorCommand implements CommandInterface
 
     public function getDefinition(): InputDefinition
     {
-        return InputDefinition::create();
+        return InputDefinition::create(
+            options: [
+                'category' => [
+                    'description' => 'Limit checks to specific category (security, config, code, auth, api, jobs, dependencies)',
+                    'value' => true,
+                ],
+                'severity' => [
+                    'description' => 'Minimum severity to report (critical, high, medium, low, info)',
+                    'value' => true,
+                ],
+                'path' => [
+                    'description' => 'Restrict analysis to specific path within project',
+                    'value' => true,
+                ],
+                'no-external-tools' => [
+                    'description' => 'Skip checks that require external tools (composer audit, etc.)',
+                ],
+                'format' => [
+                    'description' => 'Output format (table, json)',
+                    'value' => true,
+                    'default' => 'table',
+                ],
+            ],
+        );
     }
 
     public function getHelp(): string
     {
         return Printer::capture(static function (Printer $printer): void {
             $printer->heading('platform doctor');
-            $printer->info('Usage: platform doctor');
+            $printer->info('Usage: platform doctor [options]');
+            $printer->writeln();
+            $printer->writeln('  Options:');
+            $printer->table([], (new self(
+                new \Shardevcom\Cli\Context(
+                    new \Shardevcom\Cli\Console\Printer(
+                        fopen('php://memory', 'w'),
+                        fopen('php://memory', 'w'),
+                        false
+                    ),
+                    new \Shardevcom\Cli\Filesystem\LocalFilesystem(),
+                    new \Shardevcom\Cli\Process\ShellProcessRunner(),
+                    '/tmp',
+                    '/tmp'
+                )
+            ))->getDefinition()->helpRows());
+            $printer->writeln();
             $printer->note('Runs from a generated project directory (walks up to its composer.json).');
         });
     }
@@ -68,7 +110,7 @@ final class DoctorCommand implements CommandInterface
     public function execute(Input $input, Context $context): int
     {
         $printer = $context->printer();
-        $groups = $this->groups();
+        $groups = $this->groups($input);
         $showSuites = count($groups) > 1;
 
         $printer->heading('Shardev Platform Doctor');
@@ -115,11 +157,11 @@ final class DoctorCommand implements CommandInterface
      *
      * @return list<array{suite: string, results: list<CheckResult>}>
      */
-    private function groups(): array
+    private function groups(Input $input): array
     {
         $groups = [];
 
-        foreach ($this->suites() as $suite) {
+        foreach ($this->suites($input) as $suite) {
             try {
                 $results = $suite->run();
             } catch (\Throwable $exception) {
@@ -138,7 +180,7 @@ final class DoctorCommand implements CommandInterface
     /**
      * @return list<CheckSuite>
      */
-    private function suites(): array
+    private function suites(Input $input): array
     {
         if ($this->suites !== []) {
             return $this->suites;
@@ -147,6 +189,19 @@ final class DoctorCommand implements CommandInterface
         $projectRoot = $this->context->projectRoot();
         $filesystem = $this->context->filesystem;
         $catalog = $this->catalogFor($projectRoot);
+
+        $registry = new SecurityRuleRegistry();
+        $this->registerSecurityRules($registry);
+
+        $minSeverity = null;
+        if ($input->option('severity') !== null) {
+            $minSeverity = SecuritySeverity::tryFrom($input->option('severity'));
+        }
+
+        $categories = null;
+        if ($input->option('category') !== null) {
+            $categories = explode(',', $input->option('category'));
+        }
 
         return [
             new EnvironmentSuite($filesystem, $this->context->process, $projectRoot),
@@ -157,7 +212,22 @@ final class DoctorCommand implements CommandInterface
             new ApplicationSuite($this->context->process, $projectRoot),
             new ApiSuite($this->context->process, $filesystem, $projectRoot),
             new AuthenticationSuite($this->context->process, $filesystem, $projectRoot),
+            new SecuritySuite($filesystem, $this->context->process, $projectRoot, $registry, $minSeverity, $categories),
         ];
+    }
+
+    private function registerSecurityRules(SecurityRuleRegistry $registry): void
+    {
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\DebugModeEnabledRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\SessionCookieSecureRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\CorsConfigurationRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\ExposedSecretsRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\IdorRiskRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\MassAssignmentRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\JobSecurityRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\DependencyAuditRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\ApiSecurityRule());
+        $registry->register(new \Shardevcom\Cli\Doctor\Rules\MassAssignmentRule());
     }
 
     /**

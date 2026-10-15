@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Shardevcom\Product;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 use Shardevcom\Core\Contracts\QueryExecutor as QueryExecutorContract;
 use Shardevcom\Core\Contracts\ResourceRegistry as RegistryContract;
 use Shardevcom\Core\Lifecycle\ActionLifecycle;
@@ -72,12 +72,22 @@ final class ProductServiceProvider extends ServiceProvider
         $platforms = Config::get('platforms.platforms', []);
 
         foreach ($platforms as $platform) {
-            $prefix = $platform['prefix'] !== '' ? $platform['prefix'].'/api/v1' : 'api/v1';
             $guard = $platform['guard'];
             $middleware = array_merge(['bind.guard'], $platform['middleware'] ?? []);
 
+            // Static prefix for backward compatibility
             Route::middleware($middleware)
-                ->prefix($prefix)
+                ->prefix($platform['prefix'] !== '' ? $platform['prefix'].'/api/v1' : 'api/v1')
+                ->group(function () use ($guard) {
+                    Route::middleware('auth:'.$guard)
+                        ->group(__DIR__.'/../routes/api.php');
+                });
+
+            // Dynamic {guard} prefix for BindGuard middleware
+            // Note: where() constraint on group with prefix parameter has a bug in Laravel,
+            // so we apply it per-route in the route file instead
+            Route::middleware($middleware)
+                ->prefix('{guard}/'.$platform['prefix'].'/api/v1')
                 ->group(function () use ($guard) {
                     Route::middleware('auth:'.$guard)
                         ->group(__DIR__.'/../routes/api.php');

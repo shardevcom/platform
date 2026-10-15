@@ -1,0 +1,38 @@
+includes:
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+
+parameters:
+    level: 5
+    paths:
+        - packages/shardevcom/core/src
+        - packages/shardevcom/application/src
+        - packages/shardevcom/authorization/src
+        - packages/shardevcom/resources/src
+        - packages/shardevcom/persistence/src
+        - packages/shardevcom/graphql/src
+        - packages/shardevcom/rest/src
+        - packages/shardevcom/observability/src
+        - packages/shardevcom/security/src
+        - packages/shardevcom/socialite/src
+        - packages/shardevcom/twofactor/src
+        - packages/shardevcom/widgets/src
+        - packages/shardevcom/configuration/src
+        - packages/shardevcom/documentation/src
+        - src
+
+    excludePaths:
+        analyseAndScan:
+            - packages/*/tests
+            - packages/*/database
+            - packages/*/routes
+            - packages/*/config
+            - vendor
+            - demo
+            - storage
+            - bootstrap/cache (?)
+            - var (?)
+
+    treatPhpDocTypesAsCertain: true
+
+    ignoreErrors:
+        - '#^Variable \$\w+ is never used#'

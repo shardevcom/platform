@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Parsers;
+namespace Shardevcom\Documentation\Parsers;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;

@@ -40,8 +40,16 @@ final class ComposerEditor
         $composer = $this->filesystem->readJson($file)
             ?? throw CommandFailed::create("composer.json not found in {$projectPath}");
 
+        // Ensure autoload is an array with psr-4 key
+        /** @var array{psr-4?: array<string, string>}|array{string}|null $autoload */
+        $autoload = $composer['autoload'] ?? [];
+        if (! is_array($autoload)) {
+            $autoload = ['psr-4' => []];
+        }
+        $autoload['psr-4'] = $autoload['psr-4'] ?? [];
+        $composer['autoload'] = $autoload;
         $composer['autoload']['psr-4'] = array_merge(
-            (array) ($composer['autoload']['psr-4'] ?? []),
+            $autoload['psr-4'],
             $this->catalog->psr4Map()
         );
 

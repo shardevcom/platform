@@ -163,11 +163,12 @@ final class ProjectScaffolder
     /**
      * Verifies the installed project boots and exposes the platform surface.
      *
-     * @param list<string> $expectations substrings the artisan output must contain
+     * @param list<array{0: string, 1: string, 2: string}> $expectations
      */
     public function verify(string $projectPath, array $expectations): void
     {
         foreach ($expectations as $expectation) {
+            /** @var list{string, string, string} $expectation */
             [$command, $needle, $message] = $expectation;
 
             $result = $this->run($command, $projectPath);

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Shardevcom\Configuration\Providers\CoreConfigurationProvider;
 use Shardevcom\Configuration\Providers\PreferencesConfigurationProvider;
+use Shardevcom\Configuration\ConfigurationRegistry;
 
 /**
  * Configuration package integration.
@@ -44,13 +45,24 @@ final class ConfigurationServiceProvider extends ServiceProvider
         $platforms = Config::get('platforms.platforms', []);
 
         foreach ($platforms as $platform) {
-            $prefix = $platform['prefix'] !== '' ? $platform['prefix'].'/api/v1' : 'api/v1';
             $guard = $platform['guard'];
             $middleware = array_merge(['bind.guard'], $platform['middleware'] ?? []);
 
+            // Static prefix for backward compatibility
             Route::middleware($middleware)
-                ->prefix($prefix)
-                ->group(__DIR__.'/../routes/api.php');
+                ->prefix($platform['prefix'] !== '' ? $platform['prefix'].'/api/v1' : 'api/v1')
+                ->group(function () use ($guard) {
+                    Route::get('configuration', \Shardevcom\Configuration\Http\Controllers\ConfigurationController::class.'@index')
+                        ->name("configuration.{$guard}.index");
+                });
+
+            // Dynamic {guard} prefix for BindGuard middleware
+            Route::middleware($middleware)
+                ->prefix('{guard}/'.$platform['prefix'].'/api/v1')
+                ->group(function () use ($guard) {
+                    Route::get('configuration', \Shardevcom\Configuration\Http\Controllers\ConfigurationController::class.'@index')
+                        ->name("configuration.{$guard}.index");
+                });
         }
     }
 }

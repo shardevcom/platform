@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Shardev\Documentation\Parsers;
+namespace Shardevcom\Documentation\Parsers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
-use Shardev\Documentation\DTO\EndpointDocumentation;
+use Shardevcom\Documentation\DTO\EndpointDocumentation;
 
 /**
  * Parses Laravel routes to extract endpoint information.

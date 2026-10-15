@@ -6,6 +6,8 @@ namespace Shardevcom\Security;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Shardevcom\Security\Authentication\AuthBootstrapServiceProvider;
+use Shardevcom\Security\Http\Middleware\BindGuard;
 use Shardevcom\Security\Http\Middleware\CrossTenantIdorMiddleware;
 use Shardevcom\Security\Http\Middleware\CspMiddleware;
 use Shardevcom\Security\Http\Middleware\RateLimitMiddleware;
@@ -22,6 +24,11 @@ final class SecurityServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/security.php', 'security');
+
+        // Multi-platform auth wiring (guards, providers, password resets).
+        // Eloquent user providers are an infrastructure concern: they live in
+        // this adapter, not in core (T-090/T-CASA-012).
+        $this->app->register(AuthBootstrapServiceProvider::class);
     }
 
     public function boot(): void
@@ -35,6 +42,7 @@ final class SecurityServiceProvider extends ServiceProvider
         // Route::middleware('name', Class) here would return a pending
         // registration and silently register nothing.
         $router = $this->app['router'];
+        $router->aliasMiddleware('bind.guard', BindGuard::class);
         $router->aliasMiddleware('cross-tenant-idor', CrossTenantIdorMiddleware::class);
         $router->aliasMiddleware('csp', CspMiddleware::class);
         $router->aliasMiddleware('rate.limit', RateLimitMiddleware::class);
