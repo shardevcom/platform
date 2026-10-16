@@ -5,12 +5,21 @@
 - **Dep:** T-070, T-073, T-081
 - **Aceptación:** Dev nuevo <10 min → `GET /api/v1/products → 200` y `{ products { id name } }` con sqlite.
 - **Est:** M
+- **Estado:** ✅ DONE (2026-10-16). `README.md` cubre los puntos de visión (§1-12, sin numeración duplicada) + ejemplos REST (§6) y GraphQL (§7) + smoke reproducible (§13) + `platform doctor` (§12). Smoke: `bin/platform new` → `php artisan serve` → token Passport → `GET .../products` 200 → mutation/query GraphQL → `platform doctor`.
+- **Verificación:** `grep -n "^## " README.md` (secciones 1-16 consecutivas); smoke §13 ejecutado contra `demo/api`.
 
 ## T-121 — Docs — Observabilidad + cache decorator
 - **Desc:** `request_id/correlation_id` en lifecycle; contratos Logger/Meter/Tracer sin vendor; patrón `CachedProductRepository` + invalidación eventos. Sin cache manual por repo.
 - **Dep:** T-050
 - **Aceptación:** `correlation_id` en logs `execute()`; doc diagrama `Repo→Cache→Persistence` + ejemplo compilable.
 - **Est:** M
+- **Estado:** ✅ DONE (2026-10-16).
+  - Contratos sin vendor lock en `packages/shardevcom/core/src/Contracts/`: `Logger`, `Meter`, `Tracer` (+ `Span`, `SpanContext`) y **nuevo** `CacheStore` (puerto mínimo del decorador).
+  - `correlation_id`/`request_id` propagados vía `ApplicationContext` → `LoggingHooks`. Test: `LoggingHooksTest::test_after_action_logs_dimensions_with_correlation_id`.
+  - Decorador **real y compilable** (no cableado): `packages/shardevcom/product/src/Repositories/CachedProductRepository.php` (read-through + `forget` en escritura; auth en un solo funnel = el repo interno).
+  - Diagrama `Use Case → CachedProductRepository → ProductRepository` + puerto `CacheStore` en `README.md` §15.
+- **Verificación:** `vendor/bin/phpunit --filter=CachedProductRepositoryTest` (5 tests: cache hit, invalidación en update/delete, delegación de findMany, sustituibilidad); `grep -n "test_after_action_logs_dimensions_with_correlation_id" tests/Unit/Observability/LoggingHooksTest.php`.
+
 
 ## T-122 — Docs — Hardening seguridad & performance
 - **Checklist:** auth-before-persistence, validación única, allow-list F/I/S, mass assignment, rate limit, token expiry/revocación, auditabilidad, errores seguros, sin whereRaw/SQL arbitrario, sin eager arbitrario, N+1, límites page/complexity/depth.

@@ -235,7 +235,7 @@ DELETE /api/v1/products/{id}
 
 Sin leak de SQL/trace con `APP_DEBUG=false`.
 
-## 6. GraphQL API — `/graphql`
+## 7. GraphQL API — `/graphql`
 
 Mismos Use Cases + Repository que REST. Mapeo args → `QueryOptions`.
 
@@ -281,7 +281,7 @@ mutation {
 }
 ```
 
-## 7. Autorización — `AuthorizationManager`
+## 8. Autorización — `AuthorizationManager`
 
 Punto centralizado. Repository pregunta `authorize('products', UPDATE, $context)`; no sabe cómo se almacenan permisos. Permiso derivado `{resource}.{action}`.
 
@@ -295,7 +295,7 @@ $manager->authorize('products', ResourceAction::UPDATE, $context);
 
 **Regla:** NUNCA `Gate::authorize` ni `$user->can` en controllers/resolvers. Solo en `AuthorizationManager`/adapter.
 
-## 8. Configuración — `ConfigurationRegistry`
+## 9. Configuración — `ConfigurationRegistry`
 
 Providers registrados desde cualquier package con visibilidad:
 
@@ -310,7 +310,7 @@ ConfigurationProvider::make('core', fn () => [
 GET /api/configuration?include=core,preferences,inexistente
 ```
 
-## 9. Extender la plataforma
+## 10. Extender la plataforma
 
 ### Nuevo recurso (ej. `orders`)
 
@@ -325,7 +325,7 @@ GET /api/configuration?include=core,preferences,inexistente
 
 Implementar `QueryExecutor` + `EloquentResourcePersistence` (o otro ORM) en `Infrastructure/`.
 
-## 10. Testing
+## 11. Testing
 
 ### Suite del framework (root)
 ```bash
@@ -348,7 +348,7 @@ cd demo/api && php artisan test --filter=LayeringRulesTest
 # Core↛Eloquent/HTTP, Adapters↛Model/::query(), Auth solo en AuthorizationManager, etc.
 ```
 
-## 11. Health Check — `platform doctor`
+## 12. Health Check — `platform doctor`
 
 ```bash
 # Desde el proyecto generado
@@ -377,7 +377,7 @@ Exit: 0
 
 ---
 
-## 12. Smoke Test — Verificación rápida (< 10 min)
+## 13. Smoke Test — Verificación rápida (< 10 min)
 
 Objetivo: un dev nuevo llega a `GET /api/v1/products → 200` y `{ products { id name } }` con sqlite.
 
@@ -427,7 +427,7 @@ curl -X POST -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/js
 
 ---
 
-## 13. Uso rápido
+## 14. Uso rápido
 
 ```bash
 # Framework
@@ -471,7 +471,7 @@ composer ci
 
 ---
 
-## 14. Observabilidad (T-121)
+## 15. Observabilidad (T-121)
 
 ### Contratos sin vendor lock
 
@@ -540,73 +540,92 @@ class AuditHook implements LifecycleHooks {
 
 ### Patrón Cache Decorator (ejemplo compilable)
 
-En lugar de cache manual dentro del Repository, usa un decorador que invalida vía eventos del lifecycle:
+En lugar de cache manual dentro del Repository, usa un decorador que lee a través de la cache e invalida en cada escritura. El puerto de cache es agnóstico de vendor (`Shardevcom\Core\Contracts\CacheStore`), así que el adaptador concreto (PSR-16, Laravel Cache, Redis…) vive en infraestructura.
+
+El ejemplo es una clase real y compilable, **no cableada por defecto**: `packages/shardevcom/product/src/Repositories/CachedProductRepository.php`.
 
 ```php
-// packages/shardevcom/product/src/Repositories/CachedProductRepository.php
-final class CachedProductRepository extends AbstractResourceRepository {
+// extracto de CachedProductRepository (Shardevcom\Product\Repositories)
+final class CachedProductRepository extends AbstractResourceRepository
+{
+    private const TTL_SECONDS = 300;
+
     public function __construct(
-        private AbstractResourceRepository $inner,
-        private \Illuminate\Contracts\Cache\Repository $cache,
-        private \Illuminate\Contracts\Events\Dispatcher $events,
+        private readonly AbstractResourceRepository $inner,
+        private readonly CacheStore $cache,      // Shardevcom\Core\Contracts\CacheStore
         ActionLifecycle $lifecycle,
         QueryExecutor $executor,
     ) {
         parent::__construct($lifecycle, $executor);
-        $this->listenInvalidation();
     }
 
-    private function listenInvalidation(): void {
-        $this->events->listen('product.updated', fn ($id) => $this->cache->forget("product:{$id}"));
-        $this->events->listen('product.deleted', fn ($id) => $this->cache->forget("product:{$id}"));
+    public function find(string|int $id, ApplicationContext $context): ?array
+    {
+        $key = $this->resourceName().':'.$id;
+
+        if (is_array($cached = $this->cache->get($key))) {
+            return $cached;
+        }
+
+        $row = $this->inner->find($id, $context);
+        $row !== null && $this->cache->put($key, $row, self::TTL_SECONDS);
+
+        return $row;
     }
 
-    protected function persistFind(string $id, ApplicationContext $context, array $includes = []): ?array {
-        return $this->cache->remember("product:{$id}", 300, fn () => $this->inner->find($id, $context));
-    }
+    public function update(string|int $id, array $attributes, ApplicationContext $context): array
+    {
+        $row = $this->inner->update($id, $attributes, $context);
+        $this->cache->forget($this->resourceName().':'.$id);
 
-    // Delega el resto al inner repository...
-    protected function persistNew(array $attributes, ApplicationContext $context): ?array {
-        $result = $this->inner->create($attributes, $context);
-        $this->events->dispatch('product.created', $result['id']);
-        return $result;
+        return $row;
     }
 }
 ```
 
+Reglas del patrón:
+
+- **Autorización en un solo lugar.** El decorador delega cada operación pública al repositorio interno, así que el funnel del lifecycle (auth + hooks) corre una sola vez, dentro del interno. La cache nunca es una segunda vía de autorización.
+- **El interno no sabe que lo cachean.** No hay cache manual dentro de `ProductRepository`.
+- **Invalidación explícita en escritura** (`create`/`update`/`delete`/`restore` olvidan la clave). Para invalidación cruzada entre recursos, escucha eventos del lifecycle (`afterAction`) en un hook, no dentro del repositorio.
+
 **Diagrama:**
 ```
-┌─────────────┐     ┌─────────────────┐     ┌──────────────┐
-│  Use Case   │────▶│ CachedProduct   │────▶│ ProductRepo  │
-│             │     │ Repository      │     │ (Eloquent)   │
-└─────────────┘     │  - cache get/set│     └──────────────┘
-                    │  - events listen│
-                    └─────────────────┘
-                           ▲
-                           │ events: product.updated/deleted
-                           │ (from lifecycle afterAction)
+┌─────────────┐     ┌─────────────────────┐     ┌──────────────────┐
+│  Use Case   │────▶│ CachedProduct       │────▶│ ProductRepository│
+│             │     │ Repository          │     │ (Eloquent)       │
+└─────────────┘     │  - read-through     │     └──────────────────┘
+                    │  - forget on write  │              ▲
+                    └─────────┬───────────┘              │
+                              │ CacheStore (puerto)      │ lifecycle/auth
+                              ▼                          │ (una sola vez)
+                       ┌─────────────┐
+                       │  Cache      │  ← adapter PSR-16 / Laravel / Redis
+                       └─────────────┘
 ```
 
-El decorador se registra en el container en lugar del `ProductRepository` real. El inner repository sigue sin saber nada de cache.
+Se registra en el container **en lugar del** `ProductRepository` real (ver docblock de `CachedProductRepository`). El repositorio interno sigue sin saber nada de cache.
 
 ---
 
-## 15. Hardening Checklist (T-122)
+## 16. Hardening Checklist (T-122)
+
+Evidencia completa (file:line + comandos) en `backlog/fase-docs.md`. Resumen:
 
 | # | Control | Evidencia (test/grep) | Estado |
 |---|---------|----------------------|--------|
-| 1 | **Auth before persistence** | `test_denied_action_never_reaches_persistence` (AbstractResourceRepositoryTest) | ✅ |
-| 2 | **Validación única (DTO en Use Case)** | `ProductUseCaseParityTest` — mismos errores REST/GraphQL | ✅ |
-| 3 | **Allow-list Filters/Includes/Sorts** | `QueryOptionsTest` — `ValidationFailed` si no declarado | ✅ |
-| 4 | **Mass assignment** | `EloquentResourcePersistenceTest::mass_assignment_goes_through_fillable` | ✅ |
-| 5 | **Rate limiting** | `ProductRestEndpointTest::the_api_version_middleware_actually_runs` + config rest.php | ✅ |
-| 6 | **Token expiry/revocación** | `SanctumAuthenticationTest` — expired/revoked = 401 | ✅ |
-| 7 | **Auditabilidad** | `ActionLifecycle` hooks + `request_id/correlation_id` en contexto | ✅ |
-| 8 | **Errores seguros (sin leak SQL/trace)** | `ErrorMappingTest` — `APP_DEBUG=false` nunca expone trace | ✅ |
-| 9 | **Sin whereRaw/SQL arbitrario** | `grep -rn "whereRaw" packages/` → solo `PlatformUser` (multi-platform feature) | ✅ |
-| 10 | **Sin eager arbitrario** | `EloquentQueryExecutor` usa `IncludeSet` validado contra Definition | ✅ |
-| 11 | **N+1 controlado** | `EloquentQueryExecutorTest::includes_eager_load_without_n_plus_one` | ✅ |
-| 12 | **Límites page/complexity/depth** | GraphQL config + `ProductGraphqlEndpointTest::oversized_page_size_is_clamped` | ✅ |
+| 1 | **Auth before persistence** | `ActionLifecycle.php:47` autoriza antes de la operación; `AbstractResourceRepositoryTest::test_denied_action_never_reaches_persistence`, `ProductRepositoryTest::test_a_denied_write_never_reaches_the_database` | ✅ |
+| 2 | **Validación única (DTO en Use Case)** | `ProductUseCaseParityTest::test_invalid_input_produces_identical_errors_from_both_transports` — mismos errores REST/GraphQL | ✅ |
+| 3 | **Allow-list Filters/Includes/Sorts** | `ProductResourceDefinition.php:27-31`; `QueryOptionsTest::test_undeclared_{filter,include,sort}_is_rejected` | ✅ |
+| 4 | **Mass assignment** | `Product.php:32` `$fillable`; `EloquentResourcePersistenceTest::test_mass_assignment_goes_through_fillable` | ✅ |
+| 5 | **Rate limiting** | `RateLimitMiddleware` + alias `rate.limit` (`SecurityServiceProvider.php:54`); `RateLimitTest::test_the_31st_anonymous_request_is_throttled_by_ip`, `...::test_the_121st_authenticated_request_is_throttled_by_user` | ✅ |
+| 6 | **Token expiry/revocación** | Passport PAT TTL desde `config/passport.php`; `PassportAuthenticationTest::test_an_expired_token_is_rejected...`, `AuthLoginEndpointTest::test_issued_token_honours_the_personal_access_lifetime`, `...::test_logout_revokes_the_token` | ✅ |
+| 7 | **Auditabilidad** | `LoggingHooks` (`correlation_id`/`user_id`/`guard`/`duration_ms`); `LoggingHooksTest::test_after_action_logs_dimensions_with_correlation_id`. Audit store append-only = pendiente (BACKLOG §CASA) | ✅ |
+| 8 | **Errores seguros (sin leak SQL/trace)** | `RestExceptionHandler::renderUnexpected()` (`:154`); `ErrorMappingTest::test_an_unexpected_failure_is_a_generic_500_that_leaks_nothing` | ✅ |
+| 9 | **Sin whereRaw/SQL arbitrario** | `grep -rn "whereRaw" packages/` → solo `PlatformUser.php:57` (`'1=0'` constante, multi-platform) | ✅ |
+| 10 | **Sin eager arbitrario** | `EloquentQueryExecutor` usa `IncludeSet` validado contra la Definition; `QueryOptionsTest::test_undeclared_include_is_rejected` | ✅ |
+| 11 | **N+1 controlado** | `EloquentQueryExecutorTest::test_includes_eager_load_without_n_plus_one` (`assertLessThanOrEqual(3, DB::getQueryLog())`) | ✅ |
+| 12 | **Límites page/complexity/depth** | `QueryOptions::DEFAULT_MAX_PER_PAGE=100`, GraphQL `MAX_QUERY_DEPTH=15`/`MAX_QUERY_COMPLEXITY=1000`/`MAX_FIRST=100`; `QueryOptionsTest::test_per_page_clamps_to_max`, `GraphqlHardeningTest::test_a_query_over_1000_complexity_is_rejected` | ✅ |
 
 **Verificación automática:**
 ```bash
@@ -617,9 +636,8 @@ grep -rn "whereRaw" packages/ || echo "SIN WHERERAW OK"
 
 # App generada
 composer test --working-dir=demo/api
-cd demo/api && php artisan test --filter=LayeringRulesTest
 ```
 
 ---
 
-*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-11 visión, 12 Smoke Test, 13 Uso rápido, 14 Observabilidad (T-121), 15 Hardening (T-122).*
+*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122).*
