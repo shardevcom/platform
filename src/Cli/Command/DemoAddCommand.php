@@ -10,13 +10,16 @@ use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Scaffold\ClientInstaller;
 use Shardevcom\Cli\Scaffold\DemoInstaller;
+use Shardevcom\Cli\Scaffold\MobileClientInstaller;
 
 /**
  * `platform demo add <package>`: copies the demo into the project.
  *
  * With `--with-client` it also drops the reference SPA (demo/web, one Vite app
- * per guard) into the project root so the API has a working front-end;
- * `--no-install` copies the client without running `npm install`.
+ * per guard) into ./client; with `--with-mobile-client` it drops the reference
+ * Flutter app (demo/mobile, one flavor per guard) into ./mobile-client.
+ * `--no-install` copies the client(s) without running npm install / flutter
+ * pub get.
  */
 final class DemoAddCommand implements CommandInterface
 {
@@ -43,7 +46,8 @@ final class DemoAddCommand implements CommandInterface
             ],
             options: [
                 'with-client' => ['description' => 'Also copy the reference client (web monorepo) into ./client'],
-                'no-install' => ['description' => 'Copy the client but skip npm install'],
+                'with-mobile-client' => ['description' => 'Also copy the reference client (Flutter app) into ./mobile-client'],
+                'no-install' => ['description' => 'Copy the client(s) but skip npm install / flutter pub get'],
             ],
         );
     }
@@ -52,10 +56,11 @@ final class DemoAddCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform demo add');
-            $printer->info('Usage: platform demo add [package] [--with-client] [--no-install]');
+            $printer->info('Usage: platform demo add [package] [--with-client] [--with-mobile-client] [--no-install]');
             $printer->writeln();
             $printer->note('The package is copied into the packages directory and vendor from config/platform.php.');
             $printer->note('--with-client copies ./client (Vite monorepo, one app per guard) and runs npm install unless --no-install.');
+            $printer->note('--with-mobile-client copies ./mobile-client (Flutter app, one flavor per guard) and runs flutter pub get unless --no-install.');
         });
     }
 
@@ -64,6 +69,7 @@ final class DemoAddCommand implements CommandInterface
         $printer = $context->printer();
         $name = $input->argument('package') ?? 'product';
         $withClient = $input->flag('with-client');
+        $withMobileClient = $input->flag('with-mobile-client');
         $installDependencies = ! $input->flag('no-install');
         $installer = new DemoInstaller($context);
         $config = $context->config();
@@ -98,6 +104,20 @@ final class DemoAddCommand implements CommandInterface
                 $printer->note('Client dependencies installed with npm.');
             } else {
                 $printer->note('Run `npm install && npm run dev` inside the client directory.');
+            }
+        }
+
+        if ($withMobileClient) {
+            $mobile = new MobileClientInstaller($context);
+            $result = $mobile->install($projectRoot, $installDependencies);
+
+            $printer->success('Mobile client installed: '.$context->filesystem->relativePath($result['path'], $projectRoot));
+            $printer->writeln();
+
+            if ($result['dependencies']) {
+                $printer->note('Mobile client dependencies installed with flutter pub get.');
+            } else {
+                $printer->note('Run `flutter pub get` inside the mobile-client directory.');
             }
         }
 

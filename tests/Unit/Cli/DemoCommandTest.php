@@ -214,6 +214,72 @@ final class DemoCommandTest extends TestCase
         $this->execute(['platform', 'demo', 'add', 'product'], $filesystem);
 
         $this->assertFalse($filesystem->isFile('/app/client/package.json'));
+        $this->assertFalse($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
+    }
+
+    public function test_with_mobile_client_copies_the_flutter_app_and_excludes_build_artifacts(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-mobile-client'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/lib/main.dart'));
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/packages/plugin_kit/pubspec.yaml'));
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/packages/core/lib/shardev_core.dart'));
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/plugins/product/pubspec.yaml'));
+        $this->assertFalse(
+            $filesystem->isFile('/app/mobile-client/.dart_tool/package_config.json'),
+            '.dart_tool must not be copied'
+        );
+        $this->assertFalse(
+            $filesystem->isFile('/app/mobile-client/build/app.dill'),
+            'build output must not be copied'
+        );
+    }
+
+    public function test_with_mobile_client_runs_flutter_pub_get(): void
+    {
+        $process = new FakeProcessRunner();
+
+        $this->execute(['platform', 'demo', 'add', 'product', '--with-mobile-client'], $this->filesystem(), null, $process);
+
+        $this->assertTrue($process->ranIn('flutter pub get', '/app/mobile-client'));
+    }
+
+    public function test_no_install_skips_flutter_pub_get(): void
+    {
+        $process = new FakeProcessRunner();
+        $filesystem = $this->filesystem();
+
+        $this->execute(['platform', 'demo', 'add', 'product', '--with-mobile-client', '--no-install'], $filesystem, null, $process);
+
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
+        $this->assertFalse($process->ranIn('flutter pub get', '/app/mobile-client'));
+    }
+
+    public function test_refuses_to_overwrite_an_existing_mobile_client(): void
+    {
+        $filesystem = $this->filesystem();
+        $filesystem->createDirectory('/app/mobile-client');
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-mobile-client'], $filesystem, $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('already installed', $recorder->stderr());
+    }
+
+    public function test_installs_both_clients_when_both_flags_are_given(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-client', '--with-mobile-client'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile('/app/client/package.json'));
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
     }
 
     private function filesystem(): FakeFilesystem
@@ -254,6 +320,13 @@ final class DemoCommandTest extends TestCase
             '/framework/demo/web/packages/core/src/index.ts' => 'export {}',
             '/framework/demo/web/node_modules/pkg/index.js' => '// build artifact, must not be copied',
             '/framework/demo/web/apps/admin/dist/index.html' => '<!-- build artifact, must not be copied -->',
+            '/framework/demo/mobile/pubspec.yaml' => "name: shardev_mobile\n",
+            '/framework/demo/mobile/lib/main.dart' => 'void main() {}',
+            '/framework/demo/mobile/packages/plugin_kit/pubspec.yaml' => "name: shardev_plugin_kit\n",
+            '/framework/demo/mobile/packages/core/lib/shardev_core.dart' => 'library;',
+            '/framework/demo/mobile/plugins/product/pubspec.yaml' => "name: shardev_product_plugin\n",
+            '/framework/demo/mobile/.dart_tool/package_config.json' => '{}',
+            '/framework/demo/mobile/build/app.dill' => '// build artifact, must not be copied',
         ]);
     }
 

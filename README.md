@@ -17,13 +17,15 @@
 ├── AGENTS.md / CLAUDE.md   # instrucciones para IAs
 └── demo/                   # app de REFERENCIA (fixture manual hasta T-003)
     ├── api/                #   Laravel 12 + copia de packages/ + config/platform.php
-    └── web/                #   monorepo Vite/React: apps/ por guard + packages/ + plugins/
+    ├── web/                #   monorepo Vite/React: apps/ por guard + packages/ + plugins/
+    └── mobile/             #   monorepo Flutter: un flavor por guard + packages/ + plugins/
 ```
 
 `demo/` es el output que `platform new demo --laravel=12` producirá cuando T-003 exista.
 Hoy está scaffoldeada a mano: `demo/api/` (`laravel/laravel` 12.x + copia de `packages/` +
-`config/platform.php`) y `demo/web/` (cliente de referencia: `apps/{user,admin,employee}`,
-una app por guard, sobre `packages/{ui,core,plugin-kit}` + `plugins/`).
+`config/platform.php`), `demo/web/` (cliente de referencia: `apps/{user,admin,employee}`,
+una app por guard, sobre `packages/{ui,core,plugin-kit}` + `plugins/`) y `demo/mobile/`
+(cliente de referencia Flutter: un flavor por guard sobre `packages/{plugin_kit,core}` + `plugins/`).
 `demo/api/tests/` corre la suite de la app generada (Feature); `tests/` la del framework (Unit).
 
 ## 1. Qué es Shardev Platform
@@ -442,14 +444,16 @@ bin/platform config vendor acme
 bin/platform demo list
 bin/platform demo add product
 bin/platform demo add product --with-client
+bin/platform demo add product --with-mobile-client
 bin/platform plugin list
 bin/platform plugin show product
 bin/platform doctor
 
-# App generada (demo/api) y cliente de referencia (demo/web)
+# App generada (demo/api) y clientes de referencia (demo/web, demo/mobile)
 composer test --working-dir=demo/api
 (cd demo/api && php artisan route:list | grep -E "products|configuration")
 (cd demo/web && npm install && npm test && npm run dev:admin)   # o dev:employee / dev:user
+(cd demo/mobile && flutter pub get && flutter test && flutter run --dart-define=GUARD=admin)
 ```
 
 ## Gate completo (CI)
@@ -640,4 +644,41 @@ composer test --working-dir=demo/api
 
 ---
 
-*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122).*
+## 17. Cliente móvil (Flutter)
+
+`demo/mobile` es el cliente móvil de referencia: una app Flutter con **un flavor
+por guard** (`web`/`admin`/`employee`) sobre paquetes compartidos y **plugins por
+guard**, espejo de `demo/web`. Un token Passport sólo es válido para el guard que
+lo emitió, así que el guard se fija en compilación y la app no ofrece selector de
+plataforma.
+
+```text
+demo/mobile/
+├── lib/{main.dart,app.dart}      # registra plugins + MaterialApp.router
+├── packages/plugin_kit/          # Guard, PluginDefinition, definePlugin, createRegistry
+├── packages/core/                # shell, ApiClient (dio), auth (Riverpod), router (go_router)
+└── plugins/product/              # una vista por guard (web read-only / employee manage / admin full)
+```
+
+```bash
+# Android emulator: usa 10.0.2.2 para alcanzar el host
+flutter pub get
+flutter test
+flutter run --dart-define=GUARD=admin    --dart-define=API_HOST=http://10.0.2.2:8000
+flutter run --dart-define=GUARD=employee --dart-define=API_HOST=http://10.0.2.2:8000
+flutter run --dart-define=GUARD=web      --dart-define=API_HOST=http://10.0.2.2:8000
+```
+
+Añadir un plugin = añadir un paquete (path dependency) + registrarlo en
+`lib/main.dart` con `pluginsProvider.overrideWithValue([...])`. El `path` de cada
+vista coincide por convención con `guards.<guard>.path` del `plugin.json` del
+package API. Instalación desde el CLI:
+
+```bash
+platform demo add product --with-mobile-client             # copia ./mobile-client + flutter pub get
+platform demo add product --with-mobile-client --no-install
+```
+
+---
+
+*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil.*

@@ -1,12 +1,12 @@
 # AGENTS.md — Instrucciones para agentes (OpenCode / IA)
 
 > Lee esto antes de tocar código. Fuente de verdad: `BACKLOG.md` + `backlog/`.
-> ESTE REPO ES EL FRAMEWORK (installer + fuente de packages), NO la app. La app generada vive en `demo/` (`demo/api/` + `demo/web/`, fixture manual hasta T-003).
+> ESTE REPO ES EL FRAMEWORK (installer + fuente de packages), NO la app. La app generada vive en `demo/` (`demo/api/` + `demo/web/` + `demo/mobile/`, fixture manual hasta T-003).
 
 ## Layout
 - Root framework: `bin/platform` (CLI cero-dep), `src/` (` Shardevcom\`), `packages/` (FUENTE oficial), `tests/` (unit, `composer test`).
-- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`) y `demo/web/` (monorepo Vite/React: `apps/{user,admin,employee}` = una app por guard, `packages/` compartidos, `plugins/` con vistas por guard). Suite app: `composer test` dentro de `demo/api/`; suite web: `npm test` dentro de `demo/web/` (Vitest + jsdom).
-- Plugins: un package API puede declarar `plugin.json` (resource, actions, guards) y convertirse en plugin; `platform plugin list` los lista desde los manifiestos (nunca de una lista hardcodeada). El lado web usa `definePlugin` de `packages/plugin-kit`.
+- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`), `demo/web/` (monorepo Vite/React: `apps/{user,admin,employee}` = una app por guard, `packages/` compartidos, `plugins/` con vistas por guard) y `demo/mobile/` (monorepo Flutter/Dart: un flavor por guard, `packages/{plugin_kit,core}`, `plugins/` con vistas por guard). Suite app: `composer test` dentro de `demo/api/`; suite web: `npm test` dentro de `demo/web/` (Vitest + jsdom); suite mobile: `flutter test` dentro de `demo/mobile/` (Flutter SDK; no instalado en todos los entornos).
+- Plugins: un package API puede declarar `plugin.json` (resource, actions, guards) y convertirse en plugin; `platform plugin list` los lista desde los manifiestos (nunca de una lista hardcodeada). El lado web usa `definePlugin` de `packages/plugin-kit`; el mobile, `definePlugin` de `packages/plugin_kit`.
 - Tras cambiar `packages/` del root, sincronizar SOLO oficiales (nunca borrar `demo/api/packages/<usuario>`):
   `python3 scripts/sync-demo-packages.py && composer dump-autoload --working-dir=demo/api`.
   El script copia `packages/shardevcom/*` a `demo/api/packages/shardev/*` reescribiendo `name` y

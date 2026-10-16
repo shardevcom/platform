@@ -58,3 +58,19 @@ composer test --working-dir=demo/api # app (incluye AuthLoginEndpointTest, RateL
 ```
 
 **Revisión manual (firmar en PR):** ☐ Revisado por __________ — fecha __________.
+
+---
+
+## Cliente móvil (Flutter) — extensión del cliente de referencia
+
+- **Desc:** cliente móvil de referencia (`demo/mobile`) espejo de `demo/web`: una app Flutter con un flavor por guard (`web`/`admin`/`employee`) sobre paquetes compartidos y plugins por guard. Exportable vía CLI.
+- **Fuera de T-120..T-122** (petición del usuario, 2026-10-16).
+- **Estado:** ✅ DONE (código + CLI + tests PHP). **Verificación Dart pendiente en un entorno con Flutter** (no instalado aquí).
+- **Arquitectura:**
+  - `demo/mobile/packages/plugin_kit/` — `Guard` (id + prefijo API), `NavItem`, `GuardView`, `PluginDefinition`, `definePlugin`, `createRegistry`.
+  - `demo/mobile/packages/core/` — `ApiClient` (dio, envelope `{status,code,message,data,meta}`, `ApiError`), auth Riverpod con token en `shared_preferences` y `auth/me`, router `go_router` con redirect a login, `AppShell` (drawer desde el registry), páginas login/dashboard/profile, tema M3.
+  - `demo/mobile/plugins/product/` — `ProductApi` + `productsProvider`, `ProductList` con `ProductCapabilities`, y una vista por guard (`web` read-only, `employee` manage, `admin` full).
+  - `demo/mobile/lib/{main.dart,app.dart}` — guard vía `--dart-define=GUARD=...`, plugins registrados con `pluginsProvider.overrideWithValue([productPlugin])`.
+- **CLI:** `src/Cli/Scaffold/MobileClientInstaller.php` (source `demo/mobile`, destino `./mobile-client`, excluye `.dart_tool`/`build`/…, corre `flutter pub get`) + flag `--with-mobile-client` en `platform demo add`.
+- **Verificación PHP:** `vendor/bin/phpunit --filter=DemoCommandTest` (20 tests; incluye copia del cliente Flutter, exclusión de artefactos, `flutter pub get`, `--no-install`, no-overwrite y ambos clientes).
+- **Verificación Dart (correr con Flutter instalado):** `cd demo/mobile && flutter pub get && flutter analyze && flutter test` (tests en `packages/plugin_kit/test`, `packages/core/test`, `plugins/product/test`).

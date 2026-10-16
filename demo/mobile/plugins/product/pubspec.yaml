@@ -1,0 +1,22 @@
+name: shardev_product_plugin
+description: Product plugin (one view per guard) for the Shardev mobile client.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  shardev_core:
+    path: ../../packages/core
+  shardev_plugin_kit:
+    path: ../../packages/plugin_kit
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

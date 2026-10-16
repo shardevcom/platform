@@ -101,12 +101,13 @@ grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
 
 ## Estado actual global (análisis 2026-10-15)
 
-- **Framework (root):** 265 tests / 757 assertions — **OK**. CLI (`bin/platform`) completo (new, package make/list, doctor, config, demo, plugin list/show). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
+- **Framework (root):** 270 tests / 774 assertions — **OK**. CLI (`bin/platform`) completo (new, package make/list, doctor, config, demo, plugin list/show). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
 - **Packages (fuente):** `core`, `application`, `resources`, `authorization`, `persistence`, `configuration`, `rest`, `graphql`, `security`, `socialite`, `twofactor`, `widgets`, `observability`, `documentation`, `product`, `catalog` — implementados con arquitectura limpia (adapters delgados, lifecycle único, repo base sobre persistencia Eloquent trait).
 - **Demo (fixture):** 212 tests / 2585 assertions — **OK, todo verde**.
 - **Arquitectura:** CORE LIMPIO confirmado por grep (sin Eloquent/Http/`abort()` en `core/src`), adapters sin `::query()`, sin `whereRaw` desde request, lifecycle único, ApplicationContext con user/tenant/application separados. El bootstrap de auth (`AuthBootstrapServiceProvider`) y el middleware `BindGuard` viven ahora en el paquete `security`, no en `core`.
 - **Multi-platform:** T-200–T-209 implementados; product package completo demo.
 - **Cliente SPA (`demo/web/`):** monorepo Vite/React con una app por guard (`apps/{user,admin,employee}`) sobre `packages/{ui,core,plugin-kit}` y `plugins/` (una vista por guard). Consume la API real (REST por plataforma + GraphQL). Login first-party en el paquete `security`: `POST {prefix}/api/v1/auth/login` acuña un PAT (scopes desde `ScopeCatalogue` derivado del `ResourceRegistry`), más `GET /auth/me` y `POST /auth/logout`. Un package API con `plugin.json` es un plugin y se lista con `platform plugin list`. Se instala con `platform demo add <pkg> --with-client [--no-install]`. Seeders demo: `admin@example.com` / `employee@example.com` / `user@example.com`, password `password`.
+- **Cliente móvil (`demo/mobile/`):** monorepo Flutter/Dart con un flavor por guard (`--dart-define=GUARD=...`) sobre `packages/{plugin_kit,core}` y `plugins/product` (una vista por guard). Mismo contrato `definePlugin`/`createRegistry`; `ApiClient` (dio) + auth Riverpod + router go_router. Se instala con `platform demo add <pkg> --with-mobile-client [--no-install]`. **Suite Dart pendiente de verificar** (Flutter no instalado en este entorno).
 - **Pendientes reales:** ninguno en el backlog principal (fases core + docs completas). Ver `fase-casa.md` para el estado fino de la fase CASA.
 
 ### Nota de mantenimiento (2026-10-15)
