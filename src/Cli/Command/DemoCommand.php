@@ -56,7 +56,7 @@ final class DemoCommand implements GroupCommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform demo');
-            $printer->info('Usage: platform demo [list | add <package>]');
+            $printer->info('Usage: platform demo [list | add <package> [--with-client] [--no-install]]');
             $printer->writeln();
             $printer->writeln('  Sub-commands:');
 

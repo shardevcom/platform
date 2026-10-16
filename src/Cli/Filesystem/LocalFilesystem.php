@@ -131,7 +131,7 @@ final class LocalFilesystem implements Filesystem
         }
     }
 
-    public function copyDirectory(string $from, string $to): void
+    public function copyDirectory(string $from, string $to, array $exclude = []): void
     {
         if (! $this->isDirectory($from)) {
             throw CommandFailed::create("Source directory not found: {$from}");
@@ -142,6 +142,11 @@ final class LocalFilesystem implements Filesystem
         /** @var SplFileInfo $item */
         foreach ($this->walk($from) as $item) {
             $relative = substr($item->getPathname(), strlen($from) + 1);
+
+            if ($exclude !== [] && array_intersect(explode(DIRECTORY_SEPARATOR, $relative), $exclude) !== []) {
+                continue;
+            }
+
             $target = $to.DIRECTORY_SEPARATOR.$relative;
 
             if ($item->isDir()) {

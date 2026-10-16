@@ -50,7 +50,14 @@ interface Filesystem
 
     public function createDirectory(string $path): void;
 
-    public function copyDirectory(string $from, string $to): void;
+    /**
+     * Copies a directory tree. Entries whose path contains any of the excluded
+     * top-level segment names (e.g. `node_modules`) are skipped, so a shipped
+     * template never drags build artifacts into a fresh project.
+     *
+     * @param list<string> $exclude
+     */
+    public function copyDirectory(string $from, string $to, array $exclude = []): void;
 
     /**
      * Moves a directory (and everything under it) to a new location.

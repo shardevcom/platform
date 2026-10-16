@@ -154,6 +154,67 @@ final class DemoCommandTest extends TestCase
         $this->assertStringContainsString('Unknown demo sub-command', $recorder->stderr());
     }
 
+    public function test_with_client_copies_the_spa_and_excludes_build_artifacts(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-client'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile('/app/client/package.json'));
+        $this->assertTrue($filesystem->isFile('/app/client/vite.config.ts'));
+        $this->assertTrue($filesystem->isFile('/app/client/src/main.tsx'));
+        $this->assertFalse(
+            $filesystem->isFile('/app/client/node_modules/pkg/index.js'),
+            'node_modules must not be copied'
+        );
+        $this->assertFalse(
+            $filesystem->isFile('/app/client/dist/index.html'),
+            'dist must not be copied'
+        );
+    }
+
+    public function test_with_client_runs_npm_install(): void
+    {
+        $process = new FakeProcessRunner();
+
+        $this->execute(['platform', 'demo', 'add', 'product', '--with-client'], $this->filesystem(), null, $process);
+
+        $this->assertTrue($process->ranIn('npm install', '/app/client'));
+    }
+
+    public function test_no_install_skips_npm_install(): void
+    {
+        $process = new FakeProcessRunner();
+        $filesystem = $this->filesystem();
+
+        $this->execute(['platform', 'demo', 'add', 'product', '--with-client', '--no-install'], $filesystem, null, $process);
+
+        $this->assertTrue($filesystem->isFile('/app/client/package.json'));
+        $this->assertFalse($process->ranIn('npm install', '/app/client'));
+    }
+
+    public function test_refuses_to_overwrite_an_existing_client(): void
+    {
+        $filesystem = $this->filesystem();
+        $filesystem->createDirectory('/app/client');
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-client'], $filesystem, $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('already installed', $recorder->stderr());
+    }
+
+    public function test_without_client_flag_no_client_is_copied(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $this->execute(['platform', 'demo', 'add', 'product'], $filesystem);
+
+        $this->assertFalse($filesystem->isFile('/app/client/package.json'));
+    }
+
     private function filesystem(): FakeFilesystem
     {
         return new FakeFilesystem([
@@ -185,6 +246,11 @@ final class DemoCommandTest extends TestCase
             self::DEMO_PACKAGE.'/src/Models/Product.php' => '<?php',
             self::DEMO_PACKAGE.'/routes/api.php' => '<?php',
             self::DEMO_PACKAGE.'/database/migrations/2026_10_01_000000_create_products_tables.php' => '<?php',
+            '/framework/client/package.json' => '{"name":"client"}',
+            '/framework/client/vite.config.ts' => 'export default {}',
+            '/framework/client/src/main.tsx' => 'console.log(1)',
+            '/framework/client/node_modules/pkg/index.js' => '// build artifact, must not be copied',
+            '/framework/client/dist/index.html' => '<!-- build artifact, must not be copied -->',
         ]);
     }
 

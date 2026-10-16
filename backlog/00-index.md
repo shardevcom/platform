@@ -101,11 +101,12 @@ grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
 
 ## Estado actual global (análisis 2026-10-15)
 
-- **Framework (root):** 246 tests / 703 assertions — **OK**. CLI (`bin/platform`) completo (new, package make/list, doctor, config, demo). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
+- **Framework (root):** 251 tests / 715 assertions — **OK**. CLI (`bin/platform`) completo (new, package make/list, doctor, config, demo). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
 - **Packages (fuente):** `core`, `application`, `resources`, `authorization`, `persistence`, `configuration`, `rest`, `graphql`, `security`, `socialite`, `twofactor`, `widgets`, `observability`, `documentation`, `product`, `catalog` — implementados con arquitectura limpia (adapters delgados, lifecycle único, repo base sobre persistencia Eloquent trait).
-- **Demo (fixture):** 205 tests / 2533 assertions — **OK, todo verde**.
+- **Demo (fixture):** 211 tests / 2557 assertions — **OK, todo verde**.
 - **Arquitectura:** CORE LIMPIO confirmado por grep (sin Eloquent/Http/`abort()` en `core/src`), adapters sin `::query()`, sin `whereRaw` desde request, lifecycle único, ApplicationContext con user/tenant/application separados. El bootstrap de auth (`AuthBootstrapServiceProvider`) y el middleware `BindGuard` viven ahora en el paquete `security`, no en `core`.
 - **Multi-platform:** T-200–T-209 implementados; product package completo demo.
+- **Cliente SPA (`client/`):** Vite/React que consume la API real (REST por plataforma + GraphQL). Login first-party en el paquete `security`: `POST {prefix}/api/v1/auth/login` acuña un PAT (scopes desde `ScopeCatalogue` derivado del `ResourceRegistry`), más `GET /auth/me` y `POST /auth/logout`. Se instala con `platform demo add <pkg> --with-client [--no-install]`. Seeders demo: `admin@example.com` / `employee@example.com` / `user@example.com`, password `password`.
 - **Pendientes reales:** T-120, T-121, T-122 (documentación). Ver `fase-casa.md` para el estado fino de la fase CASA.
 
 ### Nota de mantenimiento (2026-10-15)

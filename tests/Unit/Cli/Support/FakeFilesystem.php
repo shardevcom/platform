@@ -161,15 +161,23 @@ final class FakeFilesystem implements Filesystem
         $this->directories = array_values(array_unique($this->directories));
     }
 
-    public function copyDirectory(string $from, string $to): void
+    public function copyDirectory(string $from, string $to, array $exclude = []): void
     {
         $this->createDirectory($to);
         $prefix = $this->normalize($from).'/';
 
         foreach ($this->files as $path => $contents) {
-            if (str_starts_with($path, $prefix)) {
-                $this->files[$this->normalize($to).'/'.substr($path, strlen($prefix))] = $contents;
+            if (! str_starts_with($path, $prefix)) {
+                continue;
             }
+
+            $relative = substr($path, strlen($prefix));
+
+            if ($exclude !== [] && array_intersect(explode('/', $relative), $exclude) !== []) {
+                continue;
+            }
+
+            $this->files[$this->normalize($to).'/'.$relative] = $contents;
         }
     }
 

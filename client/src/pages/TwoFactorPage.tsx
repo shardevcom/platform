@@ -1,196 +1,165 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
+import { ShieldCheck, ShieldOff, KeyRound, RefreshCw } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useAuth } from "@/hooks/useAuth"
-import { cn } from "@/lib/utils"
-import { QrCode, Smartphone, RotateCcw, Shield, ArrowRight } from "lucide-react"
-import { QRCodeSVG } from "@/components/ui/qrcode"
-import { useState } from "react"
-import { useAuth } from "@/hooks/useAuth"
+import { ApiError } from "@/lib/api"
+import { twoFactor } from "@/lib/endpoints"
+import { useAuth } from "@/providers/AuthProvider"
+import type { TwoFactorSetup } from "@/types"
 
 export function TwoFactorPage() {
-  const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState("enable")
-  const [secret, setSecret] = useState("")
-  const [qrCode, setQrCode] = useState("")
+  const { platform } = useAuth()
+  const [setup, setSetup] = useState<TwoFactorSetup | null>(null)
   const [code, setCode] = useState("")
+  const [password, setPassword] = useState("")
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
-  const has2FA = user?.two_factor_confirmed_at
-
-  const handleEnable = async () => {
+  const guard = (fn: () => Promise<void>) => async () => {
+    setBusy(true)
     try {
-      setError(null)
-      const res = await fetch("/api/2fa/enable", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
-        }
-      })
-      if (!res.ok) throw new Error("Error al generar secret")
-      const data = await res.json()
-      setSecret(data.secret)
-      setQrCode(data.qr_code)
-      setActiveTab("verify")
-    } catch (err) {
-      console.error(err)
+      await fn()
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : "Operación fallida")
+    } finally {
+      setBusy(false)
     }
   }
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      setError(null)
-      const res = await fetch("/api/2fa/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`
-        },
-        body: JSON.stringify({ code })
-      })
-      if (!res.ok) throw new Error("Código inválido")
-      setSuccess("2FA habilitado correctamente")
-      setActiveTab("recovery")
-      // Refresh user data would be needed here
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Código inválido")
-    }
-  }
+  const enable = guard(async () => {
+    const result = await twoFactor.enable()
+    setSetup(result)
+    toast.success("Secreto generado. Escanea el QR y verifica.")
+  })
 
-  const handleRecovery = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // Implementation for recovery codes
-  }
+  const verify = guard(async () => {
+    await twoFactor.verify(code)
+    toast.success("2FA habilitado")
+    setCode("")
+  })
+
+  const disable = guard(async () => {
+    await twoFactor.disable(password, code || undefined)
+    toast.success("2FA deshabilitado")
+    setSetup(null)
+    setPassword("")
+    setCode("")
+  })
+
+  const loadRecovery = guard(async () => {
+    const result = await twoFactor.recoveryCodes()
+    setRecoveryCodes(result.recovery_codes)
+  })
+
+  const regenerate = guard(async () => {
+    const result = await twoFactor.regenerate()
+    setRecoveryCodes(result.recovery_codes)
+    toast.success("Recovery codes regenerados")
+  })
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Autenticación de Dos Factores (2FA)</h1>
+        <h2 className="text-2xl font-bold">Two-Factor Authentication</h2>
         <p className="text-muted-foreground">
-          Añade una capa extra de seguridad a tu cuenta
+          TOTP sobre el guard <span className="font-medium uppercase">{platform}</span> — enable/verify/qr-code/recovery-codes.
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="enable" disabled={has2FA}>
-            {has2FA ? "Habilitado" : "Activar 2FA"}
-          </TabsTrigger>
-          <TabsTrigger value="verify" disabled={has2FA}>
-            Verificar
-          </TabsTrigger>
-          <TabsTrigger value="recovery" disabled={!has2FA}>
-            Códigos de Recuperación
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldCheck className="h-5 w-5 text-primary" /> Habilitar
+            </CardTitle>
+            <CardDescription>POST /enable genera el secreto; POST /verify lo confirma.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button onClick={() => void enable()} disabled={busy}>
+              <KeyRound className="mr-2 h-4 w-4" /> Generar secreto
+            </Button>
 
-        <TabsContent value="enable" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activar Autenticación de Dos Factores</CardTitle>
-              <CardDescription>
-                Usa una aplicación de autenticación (Google Authenticator, Authy, etc.)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!secret ? (
-                <Button onClick={handleEnable} disabled={loading}>
-                  {loading ? "Generando..." : "Activar 2FA"}
-                </Button>
-              ) : (
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <QRCodeSVG
-                      value={`otpauth://totp/Shardev:${user?.email}?secret=${secret}&issuer=Shardev Platform`}
-                      size={200}
-                    />
-                    <p className="font-mono text-lg break-all">{secret}</p>
-                  </div>
-                  <Separator />Separar contenido
-                  <form onSubmit={handleVerify}>
-                    <div className="space-y-2">
-                      <Label htmlFor="code">Código de 6 dígitos</Label>
-                      <Input
-                        id="code"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        placeholder="000000"
-                        maxLength={6}
-                        autoComplete="one-time-code"
-                        inputMode="numeric"
-                      />
-                    </div>
-                    <Button type="submit" disabled={!code || code.length !== 6}>
-                      Verificar y Activar
-                    </Button>
-                  </form>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="verify" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Verificar 2FA</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleVerify} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="code">Código de 6 dígitos</Label>
-                  <Input
-                    id="code"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="000000"
-                    maxLength={6}
-                    autoComplete="one-time-code"
-                    inputMode="numeric"
+            {setup && (
+              <div className="space-y-3">
+                {setup.qr_code && (
+                  <div
+                    className="mx-auto w-48 rounded-md border bg-white p-2"
+                    dangerouslySetInnerHTML={{ __html: setup.qr_code }}
                   />
-                </div>
-                <Button type="submit" disabled={!code || code.length !== 6} className="w-full">
-                  Verificar
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                )}
+                <p className="text-center font-mono text-xs text-muted-foreground">{setup.secret}</p>
 
-        <TabsContent value="recovery" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Códigos de Recuperación</CardTitle>
-              <CardDescription>
-                Guarda estos códigos en un lugar seguro. Cada código solo se puede usar una vez.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-2 sm:grid-cols-2">
-                {recoveryCodes.map((code, i) => (
-                  <div key={i} className="font-mono bg-muted p-2 rounded text-center">
-                    {code}
+                <div className="space-y-1">
+                  <Label htmlFor="code">Código TOTP</Label>
+                  <div className="flex gap-2">
+                    <Input id="code" value={code} maxLength={6} onChange={(e) => setCode(e.target.value)} placeholder="123456" />
+                    <Button onClick={() => void verify()} disabled={busy || code.length !== 6}>Verificar</Button>
                   </div>
-                ))}
+                </div>
+
+                <div>
+                  <p className="mb-1 text-sm font-medium">Recovery codes</p>
+                  <div className="grid grid-cols-2 gap-1 font-mono text-xs">
+                    {setup.recovery_codes.map((rc) => <span key={rc} className="rounded bg-muted px-2 py-1">{rc}</span>)}
+                  </div>
+                </div>
               </div>
-              <Button variant="outline" onClick={() => {/* regenerar */}}>
-                Regenerar Códigos
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldOff className="h-5 w-5 text-destructive" /> Deshabilitar
+            </CardTitle>
+            <CardDescription>POST /disable requiere tu contraseña (y código si está confirmado).</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="pw">Contraseña</Label>
+              <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="dcode">Código (opcional)</Label>
+              <Input id="dcode" value={code} onChange={(e) => setCode(e.target.value)} />
+            </div>
+            <Button variant="destructive" onClick={() => void disable()} disabled={busy || !password}>
+              Deshabilitar
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle className="text-base">Recovery codes</CardTitle>
+            <CardDescription>GET /recovery-codes · POST /regenerate-recovery-codes</CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => void loadRecovery()} disabled={busy}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Ver
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => void regenerate()} disabled={busy}>
+              Regenerar
+            </Button>
+          </div>
+        </CardHeader>
+        {recoveryCodes.length > 0 && (
+          <CardContent>
+            <div className="grid grid-cols-2 gap-1 font-mono text-xs md:grid-cols-4">
+              {recoveryCodes.map((rc) => <span key={rc} className="rounded bg-muted px-2 py-1">{rc}</span>)}
+            </div>
+          </CardContent>
+        )}
+      </Card>
     </div>
   )
 }

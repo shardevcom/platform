@@ -1,12 +1,10 @@
 "use client"
 
-import { ReactNode } from "react"
 import { Outlet } from "react-router-dom"
 import { Sidebar } from "@/components/ui/sidebar"
 import { Header } from "@/components/ui/header"
-import { cn } from "@/lib/utils"
 
-export function Layout({ children }: { children?: ReactNode }) {
+export function Layout() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex h-screen overflow-hidden">

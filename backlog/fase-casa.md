@@ -186,6 +186,16 @@ Estado verificado por código: root **246 passed (703 assertions)**, demo **205 
 ### T-CASA-029 — Resilience
 - Alcance acotado a propósito: caída de cola, pérdida de Redis, caída de BD durante un import. Un import que queda en `processing` para siempre es un fallo de disponibilidad tanto como de seguridad (datos en estado indeterminado).
 
+### Cliente SPA + login first-party (2026-10-15)
+- **Login (paquete `security`)**: `AuthController` + rutas registradas por plataforma en `SecurityServiceProvider::loadAuthRoutes()`:
+  - `POST {prefix}/api/v1/auth/login` (público) → valida credenciales contra el provider de la plataforma y acuña un PAT con `ScopeCatalogue::abilities()` (derivado del `ResourceRegistry` + `configuration.admin`).
+  - `GET /auth/me`, `POST /auth/logout` usan `auth:{api_guard}` (para `web` es el guard passport `api`, no la sesión): un token Bearer no es una sesión.
+  - `ScopeCatalogue` se movió del demo (`App\Platform\Authentication\TokenScopeCatalogue`) al paquete `security`; el demo ahora reusa el canónico. Evita que registro (`Passport::tokensCan`) y emisión (`createToken`) diverjan.
+- **Cliente (`client/`)**: Vite/React 19 + Tailwind v4. `lib/api.ts` (envelope `{status,code,message,data,meta}`, `ApiError`, token+plataforma en localStorage), `lib/endpoints.ts` por dominio, `AuthProvider` real, páginas Products/Configuration/TwoFactor/Widgets/GraphQL/Profile. Selector de plataforma en el login. Build `npm run build` verde.
+- **CLI**: `platform demo add <pkg> --with-client [--no-install]` copia `client/` al proyecto (excluye `node_modules`/`dist`/`.git`) y corre `npm install` salvo `--no-install`. `ClientInstaller` + `Filesystem::copyDirectory($from,$to,$exclude)`.
+- **Seeders demo**: `DatabaseSeeder` crea usuarios de las 3 plataformas (password `password`) + brands/products para que el SPA tenga datos.
+- **Verificación**: `AuthLoginEndpointTest` (6 tests) en demo; root 251/715; demo 211/2557; greps `00-index.md` OK.
+
 ## Comandos de verificación
 
 ```bash

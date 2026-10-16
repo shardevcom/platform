@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Platform\Authentication;
+namespace Shardevcom\Security\Authentication;
 
 use Shardevcom\Core\Contracts\ResourceRegistry;
 
@@ -15,8 +15,13 @@ use Shardevcom\Core\Contracts\ResourceRegistry;
  * so it is derived from the resource registry instead of being maintained
  * beside it — two lists would drift, and the failure mode of drift is a token
  * minted without the ability it was meant to have.
+ *
+ * The same catalogue feeds both ends of the token lifecycle: the app declares
+ * it via `Passport::tokensCan()` (registration) and the login adapter mints
+ * first-party tokens with `abilities()` (issuance), so a new action on a
+ * resource becomes issuable without a second edit.
  */
-final class TokenScopeCatalogue
+final class ScopeCatalogue
 {
     /**
      * @return array<string, string> scope id => description
@@ -43,5 +48,15 @@ final class TokenScopeCatalogue
         $scopes['configuration.admin'] = 'Read admin-only configuration';
 
         return $scopes;
+    }
+
+    /**
+     * The scope ids, in the shape Passport's createToken() expects.
+     *
+     * @return list<string>
+     */
+    public function abilities(ResourceRegistry $registry): array
+    {
+        return array_keys($this->scopes($registry));
     }
 }

@@ -1,95 +1,104 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Users, Key, Shield, Mail, BarChart3 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useAuth } from "@/hooks/useAuth"
+import { Link } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
+import { Boxes, Settings, Shield, LayoutGrid, Code2, KeyRound } from "lucide-react"
 
-const stats = [
-  { title: "Usuarios", value: "1,234", icon: Users, color: "text-blue-500 bg-blue-100" },
-  { title: "Passkeys", value: "56", icon: Key, color: "text-green-500 bg-green-100" },
-  { title: "2FA Activos", value: "89%", icon: Shield, color: "text-purple-500 bg-purple-100" },
-  { title: "OTP Enviados", value: "1,234", icon: Mail, color: "text-orange-500 bg-orange-100" },
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/providers/AuthProvider"
+import { products, widgets } from "@/lib/endpoints"
+
+const SECTIONS = [
+  { to: "/products", title: "Products", description: "CRUD, filtros, select, import/export", icon: Boxes },
+  { to: "/configuration", title: "Configuration", description: "Providers públicos y admin", icon: Settings },
+  { to: "/2fa", title: "Two-Factor", description: "TOTP, QR y recovery codes", icon: Shield },
+  { to: "/widgets", title: "Widgets", description: "Métricas, charts y tablas", icon: LayoutGrid },
+  { to: "/graphql", title: "GraphQL", description: "Queries y mutaciones", icon: Code2 },
 ]
 
 export function DashboardPage() {
-  const { user } = useAuth()
+  const { user, platform } = useAuth()
+
+  const productsQuery = useQuery({
+    queryKey: ["dashboard", "products", platform],
+    queryFn: () => products.list({ per_page: 1 }),
+  })
+
+  const widgetsQuery = useQuery({
+    queryKey: ["dashboard", "widgets"],
+    queryFn: () => widgets.get(),
+  })
+
+  const totalProducts = productsQuery.data?.meta.pagination?.total
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h2 className="text-2xl font-bold">Hola{user?.name ? `, ${user.name}` : ""}</h2>
         <p className="text-muted-foreground">
-          Bienvenido, {user?.name || "Usuario"} — Panel de control
+          Cliente demo consumiendo la plataforma <span className="font-medium uppercase">{platform}</span>.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="border-l-4">
-            <CardContent className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                <p className="text-2xl font-bold">{stat.value}</p>
-              </div>
-              <div className={cn("p-3 rounded-full", stat.color)}>
-                <stat.icon className="h-5 w-5 text-white" />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Productos</CardDescription>
+            <CardTitle className="text-3xl">{totalProducts ?? "—"}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-muted-foreground">vía GET /products</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Widgets</CardDescription>
+            <CardTitle className="text-3xl">
+              {widgetsQuery.data ? Object.keys(widgetsQuery.data).length : "—"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-muted-foreground">vía GET /widgets</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Permisos del token</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <KeyRound className="h-6 w-6 text-muted-foreground" />
+              {user?.abilities.length ?? 0}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-muted-foreground">abilities en el PAT</CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {SECTIONS.map((section) => (
+          <Link key={section.to} to={section.to}>
+            <Card className="h-full transition-colors hover:border-primary/50">
+              <CardHeader>
+                <section.icon className="mb-2 h-6 w-6 text-primary" />
+                <CardTitle>{section.title}</CardTitle>
+                <CardDescription>{section.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      {user && (
         <Card>
           <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
+            <CardTitle className="text-base">Scopes del token</CardTitle>
+            <CardDescription>Vocabulario derivado del ResourceRegistry</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span>Nuevo usuario registrado</span>
-                <span className="text-muted-foreground">Hace 5 min</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Passkey registrado</span>
-                <span className="text-muted-foreground">Hace 15 min</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>2FA habilitado</span>
-                <span className="text-muted-foreground">Hace 1 hora</span>
-              </div>
-            </div>
+          <CardContent className="flex flex-wrap gap-1.5">
+            {user.abilities.map((ability) => (
+              <Badge key={ability} variant="secondary" className="font-mono text-[10px]">
+                {ability}
+              </Badge>
+            ))}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Accesos Rápidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <a href="/passkeys" className={cn("p-4 rounded-lg border hover:bg-accent transition-colors")}>
-                <h3 className="font-medium">Gestionar Passkeys</h3>
-                <p className="text-sm text-muted-foreground">Registrar y gestionar passkeys</p>
-              </a>
-              <a href="/2fa" className={cn("p-4 rounded-lg border hover:bg-accent transition-colors")}>
-                <h3 className="font-medium">Configurar 2FA</h3>
-                <p className="text-sm text-muted-foreground">Autenticación de dos factores</p>
-              </a>
-              <a href="/otp" className={cn("p-4 rounded-lg border hover:bg-accent transition-colors")}>
-                <h3 className="font-medium">Configurar OTP</h3>
-                <p className="text-sm text-muted-foreground">Códigos por correo electrónico</p>
-              </a>
-              <a href="/profile" className={cn("p-4 rounded-lg border hover:bg-accent transition-colors")}>
-                <h3 className="font-medium">Mi Perfil</h3>
-                <p className="text-sm text-muted-foreground">Configuración de cuenta</p>
-              </a>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      )}
     </div>
   )
 }

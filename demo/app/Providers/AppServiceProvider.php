@@ -6,7 +6,6 @@ namespace App\Providers;
 
 use App\Platform\Authentication\PassportTokenResolver;
 use App\Platform\Authentication\StatelessPassportGuard;
-use App\Platform\Authentication\TokenScopeCatalogue;
 use App\Platform\Authentication\RefreshTokenRotation;
 use App\Platform\Authentication\StepUpMfa;
 use App\Platform\Authorization\ContextPermissionResolver;
@@ -21,6 +20,7 @@ use Shardevcom\Core\Contracts\AuthenticationProvider;
 use Shardevcom\Core\Contracts\PermissionResolver;
 use Shardevcom\Core\Contracts\ResourceRegistry;
 use Shardevcom\Core\Contracts\TokenResolver;
+use Shardevcom\Security\Authentication\ScopeCatalogue;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -140,7 +140,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->booted(function (): void {
             Passport::tokensCan(
-                (new TokenScopeCatalogue())->scopes($this->app->make(ResourceRegistry::class))
+                (new ScopeCatalogue())->scopes($this->app->make(ResourceRegistry::class))
             );
         });
     }
