@@ -6,7 +6,9 @@ namespace Tests\Feature\Platform;
 
 use App\Models\AdminUser;
 use App\Models\User;
+use DateInterval;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Passport\Passport;
 use Tests\TestCase;
 
 /**
@@ -76,6 +78,28 @@ final class AuthLoginEndpointTest extends TestCase
             ->assertStatus(422)
             ->assertJsonPath('code', 'VALIDATION_FAILED')
             ->assertJsonStructure(['meta' => ['details' => ['email', 'password']]]);
+    }
+
+    public function test_issued_token_honours_the_personal_access_lifetime(): void
+    {
+        // A distinctive TTL proves the login applies Passport's PAT lifetime
+        // (fed from config/passport.php) instead of an implicit/unlimited value.
+        Passport::personalAccessTokensExpireIn(new DateInterval('PT2H'));
+
+        $user = User::factory()->create(['password' => 'secret-password']);
+
+        $expiresIn = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'secret-password',
+        ])->assertOk()->json('data.expires_in');
+
+        $this->assertIsInt($expiresIn);
+        $this->assertEqualsWithDelta(
+            7200,
+            $expiresIn,
+            10,
+            'The issued token must expire per Passport::personalAccessTokensExpireIn().'
+        );
     }
 
     public function test_logout_revokes_the_token(): void

@@ -17,3 +17,35 @@
 - **Dep:** T-042, T-074, T-071
 - **Aceptación:** 100% marcado con evidencia (test o grep); `composer test` verde.
 - **Est:** S
+- **Estado:** ✅ DONE (2026-10-16). Verificado contra el código; cada control con evidencia ejecutable. `composer test` verde (root 260 / demo 212).
+
+### Checklist (control → evidencia → estado)
+
+| # | Control | Evidencia (test o grep) | Estado |
+| --- | --- | --- | --- |
+| 1 | auth-before-persistence | `ActionLifecycle.php:47` autoriza antes de `$operation`; tests `AbstractResourceRepositoryTest::test_denied_action_never_reaches_persistence`, `ProductRepositoryTest::test_a_denied_write_never_reaches_the_database` (DB::listen: sin SQL de write), `EloquentResourcePersistenceTest::test_a_denied_action_never_reaches_the_database` | ✅ |
+| 2 | Validación única | DTO canónico: `CreateProductData::rules()/fromArray()`; REST lo reusa (`CreateProductRequest.php:28`), GraphQL construye el mismo DTO (`ProductMutationResolver.php:37-55`). Test `ProductUseCaseParityTest::test_invalid_input_produces_identical_errors_from_both_transports`. **Desviación:** el schema Lighthouse repite el texto de reglas (`graphql/schema.graphql:144-157`); la frontera de cumplimiento sigue siendo el DTO (el resolver re-valida). | ✅ |
+| 3 | Allow-list filters/includes/sort | `ProductResourceDefinition.php:27-31` (`withFilters/withIncludes/withSorting`); `ResourceDefinition::allowsFilter/allowsInclude/allowsSort`; `QueryOptions.php:52-67`. Tests `QueryOptionsTest::test_undeclared_{filter,include,sort}_is_rejected`; over-HTTP `ProductRestEndpointTest::test_an_undeclared_filter_is_422...`, `ProductGraphqlEndpointTest::test_an_undeclared_include_is_refused` | ✅ |
+| 4 | Mass assignment | `Product.php:32` `$fillable`; `EloquentResourcePersistence::rejectUndeclared()` (llamado en `persistNew`/`persistUpdate`). Tests `EloquentResourcePersistenceTest::test_mass_assignment_goes_through_fillable`, `...::test_undeclared_columns_are_rejected_before_the_write`; doctor rule `MassAssignmentRule` | ✅ |
+| 5 | Rate limiting | `RateLimitMiddleware` (buckets anon/user/operación), alias `rate.limit` en `SecurityServiceProvider.php:54`, aplicado en `config/platforms.php:60,74,88`. Tests `RateLimitTest::test_the_31st_anonymous_request_is_throttled_by_ip`, `...::test_the_121st_authenticated_request_is_throttled_by_user`, `...::test_an_import_hits_its_own_bucket_before_a_plain_get`; GraphQL `GraphqlHardeningTest::test_mutations_are_rate_limited...` | ✅ |
+| 6 | Token expiry / revocación | `Passport::personalAccessTokensExpireIn` desde `config/passport.php` (`AppServiceProvider::configurePassportLifetimes`); `AuthController::logout()` revoca (`:103`). Tests `PassportAuthenticationTest::test_an_expired_token_is_rejected...`, `...::test_a_revoked_token_is_unauthorized`, `AuthLoginEndpointTest::test_logout_revokes_the_token`, y **nuevo** `AuthLoginEndpointTest::test_issued_token_honours_the_personal_access_lifetime` (TTL configurado aplicado al PAT emitido) | ✅ |
+| 7 | Auditabilidad | `LoggingHooks` emite `correlation_id`/`request_id`/`user_id`/`tenant_id`/`guard`/`duration_ms`; `CorrelationMiddleware` (UUIDv4-only). Tests `LoggingHooksTest::test_after_action_logs_dimensions_with_correlation_id`, `ObservabilityTest::test_a_full_request_keeps_one_correlation_id...`, `CorrelationIdsTest`. **Nota:** es logging/trazabilidad, no un audit store append-only; eventos `auth.login/token.revoked/...` (BACKLOG §CASA) siguen pendientes fuera de T-122. | ✅ |
+| 8 | Errores seguros | `RestExceptionHandler::renderUnexpected()` solo expone mensaje/detalles con `app.debug` (`:154,160`); mapeo de dominio `ApiError::fromDomain`. Test `ErrorMappingTest::test_an_unexpected_failure_is_a_generic_500_that_leaks_nothing` (sin `SQLSTATE`/trace) | ✅ |
+| 9 | Sin `whereRaw`/SQL arbitrario | Único `whereRaw` es literal constante `PlatformUser.php:57` (`'1=0'`), nunca desde request; executor parametrizado. Grep: `grep -rn "DB::select\|DB::raw\|whereRaw\|orderByRaw\|selectRaw" packages/shardevcom demo/api/packages demo/api/app src \| grep -v vendor` → solo `whereRaw('1=0')`. Regla `LayeringRulesTest` prohíbe `->whereRaw(`/`DB::` en Use Cases | ✅ |
+| 10 | Sin eager arbitrario | Includes allow-listed (`IncludeSet`), executor hace `with($includes)` solo con la lista validada (`EloquentQueryExecutor.php:103`). Grep sin coincidencias: `grep -rnE 'with\(\$request\|with\(\$args\|with\(\$input' packages demo/api`. Tests `QueryOptionsTest::test_undeclared_include_is_rejected`, `EloquentQueryExecutorTest::test_undeclared_include_never_reaches_the_database` | ✅ |
+| 11 | N+1 controlado | Eager solo por includes declarados; relación GraphQL con `batch: true` (`schema.graphql:64`). Test `EloquentQueryExecutorTest::test_includes_eager_load_without_n_plus_one` (`assertLessThanOrEqual(3, DB::getQueryLog())`) | ✅ |
+| 12 | Límites page/complexity/depth | `QueryOptions::DEFAULT_MAX_PER_PAGE=100` + `Pagination::capped()`; GraphQL `MAX_QUERY_DEPTH=15`, `MAX_QUERY_COMPLEXITY=1000`, `MAX_FIRST=100`. Tests `QueryOptionsTest::test_per_page_clamps_to_max`, `GraphqlHardeningTest::test_a_query_over_1000_complexity_is_rejected`, `...::test_a_query_deeper_than_15_is_rejected`, `ProductRestEndpointTest::test_an_oversized_page_size_is_clamped...` | ✅ |
+
+**Comandos de evidencia (reproducibles):**
+
+```bash
+# Arquitectura (T-110)
+grep -rn "Illuminate\\Database\\Eloquent" packages/shardevcom/core/src || echo "CORE LIMPIO OK"
+grep -rn "::query()" demo/api/packages/shardev/*/src/Rest demo/api/packages/shardev/*/src/Graphql || echo "ADAPTERS LIMPIOS OK"
+grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
+# Suites
+composer test                       # root
+composer test --working-dir=demo/api # app (incluye AuthLoginEndpointTest, RateLimitTest, GraphqlHardeningTest, ErrorMappingTest)
+```
+
+**Revisión manual (firmar en PR):** ☐ Revisado por __________ — fecha __________.

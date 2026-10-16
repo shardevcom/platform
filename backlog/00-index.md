@@ -43,7 +43,7 @@
 - ✅ Fase Testing: T-100, T-101, T-102, T-110 — DONE; T-111 (CI) — parcial/DONE según fase
 - ✅ Fase Multi-Platform: T-200…T-209 — DONE
 - ✅ Fase CASA: Varios T-CASA-* — Implementados (según fase-casa.md)
-- ⏳ Fase Docs: T-120, T-121, T-122 — PENDIENTES
+- 🟡 Fase Docs: T-122 — DONE; T-120, T-121 — PENDIENTES
 
 1. Core contracts → T-010 **[DONE]**
 2. Application context → T-011 **[DONE]**
@@ -63,7 +63,7 @@
 16. **Multi-Platform → T-200…T-209** **[DONE]**
 17. Testing → T-100, T-101, T-102 **[DONE]**
 18. Architecture tests → T-110, T-111 **[DONE/parcial]**
-19. Documentation → T-120, T-121, T-122 **[PENDIENTE]**
+19. Documentation → T-120, T-121 **[PENDIENTE]**, T-122 **[DONE]**
 20. Security (CASA / ASVS v4.0) → T-CASA-001…T-CASA-030 **[IMPLEMENTADO/PARCIAL]**
 
 Paralelizable: T-003/T-004 (CLI) tras T-001/T-002 en paralelo con Core. T-005 (doctor) al final.
@@ -101,13 +101,13 @@ grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
 
 ## Estado actual global (análisis 2026-10-15)
 
-- **Framework (root):** 251 tests / 715 assertions — **OK**. CLI (`bin/platform`) completo (new, package make/list, doctor, config, demo). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
+- **Framework (root):** 260 tests / 745 assertions — **OK**. CLI (`bin/platform`) completo (new, package make/list, doctor, config, demo, plugin list/show). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
 - **Packages (fuente):** `core`, `application`, `resources`, `authorization`, `persistence`, `configuration`, `rest`, `graphql`, `security`, `socialite`, `twofactor`, `widgets`, `observability`, `documentation`, `product`, `catalog` — implementados con arquitectura limpia (adapters delgados, lifecycle único, repo base sobre persistencia Eloquent trait).
-- **Demo (fixture):** 211 tests / 2557 assertions — **OK, todo verde**.
+- **Demo (fixture):** 212 tests / 2557 assertions — **OK, todo verde**.
 - **Arquitectura:** CORE LIMPIO confirmado por grep (sin Eloquent/Http/`abort()` en `core/src`), adapters sin `::query()`, sin `whereRaw` desde request, lifecycle único, ApplicationContext con user/tenant/application separados. El bootstrap de auth (`AuthBootstrapServiceProvider`) y el middleware `BindGuard` viven ahora en el paquete `security`, no en `core`.
 - **Multi-platform:** T-200–T-209 implementados; product package completo demo.
 - **Cliente SPA (`demo/web/`):** monorepo Vite/React con una app por guard (`apps/{user,admin,employee}`) sobre `packages/{ui,core,plugin-kit}` y `plugins/` (una vista por guard). Consume la API real (REST por plataforma + GraphQL). Login first-party en el paquete `security`: `POST {prefix}/api/v1/auth/login` acuña un PAT (scopes desde `ScopeCatalogue` derivado del `ResourceRegistry`), más `GET /auth/me` y `POST /auth/logout`. Un package API con `plugin.json` es un plugin y se lista con `platform plugin list`. Se instala con `platform demo add <pkg> --with-client [--no-install]`. Seeders demo: `admin@example.com` / `employee@example.com` / `user@example.com`, password `password`.
-- **Pendientes reales:** T-120, T-121, T-122 (documentación). Ver `fase-casa.md` para el estado fino de la fase CASA.
+- **Pendientes reales:** T-120, T-121 (documentación). Ver `fase-casa.md` para el estado fino de la fase CASA.
 
 ### Nota de mantenimiento (2026-10-15)
 
