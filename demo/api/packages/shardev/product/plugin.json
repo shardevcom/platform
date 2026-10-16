@@ -1,0 +1,11 @@
+{
+  "name": "product",
+  "title": "Products",
+  "resource": "products",
+  "actions": ["view", "list", "create", "update", "delete", "import", "export"],
+  "guards": {
+    "web": "read",
+    "employee": "write",
+    "admin": "full"
+  }
+}

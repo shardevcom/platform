@@ -17,12 +17,13 @@
 ├── AGENTS.md / CLAUDE.md   # instrucciones para IAs
 └── demo/                   # app de REFERENCIA (fixture manual hasta T-003)
     ├── api/                #   Laravel 12 + copia de packages/ + config/platform.php
-    └── web/                #   SPA Vite/React que consume la API
+    └── web/                #   monorepo Vite/React: apps/ por guard + packages/ + plugins/
 ```
 
 `demo/` es el output que `platform new demo --laravel=12` producirá cuando T-003 exista.
 Hoy está scaffoldeada a mano: `demo/api/` (`laravel/laravel` 12.x + copia de `packages/` +
-`config/platform.php`) y `demo/web/` (cliente de referencia).
+`config/platform.php`) y `demo/web/` (cliente de referencia: `apps/{user,admin,employee}`,
+una app por guard, sobre `packages/{ui,core,plugin-kit}` + `plugins/`).
 `demo/api/tests/` corre la suite de la app generada (Feature); `tests/` la del framework (Unit).
 
 ## 1. Qué es Shardev Platform
@@ -33,7 +34,7 @@ Plataforma API modular sobre Laravel. Proporciona:
 - **Repository pattern con autorización integrada**: Frontera autorizada a recursos (auth + validación + query constraints + lifecycle) — no un wrapper de Model
 - **REST y GraphQL como adapters delgados**: Comparten Use Cases + Repository. Cero duplicación de auth/validación/reglas
 - **Sistema de configuración extensible**: Providers con visibilidad (public/authenticated/admin) y resultados parciales (207)
-- **CLI cero-dependencias**: `platform new`, `platform package make`, `platform doctor`
+- **CLI cero-dependencias**: `platform new`, `platform package make`, `platform demo`, `platform plugin list`, `platform doctor`
 
 ## 2. Versiones soportadas
 
@@ -441,12 +442,13 @@ bin/platform config vendor acme
 bin/platform demo list
 bin/platform demo add product
 bin/platform demo add product --with-client
+bin/platform plugin list
 bin/platform doctor
 
 # App generada (demo/api) y cliente de referencia (demo/web)
 composer test --working-dir=demo/api
 (cd demo/api && php artisan route:list | grep -E "products|configuration")
-(cd demo/web && npm install && npm run dev)
+(cd demo/web && npm install && npm run dev:admin)   # o dev:employee / dev:user
 ```
 
 ## Gate completo (CI)

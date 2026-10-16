@@ -197,6 +197,14 @@ Estado verificado por código: root **246 passed (703 assertions)**, demo **205 
 - **Reorganización `demo/` (2026-10-16)**: `demo/api/` = app Laravel (antes `demo/`), `demo/web/` = SPA (antes `client/` en la raíz). El CLI lee la plantilla del cliente de `demo/web`; `DemoInstaller` lee los packages de `demo/api/packages`.
 - **Verificación**: `AuthLoginEndpointTest` (6 tests) en `demo/api`; root 251/715; demo 211/2557; greps `00-index.md` OK.
 
+### Monorepo web por guard + plugins (2026-10-16)
+- **`demo/web` → monorepo**: `apps/{user,admin,employee}` (una app Vite por guard, puertos 5175/5173/5174) sobre `packages/{ui,core,plugin-kit}` compartidos y `plugins/` con una vista por guard. Un solo `package.json` raíz; alias Vite/TS a source (`@shardev/ui`, `@shardev/core`, `@shardev/plugin-kit`, `@plugins/product`), sin symlinks ni build intermedio. `vite.shared.ts` centraliza root, `publicDir`, aliases y proxy a `http://localhost:8000`.
+- **Contrato de plugin web** (`packages/plugin-kit`): `definePlugin`, `Guard`, `createRegistry(plugins, guard)` → `{views, nav}`. `PlatformApp({guard, appName, plugins})` monta providers, rutas base y las vistas/nav que aporta cada plugin según el guard.
+- **Diferencia por guard (product)**: user catálogo read-only, employee alta/edición, admin CRUD + import/export; mismos Use Cases en la API, abilities del token deciden. Cada guard view pasa un `ProductCapabilities`.
+- **Manifiesto API** (`packages/shardevcom/product/plugin.json`): `name/title/resource/actions/guards`; sincronizado al demo con `scripts/sync-demo-packages.py`.
+- **CLI** `platform plugin list`: `PluginManifest` + `PluginCatalog` leen los `plugin.json` de los packages descubiertos por `PackageCatalog` (nunca lista hardcodeada); `PluginCommand`/`PluginListCommand` registrados en `Application`.
+- **Verificación**: root **255 passed (725 assertions)** (incluye `PluginCommandTest`, 4 tests); demo **211 passed (2557 assertions)**; `npm run typecheck` + `npm run build` (3 apps) + `npm run lint` verdes; `php bin/platform plugin list` lista `product`; greps `00-index.md` OK.
+
 ## Comandos de verificación
 
 ```bash

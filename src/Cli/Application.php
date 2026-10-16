@@ -12,6 +12,7 @@ use Shardevcom\Cli\Command\HelpCommand;
 use Shardevcom\Cli\Command\ListCommand;
 use Shardevcom\Cli\Command\NewCommand;
 use Shardevcom\Cli\Command\PackageCommand;
+use Shardevcom\Cli\Command\PluginCommand;
 use Shardevcom\Cli\Command\VersionCommand;
 use Shardevcom\Cli\Exception\CommandFailed;
 use Shardevcom\Cli\Exception\InvalidInput;
@@ -106,6 +107,7 @@ final class Application
             new PackageCommand(),
             new ConfigCommand(),
             new DemoCommand(),
+            new PluginCommand(),
         ];
 
         $help = new HelpCommand(static fn (): array => $commands);

@@ -1,13 +1,21 @@
 {
-  "name": "client",
+  "name": "shardev-web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
+    "dev:user": "vite --config apps/user/vite.config.ts",
+    "dev:admin": "vite --config apps/admin/vite.config.ts",
+    "dev:employee": "vite --config apps/employee/vite.config.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && npm run build:user && npm run build:admin && npm run build:employee",
+    "build:user": "vite build --config apps/user/vite.config.ts",
+    "build:admin": "vite build --config apps/admin/vite.config.ts",
+    "build:employee": "vite build --config apps/employee/vite.config.ts",
+    "lint": "oxlint apps packages plugins",
+    "preview:user": "vite preview --config apps/user/vite.config.ts",
+    "preview:admin": "vite preview --config apps/admin/vite.config.ts",
+    "preview:employee": "vite preview --config apps/employee/vite.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

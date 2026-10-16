@@ -14,9 +14,9 @@ use Shardevcom\Cli\Scaffold\DemoInstaller;
 /**
  * `platform demo add <package>`: copies the demo into the project.
  *
- * With `--with-client` it also drops the reference SPA (demo/web) into the
- * project root so the API has a working front-end; `--no-install` copies the
- * client without running `npm install`.
+ * With `--with-client` it also drops the reference SPA (demo/web, one Vite app
+ * per guard) into the project root so the API has a working front-end;
+ * `--no-install` copies the client without running `npm install`.
  */
 final class DemoAddCommand implements CommandInterface
 {
@@ -42,7 +42,7 @@ final class DemoAddCommand implements CommandInterface
                 'package' => 'Demo package name (defaults to product)',
             ],
             options: [
-                'with-client' => ['description' => 'Also copy the reference SPA into ./client'],
+                'with-client' => ['description' => 'Also copy the reference client (web monorepo) into ./client'],
                 'no-install' => ['description' => 'Copy the client but skip npm install'],
             ],
         );
@@ -55,7 +55,7 @@ final class DemoAddCommand implements CommandInterface
             $printer->info('Usage: platform demo add [package] [--with-client] [--no-install]');
             $printer->writeln();
             $printer->note('The package is copied into the packages directory and vendor from config/platform.php.');
-            $printer->note('--with-client copies ./client (Vite/React SPA) and runs npm install unless --no-install.');
+            $printer->note('--with-client copies ./client (Vite monorepo, one app per guard) and runs npm install unless --no-install.');
         });
     }
 

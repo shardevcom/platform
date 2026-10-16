@@ -1,27 +1,33 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2023",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
+    "moduleDetection": "force",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "allowArbitraryExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "jsx": "react-jsx",
     "strict": true,
+    "skipLibCheck": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@shardev/ui": ["packages/ui/src/index.ts"],
+      "@shardev/ui/styles.css": ["packages/ui/src/styles.css"],
+      "@shardev/core": ["packages/core/src/index.ts"],
+      "@shardev/plugin-kit": ["packages/plugin-kit/src/index.ts"],
+      "@plugins/product": ["plugins/product/src/index.ts"]
     },
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["apps", "packages", "plugins", "vite.shared.ts", "vite-env.d.ts"]
 }

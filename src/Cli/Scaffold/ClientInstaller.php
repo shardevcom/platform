@@ -10,10 +10,11 @@ use Shardevcom\Cli\Exception\CommandFailed;
 /**
  * Boundary: copies the reference SPA shipped by the framework into a project.
  *
- * The reference client is the demo's web app (demo/web), a plain Vite/React
- * app that consumes the platform API; it is copied as-is (never symlinked) so
- * the project owns and can edit it. Build artifacts are excluded so a fresh
- * project never inherits the demo's node_modules or dist.
+ * The reference client is the demo's web app (demo/web), a Vite/React
+ * monorepo with one app per guard that consumes the platform API; it is copied
+ * as-is (never symlinked) so the project owns and can edit it. Build artifacts
+ * are excluded so a fresh project never inherits the demo's node_modules or
+ * dist.
  */
 final class ClientInstaller
 {

@@ -162,14 +162,15 @@ final class DemoCommandTest extends TestCase
 
         $this->assertSame(0, $exit);
         $this->assertTrue($filesystem->isFile('/app/client/package.json'));
-        $this->assertTrue($filesystem->isFile('/app/client/vite.config.ts'));
-        $this->assertTrue($filesystem->isFile('/app/client/src/main.tsx'));
+        $this->assertTrue($filesystem->isFile('/app/client/apps/admin/vite.config.ts'));
+        $this->assertTrue($filesystem->isFile('/app/client/apps/admin/src/main.tsx'));
+        $this->assertTrue($filesystem->isFile('/app/client/packages/core/src/index.ts'));
         $this->assertFalse(
             $filesystem->isFile('/app/client/node_modules/pkg/index.js'),
             'node_modules must not be copied'
         );
         $this->assertFalse(
-            $filesystem->isFile('/app/client/dist/index.html'),
+            $filesystem->isFile('/app/client/apps/admin/dist/index.html'),
             'dist must not be copied'
         );
     }
@@ -246,11 +247,13 @@ final class DemoCommandTest extends TestCase
             self::DEMO_PACKAGE.'/src/Models/Product.php' => '<?php',
             self::DEMO_PACKAGE.'/routes/api.php' => '<?php',
             self::DEMO_PACKAGE.'/database/migrations/2026_10_01_000000_create_products_tables.php' => '<?php',
-            '/framework/demo/web/package.json' => '{"name":"client"}',
-            '/framework/demo/web/vite.config.ts' => 'export default {}',
-            '/framework/demo/web/src/main.tsx' => 'console.log(1)',
+            '/framework/demo/web/package.json' => '{"name":"shardev-web"}',
+            '/framework/demo/web/vite.shared.ts' => 'export default {}',
+            '/framework/demo/web/apps/admin/vite.config.ts' => 'export default {}',
+            '/framework/demo/web/apps/admin/src/main.tsx' => 'console.log(1)',
+            '/framework/demo/web/packages/core/src/index.ts' => 'export {}',
             '/framework/demo/web/node_modules/pkg/index.js' => '// build artifact, must not be copied',
-            '/framework/demo/web/dist/index.html' => '<!-- build artifact, must not be copied -->',
+            '/framework/demo/web/apps/admin/dist/index.html' => '<!-- build artifact, must not be copied -->',
         ]);
     }
 

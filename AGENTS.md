@@ -5,7 +5,8 @@
 
 ## Layout
 - Root framework: `bin/platform` (CLI cero-dep), `src/` (` Shardevcom\`), `packages/` (FUENTE oficial), `tests/` (unit, `composer test`).
-- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`) y `demo/web/` (SPA Vite/React que consume la API). Suite app: `composer test` dentro de `demo/api/`.
+- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`) y `demo/web/` (monorepo Vite/React: `apps/{user,admin,employee}` = una app por guard, `packages/` compartidos, `plugins/` con vistas por guard). Suite app: `composer test` dentro de `demo/api/`.
+- Plugins: un package API puede declarar `plugin.json` (resource, actions, guards) y convertirse en plugin; `platform plugin list` los lista desde los manifiestos (nunca de una lista hardcodeada). El lado web usa `definePlugin` de `packages/plugin-kit`.
 - Tras cambiar `packages/` del root, sincronizar SOLO oficiales (nunca borrar `demo/api/packages/<usuario>`):
   `python3 scripts/sync-demo-packages.py && composer dump-autoload --working-dir=demo/api`.
   El script copia `packages/shardevcom/*` a `demo/api/packages/shardev/*` reescribiendo `name` y
@@ -37,6 +38,7 @@
 packages/<nombre>/src/{ServiceProvider,Application,Resources,Repositories,Contracts,Infrastructure,Rest,Graphql}
 packages/<nombre>/{config,routes,migrations,tests,composer.json}
 ```
+Un package puede además incluir `plugin.json` (resource, actions, guards) para exponerse como plugin.
 
 ## Criterio para dar DONE
 Solo con Criterio de aceptación del `BACKLOG.md` verificado por test/comando. Sin excepciones.
