@@ -15,12 +15,15 @@
 ├── tests/                  # tests del framework (phpunit, sin Laravel)
 ├── backlog/ + BACKLOG.md   # backlog técnico por fases
 ├── AGENTS.md / CLAUDE.md   # instrucciones para IAs
-└── demo/                   # app generada de REFERENCIA (fixture manual hasta T-003)
+└── demo/                   # app de REFERENCIA (fixture manual hasta T-003)
+    ├── api/                #   Laravel 12 + copia de packages/ + config/platform.php
+    └── web/                #   SPA Vite/React que consume la API
 ```
 
 `demo/` es el output que `platform new demo --laravel=12` producirá cuando T-003 exista.
-Hoy está scaffoldeada a mano (`laravel/laravel` 12.x + copia de `packages/` + `config/platform.php`).
-`demo/tests/` corre la suite de la app generada (Feature); `tests/` la del framework (Unit).
+Hoy está scaffoldeada a mano: `demo/api/` (`laravel/laravel` 12.x + copia de `packages/` +
+`config/platform.php`) y `demo/web/` (cliente de referencia).
+`demo/api/tests/` corre la suite de la app generada (Feature); `tests/` la del framework (Unit).
 
 ## 1. Qué es Shardev Platform
 
@@ -329,9 +332,9 @@ composer test
 # phpunit + composer validate
 ```
 
-### Suite de la app generada (demo/)
+### Suite de la app generada (demo/api/)
 ```bash
-composer test --working-dir=demo
+composer test --working-dir=demo/api
 # 141 tests: Repository, Use Cases, REST, GraphQL, Config, Parity, Arch
 ```
 
@@ -340,7 +343,7 @@ Mismo seed/usuario: crear con dato inválido, leer sin permiso, filtrar no permi
 
 ### Architecture tests (T-110)
 ```bash
-cd demo && php artisan test --filter=LayeringRulesTest
+cd demo/api && php artisan test --filter=LayeringRulesTest
 # Core↛Eloquent/HTTP, Adapters↛Model/::query(), Auth solo en AuthorizationManager, etc.
 ```
 
@@ -378,7 +381,7 @@ Exit: 0
 Objetivo: un dev nuevo llega a `GET /api/v1/products → 200` y `{ products { id name } }` con sqlite.
 
 ```bash
-# 1. Crear proyecto (o usar demo/ existente)
+# 1. Crear proyecto (o usar demo/api existente)
 cd /ruta/al/framework
 bin/platform new mi-proyecto --laravel=12 --no-interaction
 cd mi-proyecto
@@ -437,11 +440,13 @@ bin/platform config packages src/platform
 bin/platform config vendor acme
 bin/platform demo list
 bin/platform demo add product
+bin/platform demo add product --with-client
 bin/platform doctor
 
-# App generada
-composer test --working-dir=demo
-php artisan route:list | grep -E "products|configuration"
+# App generada (demo/api) y cliente de referencia (demo/web)
+composer test --working-dir=demo/api
+(cd demo/api && php artisan route:list | grep -E "products|configuration")
+(cd demo/web && npm install && npm run dev)
 ```
 
 ## Gate completo (CI)
@@ -608,8 +613,8 @@ grep -rn "Eloquent" packages/shardevcom/core/src || echo "CORE LIMPIO OK"
 grep -rn "whereRaw" packages/ || echo "SIN WHERERAW OK"
 
 # App generada
-composer test --working-dir=demo
-cd demo && php artisan test --filter=LayeringRulesTest
+composer test --working-dir=demo/api
+cd demo/api && php artisan test --filter=LayeringRulesTest
 ```
 
 ---

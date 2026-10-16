@@ -11,7 +11,7 @@ use Shardevcom\Cli\Exception\CommandFailed;
 /**
  * Boundary: installs a demo package shipped by the framework into a project.
  *
- * The demo lives in the framework (demo/packages/<vendor>/<name>) and is copied
+ * The demo lives in the framework (demo/api/packages/<vendor>/<name>) and is copied
  * into the project's configured packages directory and vendor, so the project
  * owns the code afterwards. Cross-package requirements are rewritten to the
  * names the project actually installed, otherwise `composer update` would ask
@@ -28,7 +28,7 @@ final class DemoInstaller
      */
     public function available(): array
     {
-        $root = $this->context->frameworkPath('demo/packages');
+        $root = $this->context->frameworkPath('demo/api/packages');
         $names = [];
 
         foreach ($this->context->filesystem->directories($root) as $vendor) {
@@ -47,7 +47,7 @@ final class DemoInstaller
     public function source(string $name): string
     {
         foreach ($this->vendors() as $vendor) {
-            $candidate = $this->context->frameworkPath('demo/packages/'.$vendor.'/'.$name);
+            $candidate = $this->context->frameworkPath('demo/api/packages/'.$vendor.'/'.$name);
 
             if ($this->context->filesystem->isFile($candidate.'/composer.json')) {
                 return $candidate;
@@ -169,7 +169,7 @@ final class DemoInstaller
     {
         $vendors = array_map(
             'basename',
-            $this->context->filesystem->directories($this->context->frameworkPath('demo/packages'))
+            $this->context->filesystem->directories($this->context->frameworkPath('demo/api/packages'))
         );
 
         return $vendors;

@@ -380,7 +380,7 @@
 > 5. Esta fase no reemplaza T-122 ni una prueba externa de pentest.
 
 ### T-CASA-001 — AST — SAST en CI (PHPStan/Larastan nivel alto)
-- **Descripción:** Añadir análisis estático a `composer ci` sobre `src/`, `packages/` y `demo/packages/`. Sin subir el nivel a ciegas: se parte de un baseline explícito y se reduce a cero en las carpetas con arquitectura estricta. `grep` prohibidos de T-110 pasan a ser reglas de PHPStan, no script suelto.
+- **Descripción:** Añadir análisis estático a `composer ci` sobre `src/`, `packages/` y `demo/api/packages/`. Sin subir el nivel a ciegas: se parte de un baseline explícito y se reduce a cero en las carpetas con arquitectura estricta. `grep` prohibidos de T-110 pasan a ser reglas de PHPStan, no script suelto.
 - **Dependencias:** T-111
 - **Criterio de aceptación:** `composer sa` corre en <3 min; 0 errores en `packages/shardevcom/*/src/{Core,Application}`; mutación de prueba (importar `Model` en Core) falla el build (documentado cómo verificar); el baseline solo puede reducirse con justificación por tarea, nunca ampliarse de forma global.
 - **Estimación:** S
@@ -492,7 +492,7 @@
 - **Estimación:** S
 
 ### T-CASA-019 — Infra — CORS Restrictivo por Plataforma (No Wildcard)
-- **Estado:** DONE (2026-10). `HandleCors` global + `demo/config/cors.php` sin wildcard (`allowed_origins` por env), `paths` cubren los prefijos de plataforma (`api/*`, `admin/*`, `employee/*`, `graphql`, `oauth/*`), `supports_credentials=false`, `exposed_headers` con `X-RateLimit-*`/`Retry-After`. Verificación: `CorsTest` (5 tests: origen no listado sin ACAO, preflight 2xx con surface correcta y sin credenciales, coexistencia con SecurityHeaders) — demo **190 passed (2209 assertions)**; root 228/228. Detalles en `backlog/fase-casa.md` T-CASA-019.
+- **Estado:** DONE (2026-10). `HandleCors` global + `demo/api/config/cors.php` sin wildcard (`allowed_origins` por env), `paths` cubren los prefijos de plataforma (`api/*`, `admin/*`, `employee/*`, `graphql`, `oauth/*`), `supports_credentials=false`, `exposed_headers` con `X-RateLimit-*`/`Retry-After`. Verificación: `CorsTest` (5 tests: origen no listado sin ACAO, preflight 2xx con surface correcta y sin credenciales, coexistencia con SecurityHeaders) — demo **190 passed (2209 assertions)**; root 228/228. Detalles en `backlog/fase-casa.md` T-CASA-019.
 - **Descripción:** `config/cors.php`: `paths:['api/*','graphql','oauth/*']`, `allowed_origins:[env('APP_URL'),env('ADMIN_APP_URL'),env('EMPLOYEE_APP_URL')]`, `allowed_methods:['GET','POST','PUT','PATCH','DELETE','OPTIONS']`, `allowed_headers:['Authorization','Content-Type','X-Request-ID','X-Correlation-ID','X-Timezone','Accept']`, `exposed_headers:['X-RateLimit-Limit','X-RateLimit-Remaining','Retry-After','API-Version','Link']`, `supports_credentials:false`, `max_age:3600`.
 - **Dependencias:** T-070
 - **Criterio de aceptación:** Origen no listado → sin `ACAO`; preflight `OPTIONS` → 200 con headers correctos; credenciales no enviadas.

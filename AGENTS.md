@@ -1,14 +1,14 @@
 # AGENTS.md — Instrucciones para agentes (OpenCode / IA)
 
 > Lee esto antes de tocar código. Fuente de verdad: `BACKLOG.md` + `backlog/`.
-> ESTE REPO ES EL FRAMEWORK (installer + fuente de packages), NO la app. La app generada vive en `demo/` (fixture manual hasta T-003).
+> ESTE REPO ES EL FRAMEWORK (installer + fuente de packages), NO la app. La app generada vive en `demo/` (`demo/api/` + `demo/web/`, fixture manual hasta T-003).
 
 ## Layout
 - Root framework: `bin/platform` (CLI cero-dep), `src/` (` Shardevcom\`), `packages/` (FUENTE oficial), `tests/` (unit, `composer test`).
-- `demo/`: app Laravel 12 generada de referencia con SU copia de `packages/` + `config/platform.php`. Suite app: `composer test` dentro de `demo/`.
-- Tras cambiar `packages/` del root, sincronizar SOLO oficiales (nunca borrar `demo/packages/<usuario>`):
-  `python3 scripts/sync-demo-packages.py && composer dump-autoload --working-dir=demo`.
-  El script copia `packages/shardevcom/*` a `demo/packages/shardev/*` reescribiendo `name` y
+- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`) y `demo/web/` (SPA Vite/React que consume la API). Suite app: `composer test` dentro de `demo/api/`.
+- Tras cambiar `packages/` del root, sincronizar SOLO oficiales (nunca borrar `demo/api/packages/<usuario>`):
+  `python3 scripts/sync-demo-packages.py && composer dump-autoload --working-dir=demo/api`.
+  El script copia `packages/shardevcom/*` a `demo/api/packages/shardev/*` reescribiendo `name` y
   `require` del manifest (el demo usa vendor `shardev`, el framework `shardevcom`). Verifica con
   `composer test` en ambos. Un `cp -a` a secas rompe el autoload de composer en el demo.
 

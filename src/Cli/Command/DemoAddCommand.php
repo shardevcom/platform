@@ -14,7 +14,7 @@ use Shardevcom\Cli\Scaffold\DemoInstaller;
 /**
  * `platform demo add <package>`: copies the demo into the project.
  *
- * With `--with-client` it also drops the reference SPA (`client/`) into the
+ * With `--with-client` it also drops the reference SPA (demo/web) into the
  * project root so the API has a working front-end; `--no-install` copies the
  * client without running `npm install`.
  */

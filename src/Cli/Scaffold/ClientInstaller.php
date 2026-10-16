@@ -10,10 +10,10 @@ use Shardevcom\Cli\Exception\CommandFailed;
 /**
  * Boundary: copies the reference SPA shipped by the framework into a project.
  *
- * The client is a plain Vite/React app that consumes the platform API; it is
- * copied as-is (never symlinked) so the project owns and can edit it. Build
- * artifacts are excluded so a fresh project never inherits the framework's
- * node_modules or dist.
+ * The reference client is the demo's web app (demo/web), a plain Vite/React
+ * app that consumes the platform API; it is copied as-is (never symlinked) so
+ * the project owns and can edit it. Build artifacts are excluded so a fresh
+ * project never inherits the demo's node_modules or dist.
  */
 final class ClientInstaller
 {
@@ -26,7 +26,7 @@ final class ClientInstaller
 
     public function source(): string
     {
-        return $this->context->frameworkPath(self::DIRECTORY);
+        return $this->context->frameworkPath('demo/web');
     }
 
     public function available(): bool

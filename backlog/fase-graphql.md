@@ -20,11 +20,11 @@
   - Las guardas de seguridad (T-074) escribían `false`/`15`/en claves que esperan **constantes de GraphQL-php**, no booleanos ni tamaños. `DisableIntrospection::__construct()` reventaba antes de resolver cualquier campo. Ahora usan `QueryDepth::DISABLED + 15`.
   - `GraphQLErrorHandler` estaba registrado con `$this->app->singleton(ErrorHandler::class, ...)`, que Lighthouse **no lee**. Va en `lighthouse.error_handlers`. Además implementaba la interfaz equivocada: Lighthouse llama `__invoke(?Error, Closure)`, no `handle(array)`. Reescrito como middleware que enriquece y sigue la cadena.
 
-**Bug del lado app (no del framework):** `demo/app/Platform/Authorization/ContextPermissionResolver` hacía `in_array` exacto de `products.view`, así que un token con `products.*` recibía 403 en **todo**. `InMemoryPermissionResolver` sí honraba el wildcard. Corregido.
+**Bug del lado app (no del framework):** `demo/api/app/Platform/Authorization/ContextPermissionResolver` hacía `in_array` exacto de `products.view`, así que un token con `products.*` recibía 403 en **todo**. `InMemoryPermissionResolver` sí honraba el wildcard. Corregido.
 
 **Cache de schema:** Lighthouse cachea el schema compilado en `bootstrap/cache/lighthouse-schema.php`. Un cambio de schema no se veía sin limpiarlo, lo que hacía que los tests mintieran. `phpunit.xml` desactiva el cache en testing y `composer test` corre `lighthouse:clear-cache`.
 
-**Tests nuevos:** `demo/tests/Feature/Platform/ProductGraphqlEndpointTest.php` (13 casos sobre HTTP real) — ciclo CRUD completo, wildcard, guest 403, falta de ability, `RESOURCE_NOT_FOUND` con el mismo code que REST, filtro no declarado rechazado por el use case, filtro declarado aplicado, clamp de `per_page`, include no declarado, sort, conflicto de sku duplicado, error de validación de input, y campo inexistente.
+**Tests nuevos:** `demo/api/tests/Feature/Platform/ProductGraphqlEndpointTest.php` (13 casos sobre HTTP real) — ciclo CRUD completo, wildcard, guest 403, falta de ability, `RESOURCE_NOT_FOUND` con el mismo code que REST, filtro no declarado rechazado por el use case, filtro declarado aplicado, clamp de `per_page`, include no declarado, sort, conflicto de sku duplicado, error de validación de input, y campo inexistente.
 
 **Mutación:** reemplacé el cuerpo de `ProductQueryResolver::products()` por `Product::query()->get()` (el bug original) → **7 tests en rojo**, incluyendo autorización, allow-lists y clamp. Restaurado.
 

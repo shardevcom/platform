@@ -85,12 +85,12 @@ bin/platform list && bin/platform --version
 
 # App generada (demo/) — fixture con comportamiento de import en jobs (5 tests con expected 'failed' vs pipeline async)
 # Nota: En entorno sync de tests hay diferencias menores entre tests esperados y ejecución en cola.
-composer test --working-dir=demo
+composer test --working-dir=demo/api
 
-# Architecture tests (T-110). Paths reales: packages/shardevcom/*, demo/packages/shardev/*
+# Architecture tests (T-110). Paths reales: packages/shardevcom/*, demo/api/packages/shardev/*
 grep -rn "Illuminate\\Database\\Eloquent" packages/shardevcom/core/src || echo "CORE LIMPIO OK"
 grep -rn "HttpException\|abort(" packages/shardevcom/core/src || echo "CORE SIN HTTP OK"
-grep -rn "::query()" demo/packages/shardev/*/src/Rest demo/packages/shardev/*/src/Graphql 2>/dev/null || echo "ADAPTERS LIMPIOS OK"
+grep -rn "::query()" demo/api/packages/shardev/*/src/Rest demo/api/packages/shardev/*/src/Graphql 2>/dev/null || echo "ADAPTERS LIMPIOS OK"
 grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
 ```
 
@@ -106,10 +106,10 @@ grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
 - **Demo (fixture):** 211 tests / 2557 assertions — **OK, todo verde**.
 - **Arquitectura:** CORE LIMPIO confirmado por grep (sin Eloquent/Http/`abort()` en `core/src`), adapters sin `::query()`, sin `whereRaw` desde request, lifecycle único, ApplicationContext con user/tenant/application separados. El bootstrap de auth (`AuthBootstrapServiceProvider`) y el middleware `BindGuard` viven ahora en el paquete `security`, no en `core`.
 - **Multi-platform:** T-200–T-209 implementados; product package completo demo.
-- **Cliente SPA (`client/`):** Vite/React que consume la API real (REST por plataforma + GraphQL). Login first-party en el paquete `security`: `POST {prefix}/api/v1/auth/login` acuña un PAT (scopes desde `ScopeCatalogue` derivado del `ResourceRegistry`), más `GET /auth/me` y `POST /auth/logout`. Se instala con `platform demo add <pkg> --with-client [--no-install]`. Seeders demo: `admin@example.com` / `employee@example.com` / `user@example.com`, password `password`.
+- **Cliente SPA (`demo/web/`):** Vite/React que consume la API real (REST por plataforma + GraphQL). Login first-party en el paquete `security`: `POST {prefix}/api/v1/auth/login` acuña un PAT (scopes desde `ScopeCatalogue` derivado del `ResourceRegistry`), más `GET /auth/me` y `POST /auth/logout`. Se instala con `platform demo add <pkg> --with-client [--no-install]`. Seeders demo: `admin@example.com` / `employee@example.com` / `user@example.com`, password `password`.
 - **Pendientes reales:** T-120, T-121, T-122 (documentación). Ver `fase-casa.md` para el estado fino de la fase CASA.
 
 ### Nota de mantenimiento (2026-10-15)
 
-El fixture demo usa `QUEUE_CONNECTION=sync` en `demo/phpunit.xml`: los tests de import asumen que el pipeline async corre dentro de la request. No cambiarlo a `database` sin adaptar antes `ProductRestEndpointTest` (procesaría la cola explícitamente).
+El fixture demo usa `QUEUE_CONNECTION=sync` en `demo/api/phpunit.xml`: los tests de import asumen que el pipeline async corre dentro de la request. No cambiarlo a `database` sin adaptar antes `ProductRestEndpointTest` (procesaría la cola explícitamente).
 

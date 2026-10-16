@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Sync official packages into the demo app, renaming the vendor namespace.
 
-AGENTS.md requires demo/packages/<user> to be a copy of packages/<official>,
+AGENTS.md requires demo/api/packages/<user> to be a copy of packages/<official>,
 but the demo installs them under the `shardev` vendor while the framework
 ships `shardevcom`. Copying verbatim breaks composer autoloading and package
 discovery, so the manifest is rewritten as part of the sync.
 
-User packages living directly in demo/packages/<user>/ are never touched.
+User packages living directly in demo/api/packages/<user>/ are never touched.
 """
 
 import collections
@@ -53,7 +53,7 @@ def rewrite_manifest(manifest: pathlib.Path, pkg: str) -> None:
 def main() -> int:
     root = pathlib.Path(__file__).resolve().parent.parent
     src_root = root / 'packages' / SOURCE_VENDOR
-    dst_root = root / 'demo' / 'packages' / TARGET_VENDOR
+    dst_root = root / 'demo' / 'api' / 'packages' / TARGET_VENDOR
 
     for pkg in sync(src_root, dst_root):
         print(f'synced {pkg}')

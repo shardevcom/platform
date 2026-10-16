@@ -22,7 +22,7 @@ use Tests\Unit\Cli\Support\RecordingPrinter;
  */
 final class DemoCommandTest extends TestCase
 {
-    private const DEMO_PACKAGE = '/framework/demo/packages/shardev/product';
+    private const DEMO_PACKAGE = '/framework/demo/api/packages/shardev/product';
 
     public function test_lists_the_packages_the_demo_ships(): void
     {
@@ -246,11 +246,11 @@ final class DemoCommandTest extends TestCase
             self::DEMO_PACKAGE.'/src/Models/Product.php' => '<?php',
             self::DEMO_PACKAGE.'/routes/api.php' => '<?php',
             self::DEMO_PACKAGE.'/database/migrations/2026_10_01_000000_create_products_tables.php' => '<?php',
-            '/framework/client/package.json' => '{"name":"client"}',
-            '/framework/client/vite.config.ts' => 'export default {}',
-            '/framework/client/src/main.tsx' => 'console.log(1)',
-            '/framework/client/node_modules/pkg/index.js' => '// build artifact, must not be copied',
-            '/framework/client/dist/index.html' => '<!-- build artifact, must not be copied -->',
+            '/framework/demo/web/package.json' => '{"name":"client"}',
+            '/framework/demo/web/vite.config.ts' => 'export default {}',
+            '/framework/demo/web/src/main.tsx' => 'console.log(1)',
+            '/framework/demo/web/node_modules/pkg/index.js' => '// build artifact, must not be copied',
+            '/framework/demo/web/dist/index.html' => '<!-- build artifact, must not be copied -->',
         ]);
     }
 
