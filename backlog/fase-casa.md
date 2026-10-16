@@ -203,7 +203,8 @@ Estado verificado por código: root **246 passed (703 assertions)**, demo **205 
 - **Diferencia por guard (product)**: user catálogo read-only, employee alta/edición, admin CRUD + import/export; mismos Use Cases en la API, abilities del token deciden. Cada guard view pasa un `ProductCapabilities`.
 - **Manifiesto API** (`packages/shardevcom/product/plugin.json`): `name/title/resource/actions/guards`; sincronizado al demo con `scripts/sync-demo-packages.py`.
 - **CLI** `platform plugin list`: `PluginManifest` + `PluginCatalog` leen los `plugin.json` de los packages descubiertos por `PackageCatalog` (nunca lista hardcodeada); `PluginCommand`/`PluginListCommand` registrados en `Application`. `plugin show <name>` detalla actions, abilities y ruta por guard; ambos aceptan `--json` para tooling. El manifiesto admite guard como string (`"admin": "full"`) u objeto (`{"mode": "full", "path": "products"}`).
-- **Verificación**: root **260 passed (745 assertions)** (incluye `PluginCommandTest`, 9 tests); demo **211 passed (2557 assertions)**; `npm run typecheck` + `npm run build` (3 apps) + `npm run lint` verdes; `php bin/platform plugin list|show product` OK; greps `00-index.md` OK.
+- **Tests web (Vitest + jsdom)**: `npm test` cubre `definePlugin`/`createRegistry` (resolución por guard, orden de nav, view sin nav), `PlatformApp` (login sin token, shell autenticado, aislamiento por guard) y el contrato del plugin `product` (una vista por guard). Alias y `test/setup.ts` (matchMedia/ResizeObserver) en `vitest.config.ts`.
+- **Verificación**: root **260 passed (745 assertions)** (incluye `PluginCommandTest`, 9 tests); demo **211 passed (2557 assertions)**; web **14 tests** (`npm test`), `npm run typecheck` + `npm run build` (3 apps) + `npm run lint` verdes; `php bin/platform plugin list|show product` OK; greps `00-index.md` OK.
 
 ## Comandos de verificación
 

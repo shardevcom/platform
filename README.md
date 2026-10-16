@@ -449,7 +449,7 @@ bin/platform doctor
 # App generada (demo/api) y cliente de referencia (demo/web)
 composer test --working-dir=demo/api
 (cd demo/api && php artisan route:list | grep -E "products|configuration")
-(cd demo/web && npm install && npm run dev:admin)   # o dev:employee / dev:user
+(cd demo/web && npm install && npm test && npm run dev:admin)   # o dev:employee / dev:user
 ```
 
 ## Gate completo (CI)

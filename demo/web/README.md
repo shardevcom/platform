@@ -116,6 +116,16 @@ npm run build   # typecheck + build de las 3 apps
 npm run lint    # oxlint
 ```
 
+## Tests
+
+```bash
+npm test        # vitest (jsdom) — plugin-kit, PlatformApp y el contrato del plugin product
+```
+
+Cubren `definePlugin`/`createRegistry` (resolución por guard, orden de nav),
+`PlatformApp` (login sin token, shell autenticado, aislamiento por guard) y que
+el plugin `product` monta una vista por guard.
+
 ## Instalación vía CLI
 
 El instalador copia este monorepo a un proyecto con:
