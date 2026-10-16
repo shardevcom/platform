@@ -16,6 +16,7 @@ use Shardevcom\Cli\Plugins\PluginCatalog;
  * A plugin is an API package with a `plugin.json` manifest plus a web module
  * exposing one view per guard. Listing them from the manifests keeps the CLI,
  * the API and the SPA agreeing on the same set without a second registry.
+ * `--json` emits the same data machine-readably for tooling.
  */
 final class PluginListCommand implements CommandInterface
 {
@@ -36,22 +37,33 @@ final class PluginListCommand implements CommandInterface
 
     public function getDefinition(): InputDefinition
     {
-        return InputDefinition::create();
+        return InputDefinition::create(
+            options: [
+                'json' => ['description' => 'Emit the plugins as JSON'],
+            ],
+        );
     }
 
     public function getHelp(): string
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform plugin list');
-            $printer->info('Usage: platform plugin list');
+            $printer->info('Usage: platform plugin list [--json]');
         });
     }
 
     public function execute(Input $input, Context $context): int
     {
-        $printer = $context->printer();
         $plugins = (new PluginCatalog($context->filesystem, $context->packageCatalog()))->all();
 
+        if ($input->flag('json')) {
+            $payload = array_map(static fn ($plugin): array => $plugin->toArray(), $plugins);
+            $context->output->writeln((string) json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return 0;
+        }
+
+        $printer = $context->printer();
         $printer->heading('Platform plugins');
 
         if ($plugins === []) {

@@ -15,8 +15,8 @@ namespace Shardevcom\Cli\Plugins;
 final class PluginManifest
 {
     /**
-     * @param list<string>         $actions resource actions (view, create, ...)
-     * @param array<string,string> $guards  guard => mode (read, write, full)
+     * @param list<string>              $actions resource actions (view, create, ...)
+     * @param array<string, PluginGuard> $guards guard name => guard descriptor
      */
     public function __construct(
         public readonly string $name,
@@ -48,10 +48,12 @@ final class PluginManifest
 
         $guards = [];
 
-        foreach ((array) ($data['guards'] ?? []) as $guard => $mode) {
-            if (is_string($guard) && $guard !== '') {
-                $guards[$guard] = is_string($mode) && $mode !== '' ? $mode : 'full';
+        foreach ((array) ($data['guards'] ?? []) as $guard => $value) {
+            if (! is_string($guard) || $guard === '') {
+                continue;
             }
+
+            $guards[$guard] = self::guard($guard, $value);
         }
 
         $title = $data['title'] ?? null;
@@ -62,6 +64,30 @@ final class PluginManifest
             resource: $resource,
             actions: $actions,
             guards: $guards,
+        );
+    }
+
+    /**
+     * A guard is either a bare mode string (`"admin": "full"`) or an object
+     * carrying the mode plus the web route it mounts.
+     */
+    private static function guard(string $name, mixed $value): PluginGuard
+    {
+        if (is_array($value)) {
+            $mode = $value['mode'] ?? null;
+            $path = $value['path'] ?? null;
+
+            return new PluginGuard(
+                name: $name,
+                mode: is_string($mode) && $mode !== '' ? $mode : 'full',
+                path: is_string($path) && $path !== '' ? $path : null,
+            );
+        }
+
+        return new PluginGuard(
+            name: $name,
+            mode: is_string($value) && $value !== '' ? $value : 'full',
+            path: null,
         );
     }
 
@@ -77,12 +103,31 @@ final class PluginManifest
 
     public function guardSummary(): string
     {
-        $parts = [];
-
-        foreach ($this->guards as $guard => $mode) {
-            $parts[] = $guard.' ('.$mode.')';
+        if ($this->guards === []) {
+            return '—';
         }
 
-        return $parts === [] ? '—' : implode(', ', $parts);
+        return implode(', ', array_map(static fn (PluginGuard $guard): string => $guard->summary(), $this->guards));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $guards = [];
+
+        foreach ($this->guards as $name => $guard) {
+            $guards[$name] = $guard->toArray();
+        }
+
+        return [
+            'name' => $this->name,
+            'title' => $this->title,
+            'resource' => $this->resource,
+            'actions' => $this->actions,
+            'abilities' => $this->abilities(),
+            'guards' => $guards,
+        ];
     }
 }

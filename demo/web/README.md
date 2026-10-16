@@ -56,10 +56,27 @@ export const productPlugin = definePlugin({
 
 La misma diferencia se refleja en la API: `web` solo lectura, `employee`
 lectura/escritura, `admin` CRUD + import/export (según las abilities del token).
-Lista de plugins instalados:
+El package API declara ese contrato en `plugin.json` (`resource`, `actions` y
+`guards` con su `mode` y `path`), que es la fuente del CLI:
+
+```json
+{
+  "name": "product",
+  "resource": "products",
+  "actions": ["view", "list", "create", "update", "delete", "import", "export"],
+  "guards": {
+    "web": { "mode": "read", "path": "products" },
+    "employee": { "mode": "write", "path": "products" },
+    "admin": { "mode": "full", "path": "products" }
+  }
+}
+```
+
+Lista e inspección de plugins instalados:
 
 ```bash
-platform plugin list
+platform plugin list            # tabla (o --json para tooling)
+platform plugin show product    # actions, abilities y ruta por guard (o --json)
 ```
 
 ## Requisitos

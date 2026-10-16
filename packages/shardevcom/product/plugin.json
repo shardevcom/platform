@@ -4,8 +4,8 @@
   "resource": "products",
   "actions": ["view", "list", "create", "update", "delete", "import", "export"],
   "guards": {
-    "web": "read",
-    "employee": "write",
-    "admin": "full"
+    "web": { "mode": "read", "path": "products" },
+    "employee": { "mode": "write", "path": "products" },
+    "admin": { "mode": "full", "path": "products" }
   }
 }

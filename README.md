@@ -34,7 +34,7 @@ Plataforma API modular sobre Laravel. Proporciona:
 - **Repository pattern con autorización integrada**: Frontera autorizada a recursos (auth + validación + query constraints + lifecycle) — no un wrapper de Model
 - **REST y GraphQL como adapters delgados**: Comparten Use Cases + Repository. Cero duplicación de auth/validación/reglas
 - **Sistema de configuración extensible**: Providers con visibilidad (public/authenticated/admin) y resultados parciales (207)
-- **CLI cero-dependencias**: `platform new`, `platform package make`, `platform demo`, `platform plugin list`, `platform doctor`
+- **CLI cero-dependencias**: `platform new`, `platform package make`, `platform demo`, `platform plugin list|show`, `platform doctor`
 
 ## 2. Versiones soportadas
 
@@ -443,6 +443,7 @@ bin/platform demo list
 bin/platform demo add product
 bin/platform demo add product --with-client
 bin/platform plugin list
+bin/platform plugin show product
 bin/platform doctor
 
 # App generada (demo/api) y cliente de referencia (demo/web)

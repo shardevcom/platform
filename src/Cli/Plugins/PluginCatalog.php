@@ -51,4 +51,15 @@ final class PluginCatalog
     {
         return count($this->all());
     }
+
+    public function find(string $name): ?PluginManifest
+    {
+        foreach ($this->all() as $plugin) {
+            if ($plugin->name === $name) {
+                return $plugin;
+            }
+        }
+
+        return null;
+    }
 }

@@ -48,6 +48,7 @@ final class PluginCommand implements GroupCommandInterface
     {
         return [
             'list' => new PluginListCommand(),
+            'show' => new PluginShowCommand(),
         ];
     }
 
@@ -55,7 +56,7 @@ final class PluginCommand implements GroupCommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform plugin');
-            $printer->info('Usage: platform plugin [list]');
+            $printer->info('Usage: platform plugin [list | show <name>]');
             $printer->writeln();
             $printer->writeln('  Sub-commands:');
 

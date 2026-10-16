@@ -59,6 +59,69 @@ final class PluginCommandTest extends TestCase
         $this->assertStringContainsString('No plugin manifests found', $recorder->stdout());
     }
 
+    public function test_shows_one_plugin_with_abilities_and_guard_routes(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'plugin', 'show', 'product'], $this->filesystem(), $recorder);
+
+        $this->assertSame(0, $exit);
+        $this->assertStringContainsString('Products (product)', $recorder->stdout());
+        $this->assertStringContainsString('products.view', $recorder->stdout());
+        $this->assertStringContainsString('products.import', $recorder->stdout());
+        $this->assertStringContainsString('read', $recorder->stdout());
+        $this->assertStringContainsString('products', $recorder->stdout());
+    }
+
+    public function test_shows_one_plugin_as_json(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'plugin', 'show', 'product', '--json'], $this->filesystem(), $recorder);
+
+        $this->assertSame(0, $exit);
+        $payload = json_decode(trim($recorder->stdout()), true);
+
+        $this->assertSame('products', $payload['resource']);
+        $this->assertContains('products.view', $payload['abilities']);
+        $this->assertSame('full', $payload['guards']['admin']['mode']);
+        $this->assertSame('products', $payload['guards']['admin']['path']);
+    }
+
+    public function test_lists_the_plugins_as_json(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'plugin', 'list', '--json'], $this->filesystem(), $recorder);
+
+        $this->assertSame(0, $exit);
+        $payload = json_decode(trim($recorder->stdout()), true);
+
+        $this->assertCount(1, $payload);
+        $this->assertSame('product', $payload[0]['name']);
+    }
+
+    public function test_reports_an_unknown_plugin(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'plugin', 'show', 'billing'], $this->filesystem(), $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('Unknown plugin', $recorder->stderr());
+        $this->assertStringContainsString('product', $recorder->stderr());
+    }
+
+    public function test_show_requires_a_plugin_name(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'plugin', 'show'], $this->filesystem(), $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('Missing plugin name', $recorder->stderr());
+    }
+
     public function test_rejects_an_unknown_plugin_sub_command(): void
     {
         $recorder = RecordingPrinter::create();
@@ -86,7 +149,11 @@ final class PluginCommandTest extends TestCase
                 "title": "Products",
                 "resource": "products",
                 "actions": ["view", "list", "create", "update", "delete", "import", "export"],
-                "guards": { "web": "read", "employee": "write", "admin": "full" }
+                "guards": {
+                    "web": { "mode": "read", "path": "products" },
+                    "employee": { "mode": "write", "path": "products" },
+                    "admin": { "mode": "full", "path": "products" }
+                }
             }
             JSON,
         ]);
