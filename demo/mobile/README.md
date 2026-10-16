@@ -111,8 +111,8 @@ platform demo add product --with-client --with-mobile-client   # web + mobile
 flutter create .
 
 flutter pub get
-flutter analyze
-flutter test
+flutter analyze          # analiza app + packages + plugins desde la raíz
+./tool/test.sh           # corre `flutter test` en cada package (plugin_kit, core, product)
 flutter run --dart-define=GUARD=admin --dart-define=API_HOST=http://10.0.2.2:8000
 ```
 

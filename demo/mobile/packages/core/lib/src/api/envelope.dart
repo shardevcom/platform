@@ -15,9 +15,9 @@ class ApiEnvelope<T> {
   final Map<String, dynamic>? meta;
 
   factory ApiEnvelope.fromJson(
-    Map<String, dynamic> json,
+    Map<String, dynamic> json, [
     T Function(Object? data)? decode,
-  ) {
+  ]) {
     final raw = json['data'];
     return ApiEnvelope<T>(
       status: json['status']?.toString() ?? 'success',

@@ -663,7 +663,7 @@ demo/mobile/
 ```bash
 # Android emulator: usa 10.0.2.2 para alcanzar el host
 flutter pub get
-flutter test
+./tool/test.sh          # corre flutter test en cada package del monorepo
 flutter run --dart-define=GUARD=admin    --dart-define=API_HOST=http://10.0.2.2:8000
 flutter run --dart-define=GUARD=employee --dart-define=API_HOST=http://10.0.2.2:8000
 flutter run --dart-define=GUARD=web      --dart-define=API_HOST=http://10.0.2.2:8000
