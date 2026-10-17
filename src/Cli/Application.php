@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Shardevcom\Cli;
 
+use Shardevcom\Cli\Command\AddCommand;
+use Shardevcom\Cli\Command\BuildCommand;
 use Shardevcom\Cli\Command\CommandInterface;
 use Shardevcom\Cli\Command\ConfigCommand;
 use Shardevcom\Cli\Command\DemoCommand;
+use Shardevcom\Cli\Command\DevCommand;
 use Shardevcom\Cli\Command\DoctorCommand;
 use Shardevcom\Cli\Command\HelpCommand;
+use Shardevcom\Cli\Command\InstallCommand;
 use Shardevcom\Cli\Command\ListCommand;
 use Shardevcom\Cli\Command\NewCommand;
 use Shardevcom\Cli\Command\PackageCommand;
 use Shardevcom\Cli\Command\PluginCommand;
+use Shardevcom\Cli\Command\RemoveCommand;
+use Shardevcom\Cli\Command\StatusCommand;
 use Shardevcom\Cli\Command\VersionCommand;
 use Shardevcom\Cli\Exception\CommandFailed;
 use Shardevcom\Cli\Exception\InvalidInput;
@@ -103,6 +109,12 @@ final class Application
             new VersionCommand(),
             new ListCommand(),
             new NewCommand(),
+            new AddCommand(),
+            new RemoveCommand(),
+            new InstallCommand(),
+            new BuildCommand(),
+            new DevCommand(),
+            new StatusCommand(),
             new DoctorCommand($this->context),
             new PackageCommand(),
             new ConfigCommand(),

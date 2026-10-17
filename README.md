@@ -39,7 +39,7 @@ Plataforma API modular sobre Laravel. Proporciona:
 - **Repository pattern con autorización integrada**: Frontera autorizada a recursos (auth + validación + query constraints + lifecycle) — no un wrapper de Model
 - **REST y GraphQL como adapters delgados**: Comparten Use Cases + Repository. Cero duplicación de auth/validación/reglas
 - **Sistema de configuración extensible**: Providers con visibilidad (public/authenticated/admin) y resultados parciales (207)
-- **CLI cero-dependencias**: `platform new`, `platform package make`, `platform demo`, `platform plugin list|show`, `platform doctor`
+- **CLI cero-dependencias**: `platform new` (workspace), `platform add|remove|install|build|dev|status`, `platform package make`, `platform demo`, `platform plugin list|show`, `platform doctor`
 
 ## 2. Versiones soportadas
 
@@ -51,28 +51,40 @@ Plataforma API modular sobre Laravel. Proporciona:
 
 `platform doctor` verifica la matriz de compatibilidad.
 
-## 3. Crear un proyecto nuevo
+## 3. Crear un proyecto nuevo (workspace)
+
+`platform new` genera un **workspace**: la raíz no es Laravel, sino un
+`platform.json` (fuente de verdad) con la API y los clientes como componentes
+independientes (`api/`, `web/`, `mobile/`, `desktop/`).
 
 ```bash
 # Instalar el framework
 composer install
 
-# Crear proyecto (no-interactivo)
+# Solo la API (por defecto)
 bin/platform new mi-proyecto --laravel=12 --no-interaction
 
-# Crear proyecto con demo (product package como base)
-bin/platform new mi-proyecto --laravel=12 --no-interaction --demo=product
+# API + web + móvil + desktop
+bin/platform new mi-proyecto --with=api,web,mobile,desktop
 
-# O interactivo (elige versión Laravel)
-bin/platform new mi-proyecto
+# Añadir un cliente después
+cd mi-proyecto
+bin/platform add web --guard=admin
 ```
 
-El comando ejecuta 16 pasos: valida nombre/matriz → crea Laravel → instala packages oficiales → autoload → registra providers → config → .env → migra → seed demo → dump-autoload → verifica rutas → (opcional) instala demo package.
+Cada componente se opera desde la raíz del workspace con un único CLI:
 
 ```bash
-# Verificar que funciona
-cd mi-proyecto
-php artisan serve
+bin/platform status                  # qué componentes hay y su estado
+bin/platform install [component]     # composer / npm install / flutter pub get / gradlew
+bin/platform build   [component]     # dump-autoload / npm run build / flutter build / gradlew build
+bin/platform dev     api             # php artisan serve (o npm run dev / flutter run / gradlew run)
+bin/platform doctor                  # incluye la suite Workspace
+```
+
+```bash
+# Verificar la API
+bin/platform dev api
 # GET http://localhost:8000/admin/api/v1/products → 200
 ```
 
@@ -441,6 +453,8 @@ composer test
 bin/platform --version
 bin/platform list
 bin/platform new mi-app --laravel=12 --no-interaction
+bin/platform new mi-app --with=api,web,mobile,desktop
+cd mi-app && bin/platform status && bin/platform install && bin/platform build && cd ..
 bin/platform config
 bin/platform config packages src/platform
 bin/platform config vendor acme
@@ -723,4 +737,61 @@ Requiere **JDK 21**; el wrapper descarga Gradle y JavaFX se resuelve como depend
 
 ---
 
-*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil, 18 Cliente desktop.*
+## 19. Workspace (API + clientes)
+
+`platform new` ya no produce "una app Laravel": produce un **workspace**. La
+raíz es un manifiesto `platform.json` y cada pieza es un componente
+independiente con su propio toolchain.
+
+```text
+mi-proyecto/
+├── platform.json     # fuente de verdad (name, platform, components)
+├── api/              # Laravel 12 (componente)
+├── web/              # Vite/React (componente)
+├── mobile/           # Flutter (componente)
+└── desktop/          # Gradle/JavaFX (componente)
+```
+
+```json
+{
+  "name": "mi-proyecto",
+  "platform": "0.1.0",
+  "components": {
+    "api":     { "type": "api",     "path": "api",     "guard": null,    "enabled": true },
+    "web":     { "type": "web",     "path": "web",     "guard": "admin", "enabled": true },
+    "mobile":  { "type": "mobile",  "path": "mobile",  "guard": "web",   "enabled": false },
+    "desktop": { "type": "desktop", "path": "desktop", "guard": "admin", "enabled": false }
+  }
+}
+```
+
+Cada tipo tiene un **driver** (`ComponentDriver`) que conoce su toolchain, así
+ningún comando ramifica por tipo:
+
+| tipo      | install               | build                  | dev                          |
+|-----------|-----------------------|------------------------|------------------------------|
+| `api`     | `composer update`     | `composer dump-autoload` | `php artisan serve`        |
+| `web`     | `npm install`         | `npm run build`        | `npm run dev:<guard>`        |
+| `mobile`  | `flutter pub get`     | `flutter build apk`    | `flutter run --dart-define=GUARD=<guard>` |
+| `desktop` | `./gradlew build -x test` | `./gradlew build` | `./gradlew :apps:<app>:run` |
+
+Comandos:
+
+```bash
+platform new <name> [--with=api,web,mobile,desktop] [--laravel=12] [--no-interaction] [--no-install]
+platform add <component> [--guard=admin] [--path=web] [--no-install]
+platform remove <component> [--delete]
+platform install [component] [--only=web,mobile]
+platform build   [component] [--only=web,mobile]
+platform dev     <component>
+platform status
+```
+
+`Context::projectRoot()` resuelve al componente `api`, de modo que `config`,
+`demo add`, `package make` y `doctor` siguen operando sobre Laravel. `doctor`
+añade la suite **Workspace** (falla si un componente del manifiesto no está en
+disco). Detalle de diseño: `backlog/fase-workspace.md`.
+
+---
+
+*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil, 18 Cliente desktop, 19 Workspace.*

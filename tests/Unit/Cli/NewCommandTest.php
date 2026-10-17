@@ -38,9 +38,13 @@ final class NewCommandTest extends TestCase
         }
         JSON,
         '/framework/packages/shardevcom/widgets/src/WidgetsServiceProvider.php' => '<?php',
+        '/framework/demo/web/package.json' => '{"name":"shardev-web"}',
+        '/framework/demo/web/apps/admin/src/main.tsx' => 'console.log(1)',
     ];
 
-    private const PROJECT = '/tmp/workspace/new-app';
+    private const WORKSPACE = '/tmp/workspace/new-app';
+
+    private const PROJECT = self::WORKSPACE.'/api';
 
     public function test_wires_every_discovered_package_into_the_generated_project(): void
     {
@@ -210,9 +214,49 @@ final class NewCommandTest extends TestCase
     public function test_refuses_to_overwrite_an_existing_directory(): void
     {
         $filesystem = $this->filesystem();
-        $filesystem->createDirectory(self::PROJECT);
+        $filesystem->createDirectory(self::WORKSPACE);
 
         $exit = $this->execute(['platform', 'new', 'new-app'], $filesystem);
+
+        $this->assertSame(1, $exit);
+    }
+
+    public function test_writes_the_workspace_manifest(): void
+    {
+        $this->execute(['platform', 'new', 'new-app']);
+
+        $manifest = $this->filesystem()->readJson(self::WORKSPACE.'/platform.json');
+
+        $this->assertSame('new-app', $manifest['name']);
+        $this->assertSame('api', $manifest['components']['api']['type']);
+        $this->assertSame('api', $manifest['components']['api']['path']);
+    }
+
+    public function test_scaffolds_the_api_as_a_component_directory(): void
+    {
+        $this->execute(['platform', 'new', 'new-app']);
+
+        $this->assertTrue($this->filesystem()->isDirectory(self::PROJECT));
+        $this->assertTrue($this->filesystem()->isFile(self::PROJECT.'/composer.json'));
+    }
+
+    public function test_creates_only_the_components_requested(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=api,web'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile(self::WORKSPACE.'/web/package.json'));
+
+        $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
+        $this->assertArrayHasKey('web', $manifest['components']);
+        $this->assertArrayNotHasKey('mobile', $manifest['components']);
+    }
+
+    public function test_rejects_an_unknown_component(): void
+    {
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=api,billing']);
 
         $this->assertSame(1, $exit);
     }

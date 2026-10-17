@@ -6,6 +6,7 @@ namespace Shardevcom\Cli;
 
 use Shardevcom\Cli\Config\PlatformConfig;
 use Shardevcom\Cli\Config\PlatformConfigFile;
+use Shardevcom\Cli\Exception\CommandFailed;
 use Shardevcom\Cli\Filesystem\Filesystem;
 use Shardevcom\Cli\Filesystem\LocalFilesystem;
 use Shardevcom\Cli\Packages\PackageCatalog;
@@ -13,6 +14,7 @@ use Shardevcom\Cli\Process\ProcessRunner;
 use Shardevcom\Cli\Process\ShellProcessRunner;
 use Shardevcom\Cli\Console\OutputInterface;
 use Shardevcom\Cli\Console\Printer;
+use Shardevcom\Cli\Workspace\Workspace;
 
 /**
  * Boundary: the capabilities a command is allowed to use.
@@ -34,6 +36,10 @@ final class Context
     ) {}
 
     private ?PlatformConfig $resolvedConfig = null;
+
+    private ?Workspace $resolvedWorkspace = null;
+
+    private bool $resolvedWorkspaceOnce = false;
 
     /**
      * Builds the production context: real terminal, real filesystem, real
@@ -139,9 +145,24 @@ final class Context
     /**
      * Nearest ancestor directory (starting at the working directory) that has a
      * composer.json requiring laravel/framework. Falls back to the cwd.
+     *
+     * Inside a workspace the API is a component, so the project root is that
+     * component (e.g. `api/`) rather than the workspace root: every existing
+     * command (config, demo add, doctor, package make) keeps operating on the
+     * Laravel app without knowing it now lives one level down.
      */
     public function projectRoot(): string
     {
+        $workspace = $this->workspace();
+
+        if ($workspace !== null && $workspace->manifest->has('api')) {
+            $api = $workspace->componentPath('api');
+
+            if ($this->filesystem->isDirectory($api)) {
+                return $api;
+            }
+        }
+
         $directory = $this->workingDirectory;
 
         while ($directory !== '' && $directory !== '/' && $directory !== '.') {
@@ -155,5 +176,31 @@ final class Context
         }
 
         return $this->workingDirectory;
+    }
+
+    /**
+     * The workspace the working directory belongs to, if any.
+     *
+     * Resolution is memoised because projectRoot() consults it on every call.
+     */
+    public function workspace(): ?Workspace
+    {
+        if (! $this->resolvedWorkspaceOnce) {
+            $this->resolvedWorkspace = Workspace::locate(
+                $this->filesystem,
+                $this->workingDirectory,
+                $this->frameworkRoot
+            );
+            $this->resolvedWorkspaceOnce = true;
+        }
+
+        return $this->resolvedWorkspace;
+    }
+
+    public function requireWorkspace(): Workspace
+    {
+        return $this->workspace() ?? throw CommandFailed::create(
+            'This directory is not a workspace. Run `platform new <name>` first, or run the command from the workspace root.'
+        );
     }
 }

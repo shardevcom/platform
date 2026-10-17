@@ -19,6 +19,7 @@ use Shardevcom\Cli\Doctor\ProjectSuite;
 use Shardevcom\Cli\Doctor\SecurityRuleRegistry;
 use Shardevcom\Cli\Doctor\SecuritySuite;
 use Shardevcom\Cli\Doctor\SecuritySeverity;
+use Shardevcom\Cli\Doctor\WorkspaceSuite;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Packages\PackageCatalog;
@@ -203,7 +204,7 @@ final class DoctorCommand implements CommandInterface
             $categories = explode(',', $input->option('category'));
         }
 
-        return [
+        $suites = [
             new EnvironmentSuite($filesystem, $this->context->process, $projectRoot),
             new ProjectSuite($filesystem, $projectRoot),
             new PackagesSuite($filesystem, $catalog, $projectRoot),
@@ -214,6 +215,14 @@ final class DoctorCommand implements CommandInterface
             new AuthenticationSuite($this->context->process, $filesystem, $projectRoot),
             new SecuritySuite($filesystem, $this->context->process, $projectRoot, $registry, $minSeverity, $categories),
         ];
+
+        $workspace = $this->context->workspace();
+
+        if ($workspace !== null) {
+            array_unshift($suites, new WorkspaceSuite($workspace, $filesystem));
+        }
+
+        return $suites;
     }
 
     private function registerSecurityRules(SecurityRuleRegistry $registry): void
