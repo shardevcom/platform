@@ -74,3 +74,17 @@ composer test --working-dir=demo/api # app (incluye AuthLoginEndpointTest, RateL
 - **CLI:** `src/Cli/Scaffold/MobileClientInstaller.php` (source `demo/mobile`, destino `./mobile-client`, excluye `.dart_tool`/`build`/…, corre `flutter pub get`) + flag `--with-mobile-client` en `platform demo add`.
 - **Verificación PHP:** `vendor/bin/phpunit --filter=DemoCommandTest` (20 tests; incluye copia del cliente Flutter, exclusión de artefactos, `flutter pub get`, `--no-install`, no-overwrite y ambos clientes).
 - **Verificación Dart:** `cd demo/mobile && flutter pub get && flutter analyze && ./tool/test.sh` (Flutter 3.47.7): analyze sin issues; 16 tests OK (plugin_kit 6, core 5, product 5).
+
+## Cliente desktop (JavaFX) — extensión del cliente de referencia
+
+- **Desc:** cliente de escritorio de referencia (`demo/desktop`) espejo de `demo/web`/`demo/mobile`: un monorepo Gradle con una app por guard (`user`/`admin`/`employee`) sobre paquetes compartidos y plugins por guard. Exportable vía CLI.
+- **Fuera de T-120..T-122** (petición del usuario, 2026-10-16).
+- **Estado:** ✅ DONE (2026-10-16). Java verificado con JDK 21: `./gradlew build` → BUILD SUCCESSFUL, 17 tests OK (plugin-kit 6, core 6, product 5).
+- **Arquitectura:**
+  - `demo/desktop/packages/plugin-kit/` — `Guard` (id + prefijo API), `NavItem`, `GuardView`, `PluginContext`, `PluginDefinition`, `definePlugin`, `PluginRegistry`.
+  - `demo/desktop/packages/core/` — `ApiClient` (`java.net.http`, envelope `{status,code,message,data,meta}`, `ApiError`), auth con token en `Preferences`, `PlatformApp` (shell + navegación desde el registry), vistas login/dashboard/profile, hoja de estilos `app.css`.
+  - `demo/desktop/plugins/product/` — `ProductApi` (Gson), `ProductList`/`ProductForm` con `ProductCapabilities`, y una vista por guard (`web` read-only, `employee` manage, `admin` full).
+  - `demo/desktop/apps/{user,employee,admin}/` — entrypoint `Main` por guard (`Guard.WEB`/`EMPLOYEE`/`ADMIN`), plugins registrados con `new PlatformApp(guard, List.of(ProductPlugin.productPlugin()))`.
+- **CLI:** `src/Cli/Scaffold/DesktopClientInstaller.php` (source `demo/desktop`, destino `./desktop-client`, excluye `.gradle`/`build`/`out`/…, corre `./gradlew build -x test`) + flag `--with-desktop-client` en `platform demo add`. `LocalFilesystem::copyDirectory` preserva permisos (para el bit exec de `gradlew`).
+- **Verificación PHP:** `vendor/bin/phpunit --filter=DemoCommandTest` (25 tests; incluye copia del cliente JavaFX, exclusión de artefactos, `./gradlew build -x test`, `--no-install`, no-overwrite y los tres clientes).
+- **Verificación Java:** `cd demo/desktop && ./gradlew build` (JDK 21): 17 tests OK. Requiere red la primera vez (Gradle wrapper + JavaFX/Gson).

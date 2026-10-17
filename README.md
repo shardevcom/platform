@@ -18,14 +18,17 @@
 └── demo/                   # app de REFERENCIA (fixture manual hasta T-003)
     ├── api/                #   Laravel 12 + copia de packages/ + config/platform.php
     ├── web/                #   monorepo Vite/React: apps/ por guard + packages/ + plugins/
-    └── mobile/             #   monorepo Flutter: un flavor por guard + packages/ + plugins/
+    ├── mobile/             #   monorepo Flutter: un flavor por guard + packages/ + plugins/
+    └── desktop/            #   monorepo Gradle/JavaFX: una app por guard + packages/ + plugins/
 ```
 
 `demo/` es el output que `platform new demo --laravel=12` producirá cuando T-003 exista.
 Hoy está scaffoldeada a mano: `demo/api/` (`laravel/laravel` 12.x + copia de `packages/` +
 `config/platform.php`), `demo/web/` (cliente de referencia: `apps/{user,admin,employee}`,
-una app por guard, sobre `packages/{ui,core,plugin-kit}` + `plugins/`) y `demo/mobile/`
-(cliente de referencia Flutter: un flavor por guard sobre `packages/{plugin_kit,core}` + `plugins/`).
+una app por guard, sobre `packages/{ui,core,plugin-kit}` + `plugins/`), `demo/mobile/`
+(cliente de referencia Flutter: un flavor por guard sobre `packages/{plugin_kit,core}` + `plugins/`)
+y `demo/desktop/` (cliente de referencia JavaFX: una app Gradle por guard sobre
+`packages/{plugin-kit,core}` + `plugins/`).
 `demo/api/tests/` corre la suite de la app generada (Feature); `tests/` la del framework (Unit).
 
 ## 1. Qué es Shardev Platform
@@ -445,15 +448,17 @@ bin/platform demo list
 bin/platform demo add product
 bin/platform demo add product --with-client
 bin/platform demo add product --with-mobile-client
+bin/platform demo add product --with-desktop-client
 bin/platform plugin list
 bin/platform plugin show product
 bin/platform doctor
 
-# App generada (demo/api) y clientes de referencia (demo/web, demo/mobile)
+# App generada (demo/api) y clientes de referencia (demo/web, demo/mobile, demo/desktop)
 composer test --working-dir=demo/api
 (cd demo/api && php artisan route:list | grep -E "products|configuration")
 (cd demo/web && npm install && npm test && npm run dev:admin)   # o dev:employee / dev:user
 (cd demo/mobile && flutter pub get && flutter test && flutter run --dart-define=GUARD=admin)
+(cd demo/desktop && ./gradlew build && ./gradlew :apps:admin:run)
 ```
 
 ## Gate completo (CI)
@@ -681,4 +686,41 @@ platform demo add product --with-mobile-client --no-install
 
 ---
 
-*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil.*
+## 18. Cliente desktop (JavaFX)
+
+`demo/desktop` es el cliente de escritorio de referencia: un monorepo Gradle con
+**una app por guard** (`user`/`admin`/`employee`) sobre paquetes compartidos y
+**plugins por guard**, espejo de `demo/web` y `demo/mobile`. Un token Passport sólo
+es válido para el guard que lo emitió, así que el guard se fija en el módulo de app
+y no hay selector de plataforma.
+
+```text
+demo/desktop/
+├── settings.gradle.kts / gradlew   # Gradle wrapper (no requiere Gradle instalado)
+├── packages/plugin-kit/            # Guard, PluginDefinition, definePlugin, PluginRegistry
+├── packages/core/                  # shell, ApiClient (java.net.http), auth, vistas JavaFX
+└── plugins/product/                # una vista por guard (web read-only / employee manage / admin full)
+```
+
+```bash
+./gradlew build                  # compila + tests de todos los módulos
+./gradlew :apps:admin:run        # ejecuta la app admin (host por defecto localhost:8000)
+./gradlew :apps:admin:run -Dshardev.api.host=http://192.168.1.10:8000
+```
+
+Añadir un plugin = añadir un módulo como dependencia del app + registrarlo en
+`Main.java` con `new PlatformApp(Guard.ADMIN, List.of(ProductPlugin.productPlugin()))`.
+El `path` de cada vista coincide por convención con `guards.<guard>.path` del
+`plugin.json` del package API. Instalación desde el CLI:
+
+```bash
+platform demo add product --with-desktop-client             # copia ./desktop-client + gradlew build
+platform demo add product --with-desktop-client --no-install
+platform demo add product --with-client --with-mobile-client --with-desktop-client
+```
+
+Requiere **JDK 21**; el wrapper descarga Gradle y JavaFX se resuelve como dependencia.
+
+---
+
+*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil, 18 Cliente desktop.*

@@ -215,6 +215,7 @@ final class DemoCommandTest extends TestCase
 
         $this->assertFalse($filesystem->isFile('/app/client/package.json'));
         $this->assertFalse($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
+        $this->assertFalse($filesystem->isFile('/app/desktop-client/settings.gradle.kts'));
     }
 
     public function test_with_mobile_client_copies_the_flutter_app_and_excludes_build_artifacts(): void
@@ -282,6 +283,84 @@ final class DemoCommandTest extends TestCase
         $this->assertTrue($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
     }
 
+    public function test_with_desktop_client_copies_the_javafx_app_and_excludes_build_artifacts(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-desktop-client'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/settings.gradle.kts'));
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/build.gradle.kts'));
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/gradlew'));
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/gradle/wrapper/gradle-wrapper.jar'));
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/packages/plugin-kit/build.gradle.kts'));
+        $this->assertTrue($filesystem->isFile(
+            '/app/desktop-client/packages/core/src/main/java/dev/shardev/core/ui/PlatformApp.java'
+        ));
+        $this->assertTrue($filesystem->isFile(
+            '/app/desktop-client/plugins/product/src/main/java/dev/shardev/product/ProductPlugin.java'
+        ));
+        $this->assertTrue($filesystem->isFile(
+            '/app/desktop-client/apps/admin/src/main/java/dev/shardev/apps/admin/Main.java'
+        ));
+        $this->assertFalse(
+            $filesystem->isFile('/app/desktop-client/.gradle/caches/modules-2/files.txt'),
+            'the Gradle cache must not be copied'
+        );
+        $this->assertFalse(
+            $filesystem->isFile('/app/desktop-client/build/libs/desktop.jar'),
+            'build output must not be copied'
+        );
+    }
+
+    public function test_with_desktop_client_runs_the_gradle_wrapper(): void
+    {
+        $process = new FakeProcessRunner();
+
+        $this->execute(['platform', 'demo', 'add', 'product', '--with-desktop-client'], $this->filesystem(), null, $process);
+
+        $this->assertTrue($process->ranIn('./gradlew build -x test', '/app/desktop-client'));
+    }
+
+    public function test_no_install_skips_the_gradle_build(): void
+    {
+        $process = new FakeProcessRunner();
+        $filesystem = $this->filesystem();
+
+        $this->execute(['platform', 'demo', 'add', 'product', '--with-desktop-client', '--no-install'], $filesystem, null, $process);
+
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/settings.gradle.kts'));
+        $this->assertFalse($process->ranIn('./gradlew build -x test', '/app/desktop-client'));
+    }
+
+    public function test_refuses_to_overwrite_an_existing_desktop_client(): void
+    {
+        $filesystem = $this->filesystem();
+        $filesystem->createDirectory('/app/desktop-client');
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'demo', 'add', 'product', '--with-desktop-client'], $filesystem, $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('already installed', $recorder->stderr());
+    }
+
+    public function test_installs_all_three_clients_when_all_flags_are_given(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(
+            ['platform', 'demo', 'add', 'product', '--with-client', '--with-mobile-client', '--with-desktop-client'],
+            $filesystem
+        );
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile('/app/client/package.json'));
+        $this->assertTrue($filesystem->isFile('/app/mobile-client/pubspec.yaml'));
+        $this->assertTrue($filesystem->isFile('/app/desktop-client/settings.gradle.kts'));
+    }
+
     private function filesystem(): FakeFilesystem
     {
         return new FakeFilesystem([
@@ -327,6 +406,17 @@ final class DemoCommandTest extends TestCase
             '/framework/demo/mobile/plugins/product/pubspec.yaml' => "name: shardev_product_plugin\n",
             '/framework/demo/mobile/.dart_tool/package_config.json' => '{}',
             '/framework/demo/mobile/build/app.dill' => '// build artifact, must not be copied',
+            '/framework/demo/desktop/settings.gradle.kts' => 'rootProject.name = "shardev-desktop"',
+            '/framework/demo/desktop/build.gradle.kts' => 'plugins {}',
+            '/framework/demo/desktop/gradlew' => '#!/bin/sh',
+            '/framework/demo/desktop/gradle/wrapper/gradle-wrapper.jar' => 'PK',
+            '/framework/demo/desktop/packages/plugin-kit/build.gradle.kts' => 'plugins {}',
+            '/framework/demo/desktop/packages/plugin-kit/src/main/java/dev/shardev/pluginkit/Guard.java' => 'package dev.shardev.pluginkit;',
+            '/framework/demo/desktop/packages/core/src/main/java/dev/shardev/core/ui/PlatformApp.java' => 'package dev.shardev.core.ui;',
+            '/framework/demo/desktop/plugins/product/src/main/java/dev/shardev/product/ProductPlugin.java' => 'package dev.shardev.product;',
+            '/framework/demo/desktop/apps/admin/src/main/java/dev/shardev/apps/admin/Main.java' => 'package dev.shardev.apps.admin;',
+            '/framework/demo/desktop/.gradle/caches/modules-2/files.txt' => '// gradle cache, must not be copied',
+            '/framework/demo/desktop/build/libs/desktop.jar' => '// build artifact, must not be copied',
         ]);
     }
 

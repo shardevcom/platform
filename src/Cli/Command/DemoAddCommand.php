@@ -10,6 +10,7 @@ use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Scaffold\ClientInstaller;
 use Shardevcom\Cli\Scaffold\DemoInstaller;
+use Shardevcom\Cli\Scaffold\DesktopClientInstaller;
 use Shardevcom\Cli\Scaffold\MobileClientInstaller;
 
 /**
@@ -17,9 +18,10 @@ use Shardevcom\Cli\Scaffold\MobileClientInstaller;
  *
  * With `--with-client` it also drops the reference SPA (demo/web, one Vite app
  * per guard) into ./client; with `--with-mobile-client` it drops the reference
- * Flutter app (demo/mobile, one flavor per guard) into ./mobile-client.
- * `--no-install` copies the client(s) without running npm install / flutter
- * pub get.
+ * Flutter app (demo/mobile, one flavor per guard) into ./mobile-client; with
+ * `--with-desktop-client` it drops the reference JavaFX app (demo/desktop, one
+ * Gradle app per guard) into ./desktop-client. `--no-install` copies the
+ * client(s) without running npm install / flutter pub get / gradlew.
  */
 final class DemoAddCommand implements CommandInterface
 {
@@ -47,7 +49,8 @@ final class DemoAddCommand implements CommandInterface
             options: [
                 'with-client' => ['description' => 'Also copy the reference client (web monorepo) into ./client'],
                 'with-mobile-client' => ['description' => 'Also copy the reference client (Flutter app) into ./mobile-client'],
-                'no-install' => ['description' => 'Copy the client(s) but skip npm install / flutter pub get'],
+                'with-desktop-client' => ['description' => 'Also copy the reference client (JavaFX app) into ./desktop-client'],
+                'no-install' => ['description' => 'Copy the client(s) but skip npm install / flutter pub get / gradlew'],
             ],
         );
     }
@@ -56,11 +59,12 @@ final class DemoAddCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform demo add');
-            $printer->info('Usage: platform demo add [package] [--with-client] [--with-mobile-client] [--no-install]');
+            $printer->info('Usage: platform demo add [package] [--with-client] [--with-mobile-client] [--with-desktop-client] [--no-install]');
             $printer->writeln();
             $printer->note('The package is copied into the packages directory and vendor from config/platform.php.');
             $printer->note('--with-client copies ./client (Vite monorepo, one app per guard) and runs npm install unless --no-install.');
             $printer->note('--with-mobile-client copies ./mobile-client (Flutter app, one flavor per guard) and runs flutter pub get unless --no-install.');
+            $printer->note('--with-desktop-client copies ./desktop-client (JavaFX app, one app per guard) and runs gradlew unless --no-install.');
         });
     }
 
@@ -70,6 +74,7 @@ final class DemoAddCommand implements CommandInterface
         $name = $input->argument('package') ?? 'product';
         $withClient = $input->flag('with-client');
         $withMobileClient = $input->flag('with-mobile-client');
+        $withDesktopClient = $input->flag('with-desktop-client');
         $installDependencies = ! $input->flag('no-install');
         $installer = new DemoInstaller($context);
         $config = $context->config();
@@ -118,6 +123,20 @@ final class DemoAddCommand implements CommandInterface
                 $printer->note('Mobile client dependencies installed with flutter pub get.');
             } else {
                 $printer->note('Run `flutter pub get` inside the mobile-client directory.');
+            }
+        }
+
+        if ($withDesktopClient) {
+            $desktop = new DesktopClientInstaller($context);
+            $result = $desktop->install($projectRoot, $installDependencies);
+
+            $printer->success('Desktop client installed: '.$context->filesystem->relativePath($result['path'], $projectRoot));
+            $printer->writeln();
+
+            if ($result['dependencies']) {
+                $printer->note('Desktop client built with gradlew.');
+            } else {
+                $printer->note('Run `./gradlew build` inside the desktop-client directory.');
             }
         }
 

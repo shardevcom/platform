@@ -1,0 +1,54 @@
+.root {
+    -fx-font-family: "Inter", "Segoe UI", "Helvetica Neue", sans-serif;
+    -fx-font-size: 13px;
+}
+
+.shell-top {
+    -fx-background-color: #1d4ed8;
+}
+
+.shell-title {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.shell-nav {
+    -fx-background-color: #f1f5f9;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-alignment: center-left;
+    -fx-padding: 8 12 8 12;
+    -fx-background-radius: 6;
+}
+
+.nav-button:hover {
+    -fx-background-color: #e2e8f0;
+}
+
+.nav-button.active {
+    -fx-background-color: #1d4ed8;
+    -fx-text-fill: white;
+}
+
+.login-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.view-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.chip {
+    -fx-background-color: #e2e8f0;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 10;
+}
+
+.error {
+    -fx-text-fill: #b91c1c;
+}

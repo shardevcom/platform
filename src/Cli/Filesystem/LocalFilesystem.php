@@ -157,6 +157,12 @@ final class LocalFilesystem implements Filesystem
 
             $this->createDirectory(dirname($target));
             copy($item->getPathname(), $target);
+
+            $permissions = @fileperms($item->getPathname());
+
+            if ($permissions !== false) {
+                @chmod($target, $permissions & 0777);
+            }
         }
     }
 

@@ -1,12 +1,12 @@
 # AGENTS.md — Instrucciones para agentes (OpenCode / IA)
 
 > Lee esto antes de tocar código. Fuente de verdad: `BACKLOG.md` + `backlog/`.
-> ESTE REPO ES EL FRAMEWORK (installer + fuente de packages), NO la app. La app generada vive en `demo/` (`demo/api/` + `demo/web/` + `demo/mobile/`, fixture manual hasta T-003).
+> ESTE REPO ES EL FRAMEWORK (installer + fuente de packages), NO la app. La app generada vive en `demo/` (`demo/api/` + `demo/web/` + `demo/mobile/` + `demo/desktop/`, fixture manual hasta T-003).
 
 ## Layout
 - Root framework: `bin/platform` (CLI cero-dep), `src/` (` Shardevcom\`), `packages/` (FUENTE oficial), `tests/` (unit, `composer test`).
-- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`), `demo/web/` (monorepo Vite/React: `apps/{user,admin,employee}` = una app por guard, `packages/` compartidos, `plugins/` con vistas por guard) y `demo/mobile/` (monorepo Flutter/Dart: un flavor por guard, `packages/{plugin_kit,core}`, `plugins/` con vistas por guard). Suite app: `composer test` dentro de `demo/api/`; suite web: `npm test` dentro de `demo/web/` (Vitest + jsdom); suite mobile: `./tool/test.sh` dentro de `demo/mobile/` (Flutter SDK; no instalado en todos los entornos).
-- Plugins: un package API puede declarar `plugin.json` (resource, actions, guards) y convertirse en plugin; `platform plugin list` los lista desde los manifiestos (nunca de una lista hardcodeada). El lado web usa `definePlugin` de `packages/plugin-kit`; el mobile, `definePlugin` de `packages/plugin_kit`.
+- `demo/`: app de referencia dividida en `demo/api/` (Laravel 12 con SU copia de `packages/` + `config/platform.php`), `demo/web/` (monorepo Vite/React: `apps/{user,admin,employee}` = una app por guard, `packages/` compartidos, `plugins/` con vistas por guard), `demo/mobile/` (monorepo Flutter/Dart: un flavor por guard, `packages/{plugin_kit,core}`, `plugins/` con vistas por guard) y `demo/desktop/` (monorepo Gradle/JavaFX: una app por guard, `packages/{plugin-kit,core}`, `plugins/` con vistas por guard). Suite app: `composer test` dentro de `demo/api/`; suite web: `npm test` dentro de `demo/web/` (Vitest + jsdom); suite mobile: `./tool/test.sh` dentro de `demo/mobile/` (Flutter SDK; no instalado en todos los entornos); suite desktop: `./gradlew build` dentro de `demo/desktop/` (JDK 21; el wrapper descarga Gradle).
+- Plugins: un package API puede declarar `plugin.json` (resource, actions, guards) y convertirse en plugin; `platform plugin list` los lista desde los manifiestos (nunca de una lista hardcodeada). El lado web usa `definePlugin` de `packages/plugin-kit`; el mobile, `definePlugin` de `packages/plugin_kit`; el desktop, `definePlugin` de `packages/plugin-kit`.
 - Tras cambiar `packages/` del root, sincronizar SOLO oficiales (nunca borrar `demo/api/packages/<usuario>`):
   `python3 scripts/sync-demo-packages.py && composer dump-autoload --working-dir=demo/api`.
   El script copia `packages/shardevcom/*` a `demo/api/packages/shardev/*` reescribiendo `name` y
