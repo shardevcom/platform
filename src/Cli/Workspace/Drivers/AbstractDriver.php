@@ -8,6 +8,7 @@ use Shardevcom\Cli\Context;
 use Shardevcom\Cli\Process\ProcessResult;
 use Shardevcom\Cli\Workspace\Component;
 use Shardevcom\Cli\Workspace\ComponentDriver;
+use Shardevcom\Cli\Workspace\Requirement;
 
 /**
  * Shared plumbing for the per-type drivers: every command runs through the
@@ -21,6 +22,14 @@ abstract class AbstractDriver implements ComponentDriver
     public function verify(Component $component, string $path): bool
     {
         return $this->run($this->verifyCommand($component), $path)->successful();
+    }
+
+    /**
+     * @return list<Requirement>
+     */
+    public function requirements(): array
+    {
+        return [];
     }
 
     protected function run(string $command, string $path): ProcessResult

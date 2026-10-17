@@ -6,6 +6,7 @@ namespace Shardevcom\Cli\Workspace\Drivers;
 
 use Shardevcom\Cli\Workspace\Component;
 use Shardevcom\Cli\Workspace\ComponentType;
+use Shardevcom\Cli\Workspace\Requirement;
 
 /**
  * The desktop client component (Gradle/JavaFX monorepo, one app per guard).
@@ -35,6 +36,18 @@ final class DesktopDriver extends AbstractDriver
     protected function verifyCommand(Component $component): string
     {
         return './gradlew test';
+    }
+
+    public function requirements(): array
+    {
+        return [
+            new Requirement(
+                'JDK',
+                'java -version',
+                'version',
+                'Install JDK 21+ and set JAVA_HOME: https://adoptium.net (gradlew downloads Gradle itself)'
+            ),
+        ];
     }
 
     /**

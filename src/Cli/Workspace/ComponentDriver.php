@@ -23,4 +23,14 @@ interface ComponentDriver
     public function dev(Component $component, string $path): void;
 
     public function verify(Component $component, string $path): bool;
+
+    /**
+     * External tools this component needs to build or run, probed by `doctor`.
+     *
+     * The API returns none: its PHP/Composer toolchain is already covered by
+     * the doctor's Toolchain suite.
+     *
+     * @return list<Requirement>
+     */
+    public function requirements(): array;
 }

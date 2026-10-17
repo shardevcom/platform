@@ -75,15 +75,45 @@ ramifica por tipo. Añadir un cliente = añadir un driver + una plantilla.
 - Los instaladores `ClientInstaller`/`MobileClientInstaller`/
   `DesktopClientInstaller` siguen disponibles para `platform demo add`.
 
+## Doctor: requisitos por cliente
+
+`platform doctor` detecta el workspace y añade dos suites:
+
+- **Workspace** (`WorkspaceSuite`): cada componente habilitado del manifiesto
+  existe en disco.
+- **Client requirements** (`RequirementsSuite`): para cada componente
+  habilitado pregunta a su driver `requirements()` y comprueba, en el
+  directorio del componente, que el toolchain necesario está disponible. Si
+  falta una herramienta, el detalle es la sugerencia de instalación.
+
+`ComponentDriver::requirements(): list<Requirement>` declara
+`(label, command, expect, hint)`; `expect` vacío = basta con exit 0. La API
+devuelve `[]` porque su toolchain (PHP/Composer/Laravel) ya lo cubre la suite
+`Toolchain`. Requisitos por tipo:
+
+| tipo      | herramientas                                  |
+|-----------|-----------------------------------------------|
+| `web`     | Node.js (`node --version`), npm (`npm --version`) |
+| `mobile`  | Flutter (`flutter --version`), Dart (`dart --version`) |
+| `desktop` | JDK 21+ (`java -version`)                     |
+
+Verificado contra el entorno real: `node`, `npm` y `java` pasan con su versión
+detectada; `flutter` falla con la sugerencia de instalación cuando no está en
+el PATH.
+
 ## Verificación
 
-- `composer test` (root): **292 tests / 837 assertions** — OK.
+- `composer test` (root): **298 tests / 851 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, guards por defecto,
     `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
     vive en `api/`; `--with` selecciona componentes.
   - `WorkspaceCommandTest`: status/install/build/dev/add/remove por manifiesto,
     incluyendo "no es un workspace".
+  - `RequirementsSuiteTest`: requisitos por cliente (tool presente/ausente,
+    componentes deshabilitados, solo-API, probe en el directorio del componente).
+  - `DoctorCommandTest`: incluye la suite `Client requirements` cuando hay
+    workspace.
 - `php bin/platform` lista `new/add/remove/install/build/dev/status`.
 
 ## Pendiente / siguiente iteración

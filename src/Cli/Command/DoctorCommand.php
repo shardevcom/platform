@@ -16,6 +16,7 @@ use Shardevcom\Cli\Doctor\EnvironmentSuite;
 use Shardevcom\Cli\Doctor\PackageIntegrationSuite;
 use Shardevcom\Cli\Doctor\PackagesSuite;
 use Shardevcom\Cli\Doctor\ProjectSuite;
+use Shardevcom\Cli\Doctor\RequirementsSuite;
 use Shardevcom\Cli\Doctor\SecurityRuleRegistry;
 use Shardevcom\Cli\Doctor\SecuritySuite;
 use Shardevcom\Cli\Doctor\SecuritySeverity;
@@ -23,6 +24,7 @@ use Shardevcom\Cli\Doctor\WorkspaceSuite;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Packages\PackageCatalog;
+use Shardevcom\Cli\Workspace\DriverRegistry;
 
 /**
  * `platform doctor`: inspects the project in the current directory.
@@ -219,6 +221,10 @@ final class DoctorCommand implements CommandInterface
         $workspace = $this->context->workspace();
 
         if ($workspace !== null) {
+            array_unshift(
+                $suites,
+                new RequirementsSuite($workspace, new DriverRegistry($this->context), $this->context->process)
+            );
             array_unshift($suites, new WorkspaceSuite($workspace, $filesystem));
         }
 

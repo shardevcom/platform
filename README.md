@@ -374,7 +374,7 @@ cd demo/api && php artisan test --filter=LayeringRulesTest
 bin/platform doctor --project=../mi-proyecto
 ```
 
-**46 checks en 8 suites:**
+**46 checks en 8 suites (+2 suites cuando el proyecto es un workspace):**
 - **Toolchain**: PHP, Composer, Laravel version, Framework version
 - **Project files**: .env, autoloader, config/platform.php, writable dirs
 - **Packages**: discovery, providers, bootstrapper, autoload wiring
@@ -383,6 +383,8 @@ bin/platform doctor --project=../mi-proyecto
 - **Running application**: REST routes, GraphQL route
 - **API Functionality**: REST Products, GraphQL, Configuration, Widgets endpoints
 - **Authentication**: Passport installed, keys generated, guards/providers configured, password reset tables, personal access clients
+- **Workspace** (solo workspace): cada componente de `platform.json` existe en disco
+- **Client requirements** (solo workspace): según los clientes instalados, comprueba el toolchain que necesitan para compilar/ejecutarse (Node/npm, Flutter/Dart, JDK) y sugiere la instalación si falta
 
 **Salida sana:**
 ```
@@ -789,8 +791,10 @@ platform status
 
 `Context::projectRoot()` resuelve al componente `api`, de modo que `config`,
 `demo add`, `package make` y `doctor` siguen operando sobre Laravel. `doctor`
-añade la suite **Workspace** (falla si un componente del manifiesto no está en
-disco). Detalle de diseño: `backlog/fase-workspace.md`.
+añade dos suites: **Workspace** (falla si un componente no está en
+disco) y **Client requirements** (según los clientes instalados comprueba el
+toolchain que necesitan —Node/npm, Flutter/Dart, JDK— y sugiere cómo instalarlo
+si falta). Detalle de diseño: `backlog/fase-workspace.md`.
 
 ---
 

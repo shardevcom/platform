@@ -6,6 +6,7 @@ namespace Shardevcom\Cli\Workspace\Drivers;
 
 use Shardevcom\Cli\Workspace\Component;
 use Shardevcom\Cli\Workspace\ComponentType;
+use Shardevcom\Cli\Workspace\Requirement;
 
 /**
  * The mobile client component (Flutter monorepo, one flavor per guard).
@@ -35,5 +36,23 @@ final class MobileDriver extends AbstractDriver
     protected function verifyCommand(Component $component): string
     {
         return './tool/test.sh';
+    }
+
+    public function requirements(): array
+    {
+        return [
+            new Requirement(
+                'Flutter SDK',
+                'flutter --version',
+                'Flutter',
+                'Install the Flutter SDK and add it to PATH: https://docs.flutter.dev/get-started/install'
+            ),
+            new Requirement(
+                'Dart',
+                'dart --version',
+                'Dart',
+                'Dart ships with Flutter; install the Flutter SDK: https://docs.flutter.dev/get-started/install'
+            ),
+        ];
     }
 }

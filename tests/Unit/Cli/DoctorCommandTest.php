@@ -57,6 +57,31 @@ final class DoctorCommandTest extends TestCase
         $this->assertStringContainsString('all good', $recorder->stdout());
     }
 
+    public function test_includes_client_requirements_when_a_workspace_is_present(): void
+    {
+        $recorder = RecordingPrinter::create();
+        $filesystem = new FakeFilesystem([
+            '/app/platform.json' => '{"name":"demo","platform":"0.1.0","components":{'
+                .'"api":{"type":"api","path":"api","guard":null,"enabled":true},'
+                .'"web":{"type":"web","path":"web","guard":"admin","enabled":true}}}',
+            '/app/api/composer.json' => '{"require":{"laravel/framework":"^12.0"}}',
+        ]);
+
+        $context = new Context(
+            output: $recorder->printer(),
+            filesystem: $filesystem,
+            process: new FakeProcessRunner(),
+            workingDirectory: '/app',
+            frameworkRoot: '/framework',
+            catalog: new PackageCatalog($filesystem, '/app'),
+        );
+
+        (new DoctorCommand($context))->execute(new Input(), $context);
+
+        $this->assertStringContainsString('Client requirements', $recorder->stdout());
+        $this->assertStringContainsString('web: Node.js', $recorder->stdout());
+    }
+
     public function test_a_suite_that_throws_does_not_hide_the_rest(): void
     {
         $recorder = RecordingPrinter::create();
