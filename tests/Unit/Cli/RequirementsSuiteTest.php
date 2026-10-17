@@ -47,6 +47,7 @@ final class RequirementsSuiteTest extends TestCase
         $results = $this->suite($this->workspace([Component::create('web')]), $process)->run();
 
         $this->assertFalse($this->passed($results));
+        $this->assertStringContainsString('not on PATH', $this->detailOf($results, 'web: Node.js'));
         $this->assertStringContainsString('https://nodejs.org', $this->detailOf($results, 'web: Node.js'));
     }
 

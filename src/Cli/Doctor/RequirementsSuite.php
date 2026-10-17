@@ -62,9 +62,22 @@ final class RequirementsSuite implements CheckSuite
         $probed = $result->successful()
             && ($requirement->expect === '' || $result->contains($requirement->expect));
 
-        return $probed
-            ? CheckResult::pass($label, $this->version($result))
-            : CheckResult::fail($label, $requirement->hint);
+        if ($probed) {
+            return CheckResult::pass($label, $this->version($result));
+        }
+
+        if ($this->notOnPath($result)) {
+            return CheckResult::fail($label, 'not on PATH — '.$requirement->hint);
+        }
+
+        return CheckResult::fail($label, $requirement->hint);
+    }
+
+    private function notOnPath(ProcessResult $result): bool
+    {
+        return $result->exitCode === 127
+            || str_contains($result->output, 'command not found')
+            || str_contains($result->output, 'not recognized as an internal');
     }
 
     private function version(ProcessResult $result): string

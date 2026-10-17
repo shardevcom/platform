@@ -98,12 +98,15 @@ devuelve `[]` porque su toolchain (PHP/Composer/Laravel) ya lo cubre la suite
 | `desktop` | JDK 21+ (`java -version`)                     |
 
 Verificado contra el entorno real: `node`, `npm` y `java` pasan con su versión
-detectada; `flutter` falla con la sugerencia de instalación cuando no está en
-el PATH.
+detectada. `flutter` (instalado en `~/flutter/bin`, fuera del PATH por defecto)
+se reporta como `not on PATH — ...`; al exportar
+`PATH="$HOME/flutter/bin:$PATH"` pasa con `Flutter 3.47.7` y `Dart 3.13.5`. El
+check distingue "no está en PATH" (exit 127 / `command not found`) de un fallo
+de la herramienta, para no sugerir "instala" cuando ya está instalada.
 
 ## Verificación
 
-- `composer test` (root): **298 tests / 851 assertions** — OK.
+- `composer test` (root): **298 tests / 852 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, guards por defecto,
     `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
