@@ -384,7 +384,7 @@ bin/platform doctor --project=../mi-proyecto
 - **API Functionality**: REST Products, GraphQL, Configuration, Widgets endpoints
 - **Authentication**: Passport installed, keys generated, guards/providers configured, password reset tables, personal access clients
 - **Workspace** (solo workspace): cada componente de `platform.json` existe en disco
-- **Client requirements** (solo workspace): según los clientes instalados, comprueba el toolchain que necesitan para compilar/ejecutarse (Node/npm, Flutter/Dart, JDK) y sugiere la instalación si falta
+- **Client requirements** (solo workspace): según los clientes instalados, comprueba el toolchain que necesitan para compilar/ejecutarse (Node/npm, Flutter/Dart, JDK); si falta, sugiere cómo arreglarlo (y si está instalado pero fuera del PATH, da el `export PATH=...` exacto)
 
 **Salida sana:**
 ```
@@ -793,8 +793,9 @@ platform status
 `demo add`, `package make` y `doctor` siguen operando sobre Laravel. `doctor`
 añade dos suites: **Workspace** (falla si un componente no está en
 disco) y **Client requirements** (según los clientes instalados comprueba el
-toolchain que necesitan —Node/npm, Flutter/Dart, JDK— y sugiere cómo instalarlo
-si falta). Detalle de diseño: `backlog/fase-workspace.md`.
+toolchain que necesitan —Node/npm, Flutter/Dart, JDK— y sugiere cómo arreglarlo;
+si la herramienta está instalada fuera del PATH, devuelve el `export PATH=...`
+exacto). Detalle de diseño: `backlog/fase-workspace.md`.
 
 ---
 

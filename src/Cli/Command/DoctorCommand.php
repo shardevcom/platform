@@ -223,7 +223,7 @@ final class DoctorCommand implements CommandInterface
         if ($workspace !== null) {
             array_unshift(
                 $suites,
-                new RequirementsSuite($workspace, new DriverRegistry($this->context), $this->context->process)
+                new RequirementsSuite($workspace, new DriverRegistry($this->context), $this->context->process, $filesystem)
             );
             array_unshift($suites, new WorkspaceSuite($workspace, $filesystem));
         }

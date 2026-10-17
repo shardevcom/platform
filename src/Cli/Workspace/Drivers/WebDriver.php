@@ -45,13 +45,15 @@ final class WebDriver extends AbstractDriver
                 'Node.js',
                 'node --version',
                 'v',
-                'Install Node.js 20+ and put it on PATH: https://nodejs.org'
+                'Install Node.js 20+ and put it on PATH: https://nodejs.org',
+                ['/usr/local/bin/node', '/usr/bin/node']
             ),
             new Requirement(
                 'npm',
                 'npm --version',
                 '',
-                'npm ships with Node.js; install Node.js 20+: https://nodejs.org'
+                'npm ships with Node.js; install Node.js 20+: https://nodejs.org',
+                ['/usr/local/bin/npm', '/usr/bin/npm']
             ),
         ];
     }

@@ -84,12 +84,13 @@ ramifica por tipo. Añadir un cliente = añadir un driver + una plantilla.
 - **Client requirements** (`RequirementsSuite`): para cada componente
   habilitado pregunta a su driver `requirements()` y comprueba, en el
   directorio del componente, que el toolchain necesario está disponible. Si
-  falta una herramienta, el detalle es la sugerencia de instalación.
+  falta una herramienta, el detalle es una **sugerencia para solucionarlo**, no
+  solo el fallo.
 
 `ComponentDriver::requirements(): list<Requirement>` declara
-`(label, command, expect, hint)`; `expect` vacío = basta con exit 0. La API
-devuelve `[]` porque su toolchain (PHP/Composer/Laravel) ya lo cubre la suite
-`Toolchain`. Requisitos por tipo:
+`(label, command, expect, hint, locations)`; `expect` vacío = basta con exit 0.
+La API devuelve `[]` porque su toolchain (PHP/Composer/Laravel) ya lo cubre la
+suite `Toolchain`. Requisitos por tipo:
 
 | tipo      | herramientas                                  |
 |-----------|-----------------------------------------------|
@@ -97,16 +98,23 @@ devuelve `[]` porque su toolchain (PHP/Composer/Laravel) ya lo cubre la suite
 | `mobile`  | Flutter (`flutter --version`), Dart (`dart --version`) |
 | `desktop` | JDK 21+ (`java -version`)                     |
 
+Cuando el sondeo falla con "no está en PATH" (exit 127 / `command not found`),
+el doctor busca el ejecutable en `locations` (rutas típicas, `~` = home) y, si
+lo encuentra, devuelve el comando exacto para arreglarlo; si no, cae al `hint`
+de instalación. Ejemplo real (Flutter instalado fuera del PATH):
+
+```text
+[FAIL] mobile: Flutter SDK   not on PATH — found at ~/flutter/bin/flutter; run: export PATH="$HOME/flutter/bin:$PATH"
+```
+
 Verificado contra el entorno real: `node`, `npm` y `java` pasan con su versión
 detectada. `flutter` (instalado en `~/flutter/bin`, fuera del PATH por defecto)
-se reporta como `not on PATH — ...`; al exportar
-`PATH="$HOME/flutter/bin:$PATH"` pasa con `Flutter 3.47.7` y `Dart 3.13.5`. El
-check distingue "no está en PATH" (exit 127 / `command not found`) de un fallo
-de la herramienta, para no sugerir "instala" cuando ya está instalada.
+sugiere `export PATH="$HOME/flutter/bin:$PATH"`; tras exportarlo pasa con
+`Flutter 3.47.7` y `Dart 3.13.5`.
 
 ## Verificación
 
-- `composer test` (root): **298 tests / 852 assertions** — OK.
+- `composer test` (root): **299 tests / 854 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, guards por defecto,
     `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API

@@ -40,18 +40,28 @@ final class MobileDriver extends AbstractDriver
 
     public function requirements(): array
     {
+        $bins = [
+            '~/flutter/bin',
+            '~/development/flutter/bin',
+            '/usr/local/flutter/bin',
+            '/opt/flutter/bin',
+            '/snap/bin',
+        ];
+
         return [
             new Requirement(
                 'Flutter SDK',
                 'flutter --version',
                 'Flutter',
-                'Install the Flutter SDK and add it to PATH: https://docs.flutter.dev/get-started/install'
+                'Install the Flutter SDK and add it to PATH: https://docs.flutter.dev/get-started/install',
+                array_map(static fn (string $bin): string => $bin.'/flutter', $bins)
             ),
             new Requirement(
                 'Dart',
                 'dart --version',
                 'Dart',
-                'Dart ships with Flutter; install the Flutter SDK: https://docs.flutter.dev/get-started/install'
+                'Dart ships with Flutter; install the Flutter SDK: https://docs.flutter.dev/get-started/install',
+                array_map(static fn (string $bin): string => $bin.'/dart', $bins)
             ),
         ];
     }

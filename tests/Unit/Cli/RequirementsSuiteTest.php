@@ -51,6 +51,23 @@ final class RequirementsSuiteTest extends TestCase
         $this->assertStringContainsString('https://nodejs.org', $this->detailOf($results, 'web: Node.js'));
     }
 
+    public function test_suggests_the_path_line_when_the_tool_is_installed_elsewhere(): void
+    {
+        $process = new FakeProcessRunner([
+            ['needle' => 'flutter --version', 'exitCode' => 127, 'output' => 'flutter: command not found'],
+        ]);
+        $filesystem = new FakeFilesystem([
+            '/opt/flutter/bin/flutter' => '#!/bin/sh',
+            '/opt/flutter/bin/dart' => '#!/bin/sh',
+        ]);
+
+        $results = $this->suite($this->workspace([Component::create('mobile')]), $process, $filesystem)->run();
+
+        $detail = $this->detailOf($results, 'mobile: Flutter SDK');
+        $this->assertStringContainsString('found at /opt/flutter/bin/flutter', $detail);
+        $this->assertStringContainsString('export PATH="/opt/flutter/bin:$PATH"', $detail);
+    }
+
     public function test_only_enabled_clients_are_probed(): void
     {
         $process = new FakeProcessRunner();
@@ -95,9 +112,9 @@ final class RequirementsSuiteTest extends TestCase
         return new Workspace('/ws', WorkspaceManifest::make('demo', '0.1.0', $components));
     }
 
-    private function suite(Workspace $workspace, FakeProcessRunner $process): RequirementsSuite
+    private function suite(Workspace $workspace, FakeProcessRunner $process, ?FakeFilesystem $filesystem = null): RequirementsSuite
     {
-        $filesystem = new FakeFilesystem();
+        $filesystem ??= new FakeFilesystem();
         $context = new Context(
             output: RecordingPrinter::create()->printer(),
             filesystem: $filesystem,
@@ -106,7 +123,7 @@ final class RequirementsSuiteTest extends TestCase
             frameworkRoot: '/framework',
         );
 
-        return new RequirementsSuite($workspace, new DriverRegistry($context), $process);
+        return new RequirementsSuite($workspace, new DriverRegistry($context), $process, $filesystem);
     }
 
     /**
