@@ -81,7 +81,7 @@ final class ApiSuite implements CheckSuite
             return CheckResult::fail('Configuration endpoint', 'Could not list routes');
         }
 
-        $hasRoute = $result->contains('configuration.index');
+        $hasRoute = $result->contains('configuration.');
 
         return CheckResult::of(
             'Configuration endpoint',

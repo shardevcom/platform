@@ -38,6 +38,7 @@
             "Shardevcom\\Catalog\\": "packages/shardev/catalog/src/",
             "Shardevcom\\Configuration\\": "packages/shardev/configuration/src/",
             "Shardevcom\\Core\\": "packages/shardev/core/src/",
+            "Shardevcom\\Documentation\\": "packages/shardev/documentation/src/",
             "Shardevcom\\Graphql\\": "packages/shardev/graphql/src/",
             "Shardevcom\\Observability\\": "packages/shardev/observability/src/",
             "Shardevcom\\Persistence\\": "packages/shardev/persistence/src/",

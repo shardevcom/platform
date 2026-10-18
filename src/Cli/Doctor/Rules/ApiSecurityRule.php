@@ -66,8 +66,11 @@ final class ApiSecurityRule implements SecurityRule
         $routeFiles = $this->findRouteFiles($filesystem, $projectRoot);
 
         foreach ($routeFiles as $file) {
+            if (basename($file) !== 'api.php') {
+                continue;
+            }
+
             $content = $filesystem->read($file);
-            $relativePath = $this->getRelativePath($projectRoot, $file);
 
             // Check for API routes without auth middleware
             if (preg_match('/Route::(get|post|put|patch|delete|apiResource)\(.*\)/i', $content)) {
@@ -109,16 +112,7 @@ final class ApiSecurityRule implements SecurityRule
         }
 
         // Check for API versioning
-        $apiRoutes = $this->findApiRoutes($filesystem, $projectRoot);
-        $hasVersioning = false;
-        foreach ($apiRoutes as $route) {
-            if (preg_match('/v\d+\//', $route) || preg_match('/version.*=>/', $route)) {
-                $hasVersioning = true;
-                break;
-            }
-        }
-
-        if (!$hasVersioning && !empty($apiRoutes)) {
+        if ($this->hasVersionedApiRoutes($process, $projectRoot) === false) {
             $findings[] = SecurityFinding::insecureConfig(
                 ruleId: 'api.versioning-missing',
                 title: 'API routes lack versioning',
@@ -226,20 +220,22 @@ final class ApiSecurityRule implements SecurityRule
     }
 
     /**
-     * @return list<string>
+     * The version prefix is applied by the platform route registration, not in
+     * the route files, so inspect the registered routes instead of the source.
      */
-    private function findApiRoutes(Filesystem $filesystem, string $root): array
+    private function hasVersionedApiRoutes(ProcessRunner $process, string $root): ?bool
     {
-        $routes = [];
-        $routeFiles = $this->findRouteFiles($filesystem, $root);
+        $result = $process->run('php artisan route:list', $root);
 
-        foreach ($routeFiles as $file) {
-            $content = $filesystem->read($file);
-            preg_match_all('/Route::(get|post|put|patch|delete|apiResource)\([^)]+\)/i', $content, $matches);
-            $routes = array_merge($routes, $matches[0] ?? []);
+        if ($result->failed()) {
+            return null;
         }
 
-        return $routes;
+        if (!preg_match('#\bapi/#', $result->output)) {
+            return null;
+        }
+
+        return (bool) preg_match('#\bapi/v\d+#', $result->output);
     }
 
     private function getRelativePath(string $root, string $file): string

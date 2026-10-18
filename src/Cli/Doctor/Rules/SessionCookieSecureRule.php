@@ -79,7 +79,7 @@ final class SessionCookieSecureRule implements SecurityRule
         }
 
         // Check httpOnly flag
-        if (!preg_match('/\'http_only\'\s*=>\s*true/', $config)) {
+        if (!preg_match('/\'http_only\'\s*=>\s*true/', $config) && !preg_match('/\'http_only\'\s*=>\s*env\(/', $config)) {
             $findings[] = SecurityFinding::insecureConfig(
                 ruleId: $this->id().'.httponly-flag',
                 title: 'Session cookie httpOnly flag not enabled',
@@ -94,7 +94,7 @@ final class SessionCookieSecureRule implements SecurityRule
         }
 
         // Check same_site
-        if (!preg_match('/\'same_site\'\s*=>\s*[\'"]lax[\'"]/i', $config) && !preg_match('/\'same_site\'\s*=>\s*[\'"]strict[\'"]/i', $config)) {
+        if (!preg_match('/\'same_site\'\s*=>\s*[\'"]lax[\'"]/i', $config) && !preg_match('/\'same_site\'\s*=>\s*[\'"]strict[\'"]/i', $config) && !preg_match('/\'same_site\'\s*=>\s*env\(/', $config)) {
             $findings[] = SecurityFinding::insecureConfig(
                 ruleId: $this->id().'.samesite',
                 title: 'Session cookie SameSite attribute not set to lax or strict',

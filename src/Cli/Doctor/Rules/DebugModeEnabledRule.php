@@ -50,21 +50,25 @@ final class DebugModeEnabledRule implements SecurityRule
         if ($filesystem->isFile($envPath)) {
             $env = $filesystem->read($envPath);
 
-            if (str_contains($env, 'APP_DEBUG=true') || preg_match('/APP_DEBUG\s*=\s*true/i', $env)) {
+            $debugEnabled = (bool) preg_match('/APP_DEBUG\s*=\s*true/i', $env);
+            $isProduction = (bool) preg_match('/APP_ENV\s*=\s*production/i', $env);
+            $isLocal = (bool) preg_match('/APP_ENV\s*=\s*(local|development|testing)/i', $env);
+
+            if ($debugEnabled && ! $isLocal) {
                 $findings[] = SecurityFinding::insecureConfig(
                     ruleId: $this->id(),
                     title: $this->title(),
                     category: $this->category(),
                     severity: $this->defaultSeverity(),
                     evidence: 'APP_DEBUG=true found in .env',
-                    description: 'Debug mode is enabled in production environment. This exposes stack traces, environment variables, and sensitive application details.',
+                    description: 'Debug mode is enabled outside a local environment. This exposes stack traces, environment variables, and sensitive application details.',
                     recommendation: 'Set APP_DEBUG=false in .env for production environments.',
                     file: '.env',
                 );
             }
 
             // Check for APP_ENV=production with APP_DEBUG=true
-            if (preg_match('/APP_ENV\s*=\s*production/i', $env) && preg_match('/APP_DEBUG\s*=\s*true/i', $env)) {
+            if ($isProduction && $debugEnabled) {
                 $findings[] = SecurityFinding::confirmedVulnerability(
                     ruleId: $this->id().'.env-mismatch',
                     title: 'APP_ENV=production with APP_DEBUG=true',
