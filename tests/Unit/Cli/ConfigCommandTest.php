@@ -236,6 +236,97 @@ final class ConfigCommandTest extends TestCase
         $this->assertStringContainsString('Unknown config sub-command', $recorder->stderr());
     }
 
+    public function test_shows_the_workspace_manifest(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'config'], $filesystem, $recorder);
+
+        $this->assertSame(0, $exit);
+        $this->assertStringContainsString('Workspace: demo', $recorder->stdout());
+        $this->assertStringContainsString('mobile', $recorder->stdout());
+    }
+
+    public function test_renames_the_workspace(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+
+        $exit = $this->execute(['platform', 'config', 'name', 'monorepo'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertSame('monorepo', $filesystem->readJson('/app/platform.json')['name']);
+    }
+
+    public function test_rejects_an_invalid_workspace_name(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'config', 'name', 'My App'], $filesystem, $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('Invalid workspace name', $recorder->stderr());
+        $this->assertSame('demo', $filesystem->readJson('/app/platform.json')['name']);
+    }
+
+    public function test_sets_the_guards_of_a_component(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+
+        $exit = $this->execute(['platform', 'config', 'guard', 'web', 'employee,admin'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertSame(
+            ['employee', 'admin'],
+            $filesystem->readJson('/app/platform.json')['components']['web']['guards']
+        );
+    }
+
+    public function test_rejects_changing_the_api_guards(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'config', 'guard', 'api', 'employee'], $filesystem, $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('guard add', $recorder->stderr());
+    }
+
+    public function test_disables_and_enables_a_component(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+
+        $this->execute(['platform', 'config', 'disable', 'web'], $filesystem);
+        $this->assertFalse($filesystem->readJson('/app/platform.json')['components']['web']['enabled']);
+
+        $this->execute(['platform', 'config', 'enable', 'web'], $filesystem);
+        $this->assertTrue($filesystem->readJson('/app/platform.json')['components']['web']['enabled']);
+    }
+
+    public function test_workspace_config_requires_a_workspace(): void
+    {
+        $filesystem = $this->filesystem();
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'config', 'name', 'monorepo'], $filesystem, $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString('not a workspace', $recorder->stderr());
+    }
+
+    private function workspaceFilesystem(): FakeFilesystem
+    {
+        $filesystem = $this->filesystem();
+        $filesystem->write('/app/platform.json', '{"name":"demo","platform":"0.1.0","components":{'
+            .'"api":{"type":"api","path":"api","guards":["web","admin"],"enabled":true},'
+            .'"web":{"type":"web","path":"web","guards":["web"],"enabled":true},'
+            .'"mobile":{"type":"mobile","path":"mobile","guards":["web"],"enabled":false}}}');
+
+        return $filesystem;
+    }
+
     private function filesystem(): FakeFilesystem
     {
         return new FakeFilesystem([

@@ -61,6 +61,11 @@ final class Component
         return new self($this->name, $this->type, $this->path, array_values($guards), $this->enabled);
     }
 
+    public function withEnabled(bool $enabled): self
+    {
+        return new self($this->name, $this->type, $this->path, $this->guards, $enabled);
+    }
+
     /**
      * @return array{type: string, path: string, guards: list<string>, enabled: bool}
      */

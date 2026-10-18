@@ -69,6 +69,9 @@ platform guard add <guard> [--name=...] [--model=...] [--table=...] [--driver=pa
 platform guard list
 platform doctor            # incluye la suite Workspace (componentes en disco)
 platform doctor --only=<component>   # diagnóstico acotado a un componente
+platform config name <name>          # renombra el workspace (platform.json)
+platform config guard <component> <guards>   # fija los guards de un cliente
+platform config enable|disable <component>
 ```
 
 `build`/`dev` aceptan `--guard` para construir/levantar una sola app del cliente;
@@ -164,6 +167,23 @@ y reduce el diagnóstico:
 Un componente inexistente o `--only` fuera de un workspace fallan como
 `InvalidInput` (exit 1) con la lista de componentes válidos.
 
+## Editar el manifiesto (`platform config`)
+
+El grupo `config` (que ya gestionaba `packages`/`vendor` sobre
+`config/platform.php`) edita ahora también `platform.json`:
+
+- `platform config name <name>` renombra el workspace (`WorkspaceManifest::renamed`).
+- `platform config guard <component> <lista>` fija los guards de un **cliente**
+  (`Component::withGuards`); la API se rechaza porque espeja sus plataformas
+  (se cambia con `platform guard add`).
+- `platform config enable|disable <component>` alterna `enabled`
+  (`Component::withEnabled`); los deshabilitados se saltan en install/build/dev
+  y doctor.
+- `platform config` sin argumentos muestra, además del proyecto, la tabla de
+  componentes del manifiesto.
+
+Todos requieren un workspace (`Context::requireWorkspace`).
+
 ## demo/ como workspace
 
 El propio `demo/` es un workspace: `demo/platform.json` (escrito por
@@ -235,7 +255,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Verificación
 
-- `composer test` (root): **324 tests / 943 assertions** — OK.
+- `composer test` (root): **331 tests / 959 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
@@ -255,6 +275,8 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
     desconocido / ausencia de workspace.
   - `WorkspaceScriptTest`: contrato del shell (`#!/usr/bin/env bash`, lee
     `platform.json`, verbos del router presentes) + `bash -n` sobre el template.
+  - `ConfigCommandTest`: `config` muestra el workspace y `config name|guard|enable|disable`
+    editan `platform.json` (nombre inválido, guard en la API y fuera de workspace fallan).
 - `php bin/platform` lista `new/add/remove/install/build/dev/status` y `guard`.
 - `platform guard add <guard> --no-migrate` sobre una copia del demo genera
   artefactos válidos (`platforms.php`/`package.json`/`platform.json` parsean) y
@@ -267,10 +289,12 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 - `platform.sh`: `bash -n` OK; en `demo/` (`./platform.sh help|status|doctor`)
   `status` lista los 4 componentes con sus guards y `doctor` sale con exit 1
   cuando falta toolchain/dependencias mostrando el `fix` sugerido.
+- `platform config` en `demo/` muestra el manifiesto; `config disable desktop`,
+  `config guard web employee` y la vuelta a `config enable desktop` editan
+  `platform.json` correctamente (restaurado tras la prueba).
 
 ## Pendiente / siguiente iteración
 
-- `platform config` a nivel workspace (editar `platform.json` desde CLI).
 - `platform guard add` no siembra un usuario de ejemplo ni registra el guard en
   `plugin.json` (los plugins declaran sus guards por vista; un guard nuevo queda
   sin vista hasta que un plugin lo añada).

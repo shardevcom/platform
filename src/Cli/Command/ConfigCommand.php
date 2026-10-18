@@ -9,6 +9,7 @@ use Shardevcom\Cli\Console\Printer;
 use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
+use Shardevcom\Cli\Workspace\Component;
 
 /**
  * `platform config ...` namespace.
@@ -31,7 +32,7 @@ final class ConfigCommand implements GroupCommandInterface
 
     public function getSummary(): string
     {
-        return 'Show or change where packages live in this project';
+        return 'Show or change the project (and workspace) configuration';
     }
 
     public function getDefinition(): InputDefinition
@@ -49,6 +50,10 @@ final class ConfigCommand implements GroupCommandInterface
         return [
             'packages' => new ConfigSetCommand('packages'),
             'vendor' => new ConfigSetCommand('vendor'),
+            'name' => new ConfigNameCommand(),
+            'guard' => new ConfigGuardCommand(),
+            'enable' => new ConfigToggleCommand(true),
+            'disable' => new ConfigToggleCommand(false),
         ];
     }
 
@@ -56,7 +61,7 @@ final class ConfigCommand implements GroupCommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform config');
-            $printer->info('Usage: platform config [packages <dir> | vendor <vendor>]');
+            $printer->info('Usage: platform config [packages <dir> | vendor <vendor> | name <name> | guard <component> <list> | enable|disable <component>]');
             $printer->writeln();
             $printer->writeln('  Sub-commands:');
 
@@ -68,7 +73,7 @@ final class ConfigCommand implements GroupCommandInterface
 
             $printer->table([], $rows);
             $printer->writeln();
-            $printer->note('Values are stored in config/platform.php and reused by every later command.');
+            $printer->note('Values are stored in config/platform.php (packages/vendor) or platform.json (workspace).');
         });
     }
 
@@ -99,6 +104,28 @@ final class ConfigCommand implements GroupCommandInterface
         ]);
         $printer->writeln();
         $printer->note('Change them with: platform config packages <dir> | platform config vendor <vendor>');
+
+        $workspace = $context->workspace();
+
+        if ($workspace !== null) {
+            $printer->writeln();
+            $printer->section('Workspace: '.$workspace->manifest->name);
+            $printer->table(
+                ['Component', 'Type', 'Path', 'Guards', 'Enabled'],
+                array_map(
+                    static fn (Component $component): array => [
+                        $component->name,
+                        $component->type->value,
+                        $component->path,
+                        $component->guards === [] ? '—' : implode(', ', $component->guards),
+                        $component->enabled ? 'yes' : 'no',
+                    ],
+                    array_values($workspace->manifest->components())
+                )
+            );
+            $printer->writeln();
+            $printer->note('Edit it with: platform config name <name> | config guard <component> <list> | config enable|disable <component>');
+        }
 
         return 0;
     }

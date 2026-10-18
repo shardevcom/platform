@@ -133,6 +133,11 @@ final class WorkspaceManifest
         return new self($this->name, $this->platform, $components);
     }
 
+    public function renamed(string $name): self
+    {
+        return new self($name, $this->platform, $this->components);
+    }
+
     public function without(string $name): self
     {
         $components = $this->components;

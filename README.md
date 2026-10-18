@@ -141,6 +141,10 @@ platform config packages src/platform
 platform config vendor acme
 ```
 
+En un workspace, `platform config` muestra además el manifiesto y se edita con
+`platform config name <name>`, `platform config guard <component> <lista>` y
+`platform config enable|disable <component>`.
+
 **Importante:**
 - Los packages **oficiales** del framework se instalan siempre en `packages/shardevcom/` (o el directorio configurado)
 - Los packages **demo** y los generados con `platform package make` viven en el vendor configurado (`packages/<vendor>/`)
@@ -797,6 +801,7 @@ platform status
 platform guard add <guard> [--driver=passport] [--no-clients] [--no-migrate]
 platform guard list
 platform doctor [--only=<component>]
+platform config name <name> | guard <component> <list> | enable|disable <component>
 ```
 
 Cada componente sirve **N guards**: la API los publica en
