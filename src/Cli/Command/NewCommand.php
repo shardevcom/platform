@@ -10,6 +10,7 @@ use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Workspace\Component;
+use Shardevcom\Cli\Workspace\ComponentType;
 use Shardevcom\Cli\Workspace\WorkspaceScaffolder;
 use Shardevcom\Framework;
 
@@ -54,6 +55,10 @@ final class NewCommand implements CommandInterface
                     'value' => true,
                     'default' => 'api',
                 ],
+                'guards' => [
+                    'description' => 'Comma-separated guards the clients serve (defaults to the API platforms)',
+                    'value' => true,
+                ],
                 'no-interaction' => [
                     'description' => 'Never prompt Composer',
                     'shortcut' => 'n',
@@ -69,12 +74,13 @@ final class NewCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform new');
-            $printer->info('Usage: platform new <target> [--with=api,web,mobile,desktop] [--laravel=12] [--no-interaction] [--no-install]');
+            $printer->info('Usage: platform new <target> [--with=api,web,mobile,desktop] [--guards=web,admin] [--laravel=12] [--no-interaction] [--no-install]');
             $printer->writeln();
             $printer->writeln('  Arguments & options:');
             $printer->table([], $this->getDefinition()->helpRows());
             $printer->writeln();
             $printer->note('The workspace root holds platform.json; the API and every client are independent components.');
+            $printer->note('Without --guards the clients mirror the guards the API exposes.');
             $printer->note('Manage them with: platform add, platform install, platform build, platform dev, platform status.');
         });
     }
@@ -99,7 +105,7 @@ final class NewCommand implements CommandInterface
             throw InvalidInput::create(Framework::incompatibilityMessage($laravel));
         }
 
-        $components = $this->components((string) $input->option('with', 'api'));
+        $components = $this->components((string) $input->option('with', 'api'), $this->guards($input->option('guards')));
         $printer = $context->printer();
 
         $printer->heading("Creating Shardev workspace '{$target}'");
@@ -111,6 +117,7 @@ final class NewCommand implements CommandInterface
             $this->laravelConstraint($laravel),
             $input->flag('no-interaction'),
             ! $input->flag('no-install'),
+            mirrorClientGuards: $input->option('guards') === null,
         );
 
         $printer->table(['Component', 'Path', 'Guards'], array_map(
@@ -136,9 +143,11 @@ final class NewCommand implements CommandInterface
     }
 
     /**
+     * @param list<string>|null $guards guards the clients serve, when given explicitly
+     *
      * @return list<Component>
      */
-    private function components(string $with): array
+    private function components(string $with, ?array $guards): array
     {
         $names = array_values(array_filter(
             array_map('trim', explode(',', $with)),
@@ -149,7 +158,40 @@ final class NewCommand implements CommandInterface
             throw InvalidInput::create('At least one component is required in --with.');
         }
 
-        return array_map(static fn (string $name): Component => Component::create($name), $names);
+        return array_map(static function (string $name) use ($guards): Component {
+            $type = ComponentType::fromName($name);
+
+            return Component::create($name, $guards !== null && $type !== ComponentType::Api ? $guards : []);
+        }, $names);
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function guards(mixed $option): ?array
+    {
+        if ($option === null) {
+            return null;
+        }
+
+        $guards = array_values(array_filter(
+            array_map('trim', explode(',', (string) $option)),
+            static fn (string $guard): bool => $guard !== ''
+        ));
+
+        if ($guards === []) {
+            throw InvalidInput::create('--guards expects at least one guard name.');
+        }
+
+        foreach ($guards as $guard) {
+            if (preg_match('/^[a-z][a-z0-9_-]*$/', $guard) !== 1) {
+                throw InvalidInput::create(
+                    "Invalid guard '{$guard}'. Use lowercase letters, digits, dashes and underscores, starting with a letter."
+                );
+            }
+        }
+
+        return $guards;
     }
 
     private function laravelConstraint(string $laravel): string

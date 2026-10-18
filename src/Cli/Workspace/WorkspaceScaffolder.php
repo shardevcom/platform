@@ -31,6 +31,7 @@ final class WorkspaceScaffolder
         string $laravelConstraint,
         bool $noInteraction,
         bool $installDependencies,
+        bool $mirrorClientGuards = true,
     ): WorkspaceManifest {
         $this->assertTargetIsFree($target);
         $this->context->filesystem->createDirectory($target);
@@ -51,7 +52,7 @@ final class WorkspaceScaffolder
             $this->createComponent($target, $component, $laravelConstraint, $noInteraction, $installDependencies);
         }
 
-        $manifest = $this->syncGuards($manifest, $target);
+        $manifest = $this->syncGuards($manifest, $target, $mirrorClientGuards);
         $manifest->save($this->context->filesystem, $target);
 
         return $manifest;
@@ -122,9 +123,11 @@ final class WorkspaceScaffolder
 
     /**
      * Every component mirrors the guards the API exposes, so a client can never
-     * drift from the platforms it is supposed to serve.
+     * drift from the platforms it is supposed to serve. When the clients were
+     * pinned explicitly (`platform new --guards=...`) only the API is refreshed
+     * with its platforms; the clients keep the guards the user asked for.
      */
-    private function syncGuards(WorkspaceManifest $manifest, string $root): WorkspaceManifest
+    private function syncGuards(WorkspaceManifest $manifest, string $root, bool $mirrorClients): WorkspaceManifest
     {
         if (! $manifest->has('api')) {
             return $manifest;
@@ -138,7 +141,9 @@ final class WorkspaceScaffolder
         }
 
         foreach ($manifest->components() as $component) {
-            $manifest = $manifest->with($component->withGuards($guards));
+            if ($component->type === ComponentType::Api || $mirrorClients) {
+                $manifest = $manifest->with($component->withGuards($guards));
+            }
         }
 
         return $manifest;

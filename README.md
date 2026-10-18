@@ -70,6 +70,9 @@ bin/platform new mi-proyecto --laravel=12 --no-interaction
 # API + web + móvil + desktop
 bin/platform new mi-proyecto --with=api,web,mobile,desktop
 
+# Fijar los guards que sirven los clientes
+bin/platform new mi-proyecto --with=api,web --guards=employee
+
 # Añadir un cliente después
 cd mi-proyecto
 bin/platform add web --guards=web,admin
@@ -784,7 +787,7 @@ ningún comando ramifica por tipo:
 Comandos:
 
 ```bash
-platform new <name> [--with=api,web,mobile,desktop] [--laravel=12] [--no-interaction] [--no-install]
+platform new <name> [--with=api,web,mobile,desktop] [--guards=web,admin] [--laravel=12] [--no-interaction] [--no-install]
 platform add <component> [--guards=web,admin] [--path=web] [--no-install]
 platform remove <component> [--delete]
 platform install [component] [--only=web,mobile]
@@ -798,7 +801,9 @@ platform guard list
 Cada componente sirve **N guards**: la API los publica en
 `config/platforms.php` y `platform guard add` los da de alta de punta a punta
 (entrada de plataforma + modelo + migraciones + una app por guard en cada
-cliente). El manifiesto guarda la lista `guards` por componente.
+cliente). El manifiesto guarda la lista `guards` por componente. `--guards` en
+`new` (y en `add`) fija esa lista para los clientes; sin él, los clientes
+espejan los guards que publica la API.
 
 ### `platform.sh` — shell de control
 

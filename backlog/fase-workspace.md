@@ -41,6 +41,9 @@ my-project/                 # workspace (NO Laravel)
   (`config/platforms.php`); los clientes la espejan (`WorkspaceScaffolder::syncGuards`
   lee las plataformas vía `PlatformsReader` y las aplica a todo componente). Un
   guard suelto es una lista de uno, así que nada especial-casa un único guard.
+  `platform new --guards=...` (y `platform add --guards=...`) fija la lista de los
+  clientes: en ese caso `syncGuards` solo refresca la API con sus plataformas y
+  deja intactos los guards pedidos para los clientes.
 - `ComponentType` (`api`/`web`/`mobile`/`desktop`) conoce su plantilla de
   referencia (`demo/<tipo>`), sus guards por defecto (`defaultGuards()`: `[]` para
   la API, `['web']` para los clientes), el directorio que prueba que
@@ -55,7 +58,7 @@ my-project/                 # workspace (NO Laravel)
 ## Comandos
 
 ```bash
-platform new <name> [--with=api,web,mobile,desktop] [--laravel=12] [--no-interaction] [--no-install]
+platform new <name> [--with=api,web,mobile,desktop] [--guards=web,admin] [--laravel=12] [--no-interaction] [--no-install]
 platform add <component> [--guards=web,admin] [--path=web] [--no-install]
 platform remove <component> [--delete]
 platform install [component] [--only=web,mobile]
@@ -217,12 +220,13 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Verificación
 
-- `composer test` (root): **316 tests / 924 assertions** — OK.
+- `composer test` (root): **320 tests / 934 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
-    vive en `api/`; `--with` selecciona componentes; deja `platform.sh` ejecutable
-    en la raíz.
+    vive en `api/`; `--with` selecciona componentes; los clientes espejan los
+    platforms de la API y `--guards` los fija (api incluida aparte); deja
+    `platform.sh` ejecutable en la raíz.
   - `WorkspaceCommandTest`: status/install/build/dev/add/remove por manifiesto,
     incluyendo "no es un workspace".
   - `GuardCommandTest`: `guard add` escribe `config/platforms.php`, modelo y
@@ -251,7 +255,6 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 ## Pendiente / siguiente iteración
 
 - `platform config` a nivel workspace (editar `platform.json` desde CLI).
-- `--guards` por cliente al crear (`platform new --with=web --guards=employee`).
 - `platform doctor --only=web` para diagnosticar un componente concreto.
 - `platform guard add` no siembra un usuario de ejemplo ni registra el guard en
   `plugin.json` (los plugins declaran sus guards por vista; un guard nuevo queda

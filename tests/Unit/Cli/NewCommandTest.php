@@ -247,6 +247,52 @@ final class NewCommandTest extends TestCase
         );
     }
 
+    public function test_clients_mirror_the_api_platforms_by_default(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=api,web'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
+
+        $this->assertSame(['web', 'admin', 'employee'], $manifest['components']['api']['guards']);
+        $this->assertSame(['web', 'admin', 'employee'], $manifest['components']['web']['guards']);
+    }
+
+    public function test_pins_the_client_guards_when_asked(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=api,web', '--guards=employee'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
+
+        $this->assertSame(['employee'], $manifest['components']['web']['guards']);
+        $this->assertSame(['web', 'admin', 'employee'], $manifest['components']['api']['guards']);
+    }
+
+    public function test_pins_the_client_guards_without_an_api(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=web', '--guards=employee'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
+
+        $this->assertSame(['employee'], $manifest['components']['web']['guards']);
+        $this->assertArrayNotHasKey('api', $manifest['components']);
+    }
+
+    public function test_rejects_an_invalid_guard(): void
+    {
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=web', '--guards=Employee!']);
+
+        $this->assertSame(1, $exit);
+    }
+
     public function test_scaffolds_the_api_as_a_component_directory(): void
     {
         $this->execute(['platform', 'new', 'new-app']);
@@ -347,6 +393,17 @@ final class NewCommandTest extends TestCase
             ];
             PHP);
             $filesystem->write($project.'/.env.example', "APP_NAME=Laravel\nDB_CONNECTION=mysql\n");
+            $filesystem->write($project.'/config/platforms.php', <<<'PHP'
+            <?php
+
+            return [
+                'platforms' => [
+                    'web' => ['key' => 'web'],
+                    'admin' => ['key' => 'admin'],
+                    'employee' => ['key' => 'employee'],
+                ],
+            ];
+            PHP);
         });
     }
 
