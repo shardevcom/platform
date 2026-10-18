@@ -12,6 +12,7 @@ use Shardevcom\Cli\Doctor\CheckSuite;
 use Shardevcom\Cli\Doctor\DatabaseSuite;
 use Shardevcom\Cli\Doctor\PackagesSuite;
 use Shardevcom\Cli\Doctor\ProjectSuite;
+use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Packages\PackageCatalog;
 use Tests\Unit\Cli\Support\FakeFilesystem;
@@ -174,6 +175,55 @@ final class DoctorCommandTest extends TestCase
         }
     }
 
+    public function test_only_scopes_the_checks_to_one_client_component(): void
+    {
+        $recorder = RecordingPrinter::create();
+        $context = $this->workspaceContext($recorder);
+
+        (new DoctorCommand($context))->execute(new Input(options: ['only' => 'web']), $context);
+
+        $output = $recorder->stdout();
+
+        $this->assertStringContainsString('Workspace', $output);
+        $this->assertStringContainsString('Client requirements', $output);
+        $this->assertStringContainsString('web: Node.js', $output);
+        $this->assertStringNotContainsString('desktop:', $output);
+        $this->assertStringNotContainsString('Packages', $output);
+    }
+
+    public function test_only_on_the_api_keeps_the_application_suites(): void
+    {
+        $recorder = RecordingPrinter::create();
+        $context = $this->workspaceContext($recorder);
+
+        (new DoctorCommand($context))->execute(new Input(options: ['only' => 'api']), $context);
+
+        $output = $recorder->stdout();
+
+        $this->assertStringContainsString('Packages', $output);
+        $this->assertStringNotContainsString('Client requirements', $output);
+    }
+
+    public function test_only_rejects_an_unknown_component(): void
+    {
+        $recorder = RecordingPrinter::create();
+        $context = $this->workspaceContext($recorder);
+
+        $this->expectException(InvalidInput::class);
+
+        (new DoctorCommand($context))->execute(new Input(options: ['only' => 'partner']), $context);
+    }
+
+    public function test_only_requires_a_workspace(): void
+    {
+        $recorder = RecordingPrinter::create();
+        $context = $this->executeContext($recorder, $this->healthyProject());
+
+        $this->expectException(InvalidInput::class);
+
+        (new DoctorCommand($context))->execute(new Input(options: ['only' => 'web']), $context);
+    }
+
     /**
      * @param list<CheckSuite> $suites
      */
@@ -216,6 +266,30 @@ final class DoctorCommandTest extends TestCase
                 return $this->results;
             }
         };
+    }
+
+    private function workspaceContext(RecordingPrinter $recorder): Context
+    {
+        $filesystem = new FakeFilesystem([
+            '/app/platform.json' => '{"name":"demo","platform":"0.1.0","components":{'
+                .'"api":{"type":"api","path":"api","guards":[],"enabled":true},'
+                .'"web":{"type":"web","path":"web","guards":["web"],"enabled":true},'
+                .'"desktop":{"type":"desktop","path":"desktop","guards":["web"],"enabled":true}}}',
+        ], directories: ['/app/api', '/app/web', '/app/desktop']);
+
+        return $this->executeContext($recorder, $filesystem);
+    }
+
+    private function executeContext(RecordingPrinter $recorder, FakeFilesystem $filesystem): Context
+    {
+        return new Context(
+            output: $recorder->printer(),
+            filesystem: $filesystem,
+            process: new FakeProcessRunner(),
+            workingDirectory: '/app',
+            frameworkRoot: '/framework',
+            catalog: new PackageCatalog($filesystem, '/app'),
+        );
     }
 
     /**

@@ -21,10 +21,14 @@ use Shardevcom\Cli\Doctor\SecurityRuleRegistry;
 use Shardevcom\Cli\Doctor\SecuritySuite;
 use Shardevcom\Cli\Doctor\SecuritySeverity;
 use Shardevcom\Cli\Doctor\WorkspaceSuite;
+use Shardevcom\Cli\Exception\InvalidInput;
+use Shardevcom\Cli\Filesystem\Filesystem;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Packages\PackageCatalog;
+use Shardevcom\Cli\Workspace\ComponentType;
 use Shardevcom\Cli\Workspace\DriverRegistry;
+use Shardevcom\Cli\Workspace\Workspace;
 
 /**
  * `platform doctor`: inspects the project in the current directory.
@@ -63,6 +67,10 @@ final class DoctorCommand implements CommandInterface
             options: [
                 'category' => [
                     'description' => 'Limit checks to specific category (security, config, code, auth, api, jobs, dependencies)',
+                    'value' => true,
+                ],
+                'only' => [
+                    'description' => 'Restrict checks to one workspace component (api, web, mobile, desktop)',
                     'value' => true,
                 ],
                 'severity' => [
@@ -107,6 +115,7 @@ final class DoctorCommand implements CommandInterface
             ))->getDefinition()->helpRows());
             $printer->writeln();
             $printer->note('Runs from a generated project directory (walks up to its composer.json).');
+            $printer->note('In a workspace, --only=<component> diagnoses a single component.');
         });
     }
 
@@ -206,7 +215,7 @@ final class DoctorCommand implements CommandInterface
             $categories = explode(',', $input->option('category'));
         }
 
-        $suites = [
+        $apiSuites = [
             new EnvironmentSuite($filesystem, $this->context->process, $projectRoot),
             new ProjectSuite($filesystem, $projectRoot),
             new PackagesSuite($filesystem, $catalog, $projectRoot),
@@ -219,16 +228,63 @@ final class DoctorCommand implements CommandInterface
         ];
 
         $workspace = $this->context->workspace();
+        $only = $this->only($input, $workspace);
 
-        if ($workspace !== null) {
-            array_unshift(
-                $suites,
-                new RequirementsSuite($workspace, new DriverRegistry($this->context), $this->context->process, $filesystem)
-            );
-            array_unshift($suites, new WorkspaceSuite($workspace, $filesystem));
+        if ($only !== null) {
+            return $this->componentSuites($workspace, $only, $apiSuites, $filesystem);
         }
 
-        return $suites;
+        if ($workspace === null) {
+            return $apiSuites;
+        }
+
+        return [
+            new WorkspaceSuite($workspace, $filesystem),
+            new RequirementsSuite($workspace, new DriverRegistry($this->context), $this->context->process, $filesystem),
+            ...$apiSuites,
+        ];
+    }
+
+    /**
+     * Runs only the checks that belong to the selected component: the API keeps
+     * its full suite, a client keeps the workspace/requirements checks scoped to
+     * itself.
+     *
+     * @param list<CheckSuite> $apiSuites
+     *
+     * @return list<CheckSuite>
+     */
+    private function componentSuites(Workspace $workspace, string $only, array $apiSuites, Filesystem $filesystem): array
+    {
+        if ($workspace->manifest->component($only)->type === ComponentType::Api) {
+            return $apiSuites;
+        }
+
+        return [
+            new WorkspaceSuite($workspace, $filesystem, $only),
+            new RequirementsSuite($workspace, new DriverRegistry($this->context), $this->context->process, $filesystem, $only),
+        ];
+    }
+
+    private function only(Input $input, ?Workspace $workspace): ?string
+    {
+        $only = $input->option('only');
+
+        if ($only === null) {
+            return null;
+        }
+
+        if ($workspace === null) {
+            throw InvalidInput::create('--only needs a workspace: run it from a directory with platform.json.');
+        }
+
+        if (! $workspace->manifest->has($only)) {
+            throw InvalidInput::create(
+                "Unknown component '{$only}'. Expected one of: ".implode(', ', array_keys($workspace->manifest->components())).'.'
+            );
+        }
+
+        return $only;
     }
 
     private function registerSecurityRules(SecurityRuleRegistry $registry): void

@@ -28,6 +28,7 @@ final class RequirementsSuite implements CheckSuite
         private readonly DriverRegistry $drivers,
         private readonly ProcessRunner $process,
         private readonly Filesystem $filesystem,
+        private readonly ?string $only = null,
     ) {}
 
     public function name(): string
@@ -42,7 +43,7 @@ final class RequirementsSuite implements CheckSuite
     {
         $results = [];
 
-        foreach ($this->workspace->manifest->enabled() as $component) {
+        foreach ($this->components() as $component) {
             $path = $this->workspace->componentPath($component->name);
             $driver = $this->drivers->driver($component->type);
 
@@ -56,6 +57,23 @@ final class RequirementsSuite implements CheckSuite
         }
 
         return $results;
+    }
+
+    /**
+     * @return list<Component>
+     */
+    private function components(): array
+    {
+        $enabled = $this->workspace->manifest->enabled();
+
+        if ($this->only === null) {
+            return $enabled;
+        }
+
+        return array_values(array_filter(
+            $enabled,
+            fn (Component $component): bool => $component->name === $this->only
+        ));
     }
 
     private function check(Component $component, Requirement $requirement, string $path): CheckResult

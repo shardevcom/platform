@@ -796,6 +796,7 @@ platform dev     <component> [--guard=admin]
 platform status
 platform guard add <guard> [--driver=passport] [--no-clients] [--no-migrate]
 platform guard list
+platform doctor [--only=<component>]
 ```
 
 Cada componente sirve **N guards**: la API los publica en
@@ -830,7 +831,9 @@ añade dos suites: **Workspace** (falla si un componente no está en
 disco) y **Client requirements** (según los clientes instalados comprueba el
 toolchain que necesitan —Node/npm, Flutter/Dart, JDK— y sugiere cómo arreglarlo;
 si la herramienta está instalada fuera del PATH, devuelve el `export PATH=...`
-exacto). Detalle de diseño: `backlog/fase-workspace.md`.
+exacto). Con `doctor --only=<component>` se diagnostica un solo componente: la
+API conserva sus suites y un cliente queda acotado a su `Workspace` +
+`Client requirements`. Detalle de diseño: `backlog/fase-workspace.md`.
 
 El propio `demo/` es un workspace: `demo/platform.json` declara `api`, `web`,
 `mobile` y `desktop` con `guards: ["web","admin","employee"]`, así que

@@ -19,6 +19,7 @@ final class WorkspaceSuite implements CheckSuite
     public function __construct(
         private readonly Workspace $workspace,
         private readonly Filesystem $filesystem,
+        private readonly ?string $only = null,
     ) {}
 
     public function name(): string
@@ -33,7 +34,7 @@ final class WorkspaceSuite implements CheckSuite
     {
         $results = [];
 
-        foreach ($this->workspace->manifest->enabled() as $component) {
+        foreach ($this->components() as $component) {
             $results[] = $this->check($component);
         }
 
@@ -42,6 +43,23 @@ final class WorkspaceSuite implements CheckSuite
         }
 
         return $results;
+    }
+
+    /**
+     * @return list<Component>
+     */
+    private function components(): array
+    {
+        $enabled = $this->workspace->manifest->enabled();
+
+        if ($this->only === null) {
+            return $enabled;
+        }
+
+        return array_values(array_filter(
+            $enabled,
+            fn (Component $component): bool => $component->name === $this->only
+        ));
     }
 
     private function check(Component $component): CheckResult

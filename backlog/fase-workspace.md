@@ -68,6 +68,7 @@ platform status
 platform guard add <guard> [--name=...] [--model=...] [--table=...] [--driver=passport] [--prefix=...] [--no-clients] [--no-migrate]
 platform guard list
 platform doctor            # incluye la suite Workspace (componentes en disco)
+platform doctor --only=<component>   # diagnóstico acotado a un componente
 ```
 
 `build`/`dev` aceptan `--guard` para construir/levantar una sola app del cliente;
@@ -149,6 +150,20 @@ detectada. `flutter` (instalado en `~/flutter/bin`, fuera del PATH por defecto)
 sugiere `export PATH="$HOME/flutter/bin:$PATH"`; tras exportarlo pasa con
 `Flutter 3.47.7` y `Dart 3.13.5`.
 
+### Acotar a un componente (`--only`)
+
+`platform doctor --only=<component>` valida el componente contra `platform.json`
+y reduce el diagnóstico:
+
+- `--only=api`: solo las suites de la aplicación (la API sigue siendo el
+  `projectRoot()`), sin checks de clientes.
+- `--only=<cliente>`: solo su entrada en **Workspace** y sus requisitos en
+  **Client requirements** (`WorkspaceSuite`/`RequirementsSuite` aceptan un
+  `?string $only` con el que filtran los componentes habilitados).
+
+Un componente inexistente o `--only` fuera de un workspace fallan como
+`InvalidInput` (exit 1) con la lista de componentes válidos.
+
 ## demo/ como workspace
 
 El propio `demo/` es un workspace: `demo/platform.json` (escrito por
@@ -220,7 +235,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Verificación
 
-- `composer test` (root): **320 tests / 934 assertions** — OK.
+- `composer test` (root): **324 tests / 943 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
@@ -236,7 +251,8 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
   - `RequirementsSuiteTest`: requisitos por cliente (tool presente/ausente,
     componentes deshabilitados, solo-API, probe en el directorio del componente).
   - `DoctorCommandTest`: incluye la suite `Client requirements` cuando hay
-    workspace.
+    workspace; `--only` acota a un cliente o a la API y rechaza componente
+    desconocido / ausencia de workspace.
   - `WorkspaceScriptTest`: contrato del shell (`#!/usr/bin/env bash`, lee
     `platform.json`, verbos del router presentes) + `bash -n` sobre el template.
 - `php bin/platform` lista `new/add/remove/install/build/dev/status` y `guard`.
@@ -255,7 +271,6 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 ## Pendiente / siguiente iteración
 
 - `platform config` a nivel workspace (editar `platform.json` desde CLI).
-- `platform doctor --only=web` para diagnosticar un componente concreto.
 - `platform guard add` no siembra un usuario de ejemplo ni registra el guard en
   `plugin.json` (los plugins declaran sus guards por vista; un guard nuevo queda
   sin vista hasta que un plugin lo añada).
