@@ -22,14 +22,18 @@ final class PluginCatalog
     ) {}
 
     /**
-     * @return list<PluginManifest>
+     * Every plugin with the manifest file it was read from. Commands that edit
+     * a `plugin.json` need the path, which the manifest alone does not carry.
+     *
+     * @return list<array{manifest: PluginManifest, file: string}>
      */
-    public function all(): array
+    public function discover(): array
     {
         $plugins = [];
 
         foreach ($this->packages->packages() as $package) {
-            $data = $this->filesystem->readJson($package->path.'/plugin.json');
+            $file = $package->path.'/plugin.json';
+            $data = $this->filesystem->readJson($file);
 
             if ($data === null) {
                 continue;
@@ -38,13 +42,21 @@ final class PluginCatalog
             $manifest = PluginManifest::fromArray($data);
 
             if ($manifest !== null) {
-                $plugins[] = $manifest;
+                $plugins[] = ['manifest' => $manifest, 'file' => $file];
             }
         }
 
-        usort($plugins, static fn (PluginManifest $a, PluginManifest $b): int => $a->name <=> $b->name);
+        usort($plugins, static fn (array $a, array $b): int => $a['manifest']->name <=> $b['manifest']->name);
 
         return $plugins;
+    }
+
+    /**
+     * @return list<PluginManifest>
+     */
+    public function all(): array
+    {
+        return array_map(static fn (array $plugin): PluginManifest => $plugin['manifest'], $this->discover());
     }
 
     public function count(): int

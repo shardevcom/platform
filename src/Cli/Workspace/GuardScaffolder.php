@@ -6,13 +6,16 @@ namespace Shardevcom\Cli\Workspace;
 
 use Shardevcom\Cli\Context;
 use Shardevcom\Cli\Exception\CommandFailed;
+use Shardevcom\Cli\Plugins\PluginCatalog;
+use Shardevcom\Cli\Plugins\PluginGuardEditor;
 
 /**
  * Boundary: adds a guard to a workspace end-to-end.
  *
  * The API is the source of truth, so the guard is registered there first
- * (config/platforms.php + model + migrations), then mirrored into platform.json
- * and, optionally, into every client's Guard enum and app tree.
+ * (config/platforms.php + model + migrations + a demo seeder), then mirrored
+ * into platform.json, every installed plugin manifest and, optionally, into
+ * every client's Guard enum and app tree.
  */
 final class GuardScaffolder
 {
@@ -21,8 +24,14 @@ final class GuardScaffolder
     /**
      * @return list<string> paths written, relative to the workspace root
      */
-    public function add(Workspace $workspace, GuardDefinition $guard, bool $scaffoldClients, bool $migrate): array
-    {
+    public function add(
+        Workspace $workspace,
+        GuardDefinition $guard,
+        bool $scaffoldClients,
+        bool $migrate,
+        bool $seed = true,
+        bool $registerPlugins = true,
+    ): array {
         $manifest = $workspace->manifest;
 
         if (! $manifest->has('api')) {
@@ -41,8 +50,14 @@ final class GuardScaffolder
             $workspace->root
         );
 
-        foreach ($this->writeModelAndMigrations($api, $guard) as $file) {
+        foreach ($this->writeApiArtifacts($api, $guard) as $file) {
             $written[] = $this->context->filesystem->relativePath($file, $workspace->root);
+        }
+
+        if ($registerPlugins) {
+            foreach ($this->registerInPlugins($guard) as $file) {
+                $written[] = $this->context->filesystem->relativePath($file, $workspace->root);
+            }
         }
 
         $manifest = $this->mirrorIntoManifest($manifest, $guard);
@@ -64,6 +79,10 @@ final class GuardScaffolder
 
         if ($migrate) {
             $this->migrate($api);
+
+            if ($seed) {
+                $this->seed($api, $guard);
+            }
         }
 
         return $written;
@@ -92,7 +111,7 @@ final class GuardScaffolder
     /**
      * @return list<string>
      */
-    private function writeModelAndMigrations(string $api, GuardDefinition $guard): array
+    private function writeApiArtifacts(string $api, GuardDefinition $guard): array
     {
         $files = [];
 
@@ -110,7 +129,42 @@ final class GuardScaffolder
         $this->context->filesystem->write($resets, $this->passwordResetsMigration($guard));
         $files[] = $resets;
 
+        $seeder = $api.'/database/seeders/'.$guard->model.'Seeder.php';
+        $this->context->filesystem->write($seeder, $this->seeder($guard));
+        $files[] = $seeder;
+
         return $files;
+    }
+
+    /**
+     * Registers the guard in every installed plugin's manifest so `plugin list`
+     * and `plugin show` know the resource now serves the new guard. The client
+     * view is the plugin author's follow-up: only the plugin knows its screens.
+     *
+     * @return list<string>
+     */
+    private function registerInPlugins(GuardDefinition $guard): array
+    {
+        if (! $this->context->isInstalledProject()) {
+            return [];
+        }
+
+        $catalog = new PluginCatalog($this->context->filesystem, $this->context->packageCatalog());
+        $editor = new PluginGuardEditor();
+        $written = [];
+
+        foreach ($catalog->discover() as $plugin) {
+            $source = $this->context->filesystem->read($plugin['file']);
+
+            if ($editor->has($source, $guard->key)) {
+                continue;
+            }
+
+            $this->context->filesystem->write($plugin['file'], $editor->add($source, $guard->key));
+            $written[] = $plugin['file'];
+        }
+
+        return $written;
     }
 
     private function mirrorIntoManifest(WorkspaceManifest $manifest, GuardDefinition $guard): WorkspaceManifest
@@ -135,6 +189,17 @@ final class GuardScaffolder
 
         if (! $result->successful()) {
             throw CommandFailed::create("The migration for the new guard failed:\n".$result->trimmedOutput());
+        }
+    }
+
+    private function seed(string $api, GuardDefinition $guard): void
+    {
+        $class = 'Database\\Seeders\\'.$guard->model.'Seeder';
+
+        $result = $this->context->process->run("php artisan db:seed --class='{$class}' --force", $api);
+
+        if (! $result->successful()) {
+            throw CommandFailed::create("Seeding the demo '{$guard->key}' user failed:\n".$result->trimmedOutput());
         }
     }
 
@@ -272,6 +337,41 @@ final class GuardScaffolder
                     Schema::dropIfExists('{$table}');
                 }
             };
+
+            PHP;
+    }
+
+    private function seeder(GuardDefinition $guard): string
+    {
+        $model = $guard->model;
+        $key = $guard->key;
+        $label = $guard->label();
+
+        return <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            namespace Database\Seeders;
+
+            use App\Models\\{$model};
+            use Illuminate\Database\Seeder;
+
+            /**
+             * Seeds a demo {$key} user so the new guard is usable right away
+             * (password: `password`).
+             */
+            class {$model}Seeder extends Seeder
+            {
+                public function run(): void
+                {
+                    \$user = {$model}::firstOrNew(['email' => '{$key}@example.com']);
+                    \$user->name = 'Demo {$label}';
+                    \$user->email_verified_at = now();
+                    \$user->password = 'password';
+                    \$user->save();
+                }
+            }
 
             PHP;
     }

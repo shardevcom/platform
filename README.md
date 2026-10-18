@@ -798,7 +798,7 @@ platform install [component] [--only=web,mobile]
 platform build   [component] [--only=web,mobile] [--guard=admin]
 platform dev     <component> [--guard=admin]
 platform status
-platform guard add <guard> [--driver=passport] [--no-clients] [--no-migrate]
+platform guard add <guard> [--driver=passport] [--no-clients] [--no-plugins] [--no-migrate] [--no-seed]
 platform guard list
 platform doctor [--only=<component>]
 platform config name <name> | guard <component> <list> | enable|disable <component>
@@ -806,10 +806,11 @@ platform config name <name> | guard <component> <list> | enable|disable <compone
 
 Cada componente sirve **N guards**: la API los publica en
 `config/platforms.php` y `platform guard add` los da de alta de punta a punta
-(entrada de plataforma + modelo + migraciones + una app por guard en cada
-cliente). El manifiesto guarda la lista `guards` por componente. `--guards` en
-`new` (y en `add`) fija esa lista para los clientes; sin él, los clientes
-espejan los guards que publica la API.
+(entrada de plataforma + modelo + migraciones + seeder de usuario demo + registro
+en cada `plugin.json` instalado + una app por guard en cada cliente). El
+manifiesto guarda la lista `guards` por componente. `--guards` en `new` (y en
+`add`) fija esa lista para los clientes; sin él, los clientes espejan los guards
+que publica la API.
 
 ### `platform.sh` — shell de control
 

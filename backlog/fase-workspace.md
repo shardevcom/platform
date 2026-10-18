@@ -86,9 +86,14 @@ descripción (`GuardDefinition`) y sin listas hardcodeadas:
   (`PlatformsEditor`, con bracket-matching y awareness de strings/comentarios,
   porque el config usa `env()` y `::class` y no se puede `require`), genera el
   modelo (`App\Models\<Guard>User extends PlatformUser` con
-  `$platformGuard`/`$table`) y las migraciones `<table>` +
-  `<table>_password_resets`, y corre `php artisan migrate --force` (salvo
-  `--no-migrate`).
+  `$platformGuard`/`$table`), las migraciones `<table>` +
+  `<table>_password_resets` y un seeder `<Guard>UserSeeder` (usuario demo
+  `<guard>@example.com` / `password`), y corre `php artisan migrate --force`
+  seguido de `db:seed --class=...` (salvo `--no-migrate`/`--no-seed`).
+- **Plugins**: registra el guard en el `guards` de cada `plugin.json` instalado
+  (`PluginCatalog::discover` + `PluginGuardEditor`, que edita el JSON en texto
+  para no reformatearlo) con modo `read` por defecto; `--no-plugins` lo omite. La
+  vista del cliente sigue siendo responsabilidad del plugin (ver Pendiente).
 - **Manifiesto**: añade el guard a todos los componentes de `platform.json`.
 - **Clientes** (`GuardClientScaffolder`): extiende el enum `Guard` de cada cliente
   (union TS de `plugin-kit`, enum Dart de `plugin_kit`, enum Java de `plugin-kit`)
@@ -255,7 +260,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Verificación
 
-- `composer test` (root): **331 tests / 959 assertions** — OK.
+- `composer test` (root): **340 tests / 979 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
@@ -264,10 +269,15 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
     `platform.sh` ejecutable en la raíz.
   - `WorkspaceCommandTest`: status/install/build/dev/add/remove por manifiesto,
     incluyendo "no es un workspace".
-  - `GuardCommandTest`: `guard add` escribe `config/platforms.php`, modelo y
-    migraciones de la API, espeja el guard en `platform.json` y clona la app por
-    guard en web/desktop + extiende los enums (web/desktop/mobile); `--no-clients`,
-    `--no-migrate`, slug inválido, guard duplicado y `guard list`.
+  - `GuardCommandTest`: `guard add` escribe `config/platforms.php`, modelo,
+    migraciones y el seeder de usuario demo, registra el guard en los
+    `plugin.json` instalados, espeja el guard en `platform.json` y clona la app
+    por guard en web/desktop + extiende los enums (web/desktop/mobile);
+    `--no-clients`, `--no-plugins`, `--no-migrate`, `--no-seed`, slug inválido,
+    guard duplicado y `guard list`.
+  - `PluginGuardEditorTest`: añade un guard al `plugin.json` conservando el
+    formato de una línea por descriptor (modo por defecto `read`, mapa vacío,
+    `has`).
   - `RequirementsSuiteTest`: requisitos por cliente (tool presente/ausente,
     componentes deshabilitados, solo-API, probe en el directorio del componente).
   - `DoctorCommandTest`: incluye la suite `Client requirements` cuando hay
@@ -278,9 +288,9 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
   - `ConfigCommandTest`: `config` muestra el workspace y `config name|guard|enable|disable`
     editan `platform.json` (nombre inválido, guard en la API y fuera de workspace fallan).
 - `php bin/platform` lista `new/add/remove/install/build/dev/status` y `guard`.
-- `platform guard add <guard> --no-migrate` sobre una copia del demo genera
-  artefactos válidos (`platforms.php`/`package.json`/`platform.json` parsean) y
-  `guard list` muestra el guard nuevo.
+- `platform guard add partner --no-clients --no-migrate` sobre `demo/` genera
+  artefactos válidos (modelo, migraciones, `PartnerUserSeeder`, `plugin.json`
+  con el guard nuevo y `platform.json`) y se revierte sin dejar rastro.
 - `composer test` (demo/api): **212 tests / 2657 assertions** — OK.
 - `platform status` desde `demo/` lista los 4 componentes (`scaffolded`/`installed`
   = yes).
@@ -295,8 +305,9 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Pendiente / siguiente iteración
 
-- `platform guard add` no siembra un usuario de ejemplo ni registra el guard en
-  `plugin.json` (los plugins declaran sus guards por vista; un guard nuevo queda
-  sin vista hasta que un plugin lo añada).
+- `platform guard add` registra el guard en cada `plugin.json` (modo `read` por
+  defecto) y siembra el usuario demo, pero la **vista** del cliente sigue siendo
+  del plugin: un guard nuevo no se ve en la SPA hasta que el plugin añade su
+  pantalla por guard.
 - `platform dev`/`build` del demo: los clientes son monorepos con una app por
   guard; `--guard` permite apuntar a una sola.

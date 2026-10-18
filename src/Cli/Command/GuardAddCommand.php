@@ -54,8 +54,14 @@ final class GuardAddCommand implements CommandInterface
                 'no-clients' => [
                     'description' => 'Only register the guard in the API and platform.json',
                 ],
+                'no-plugins' => [
+                    'description' => 'Do not register the guard in the installed plugin manifests',
+                ],
                 'no-migrate' => [
                     'description' => 'Do not run the API migration',
+                ],
+                'no-seed' => [
+                    'description' => 'Do not seed the demo user for the new guard',
                 ],
             ]
         );
@@ -65,13 +71,14 @@ final class GuardAddCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform guard add');
-            $printer->info('Usage: platform guard add <guard> [--name=...] [--driver=passport] [--no-clients] [--no-migrate]');
+            $printer->info('Usage: platform guard add <guard> [--name=...] [--driver=passport] [--no-clients] [--no-plugins] [--no-migrate] [--no-seed]');
             $printer->writeln();
             $printer->writeln('  Arguments & options:');
             $printer->table([], $this->getDefinition()->helpRows());
             $printer->writeln();
             $printer->note('Passport guards are the default; pick --driver=session for a first-party web guard.');
             $printer->note('Run it from the workspace root; clients clone their current app for the new guard.');
+            $printer->note('The guard is registered in every installed plugin manifest; add its view in the plugin.');
         });
     }
 
@@ -102,6 +109,8 @@ final class GuardAddCommand implements CommandInterface
             $guard,
             ! $input->flag('no-clients'),
             ! $input->flag('no-migrate'),
+            ! $input->flag('no-seed'),
+            ! $input->flag('no-plugins'),
         );
 
         foreach ($written as $path) {

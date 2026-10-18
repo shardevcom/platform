@@ -136,6 +136,56 @@ final class GuardCommandTest extends TestCase
         $this->assertTrue($process->ranIn('php artisan migrate --force', self::ROOT.'/api'));
     }
 
+    public function test_add_seeds_a_demo_user_for_the_new_guard(): void
+    {
+        $filesystem = $this->workspaceFiles();
+        $process = new FakeProcessRunner();
+
+        $this->execute(['platform', 'guard', 'add', 'partner'], $filesystem, $process);
+
+        $seeder = self::ROOT.'/api/database/seeders/PartnerUserSeeder.php';
+        $this->assertTrue($filesystem->isFile($seeder));
+        $this->assertStringContainsString('class PartnerUserSeeder extends Seeder', $filesystem->read($seeder));
+        $this->assertStringContainsString("'partner@example.com'", $filesystem->read($seeder));
+        $this->assertTrue(
+            $process->ranIn("php artisan db:seed --class='Database\\Seeders\\PartnerUserSeeder' --force", self::ROOT.'/api')
+        );
+    }
+
+    public function test_no_seed_only_scaffolds_the_seeder_and_skips_running_it(): void
+    {
+        $filesystem = $this->workspaceFiles();
+        $process = new FakeProcessRunner();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--no-seed'], $filesystem, $process);
+
+        $this->assertTrue($filesystem->isFile(self::ROOT.'/api/database/seeders/PartnerUserSeeder.php'));
+        $this->assertFalse($process->ran('db:seed'));
+    }
+
+    public function test_add_registers_the_guard_in_every_plugin_manifest(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--no-migrate'], $filesystem);
+
+        $plugin = $filesystem->readJson(self::ROOT.'/api/packages/shardev/product/plugin.json');
+        $this->assertArrayHasKey('partner', $plugin['guards']);
+        $this->assertSame('read', $plugin['guards']['partner']['mode']);
+        $this->assertSame('products', $plugin['guards']['partner']['path']);
+        $this->assertSame('full', $plugin['guards']['admin']['mode']);
+    }
+
+    public function test_no_plugins_leaves_the_manifests_untouched(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--no-migrate', '--no-plugins'], $filesystem);
+
+        $plugin = $filesystem->readJson(self::ROOT.'/api/packages/shardev/product/plugin.json');
+        $this->assertArrayNotHasKey('partner', $plugin['guards']);
+    }
+
     public function test_add_refuses_a_guard_the_workspace_already_has(): void
     {
         $recorder = RecordingPrinter::create();
@@ -192,6 +242,18 @@ final class GuardCommandTest extends TestCase
                 ],
             ]),
             self::ROOT.'/api/composer.json' => '{"require":{"laravel/framework":"^12.0"}}',
+            self::ROOT.'/api/packages/shardev/product/composer.json' => '{"name":"shardev/product"}',
+            self::ROOT.'/api/packages/shardev/product/plugin.json' => <<<'JSON'
+                {
+                  "name": "product",
+                  "title": "Products",
+                  "resource": "products",
+                  "actions": ["view", "list"],
+                  "guards": {
+                    "admin": { "mode": "full", "path": "products" }
+                  }
+                }
+                JSON,
             self::ROOT.'/api/config/platforms.php' => <<<'PHP'
                 <?php
 
