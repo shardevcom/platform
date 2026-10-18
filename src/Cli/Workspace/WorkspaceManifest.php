@@ -107,6 +107,24 @@ final class WorkspaceManifest
         ));
     }
 
+    /**
+     * Every guard served by any component, de-duplicated and order-preserving.
+     *
+     * @return list<string>
+     */
+    public function guards(): array
+    {
+        $guards = [];
+
+        foreach ($this->components as $component) {
+            foreach ($component->guards as $guard) {
+                $guards[$guard] = true;
+            }
+        }
+
+        return array_keys($guards);
+    }
+
     public function with(Component $component): self
     {
         $components = $this->components;

@@ -18,9 +18,17 @@ interface ComponentDriver
 
     public function install(Component $component, string $path): void;
 
-    public function build(Component $component, string $path): void;
+    /**
+     * Builds the component. `$guard` narrows it to one guard's app; null builds
+     * every guard the component serves in one shot.
+     */
+    public function build(Component $component, string $path, ?string $guard = null): void;
 
-    public function dev(Component $component, string $path): void;
+    /**
+     * Runs the dev process. `$guard` picks which guard's app to run; null falls
+     * back to the component's primary guard.
+     */
+    public function dev(Component $component, string $path, ?string $guard = null): void;
 
     public function verify(Component $component, string $path): bool;
 

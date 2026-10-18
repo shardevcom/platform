@@ -104,23 +104,24 @@ final class NewCommand implements CommandInterface
 
         $printer->heading("Creating Shardev workspace '{$target}'");
         $printer->writeln();
-        $printer->table(['Component', 'Path', 'Guard'], array_map(
-            static fn (Component $component): array => [
-                $component->name,
-                $component->path,
-                $component->guard ?? '—',
-            ],
-            $components
-        ));
-        $printer->writeln();
 
-        (new WorkspaceScaffolder($context))->create(
+        $manifest = (new WorkspaceScaffolder($context))->create(
             $context->path($target),
             $components,
             $this->laravelConstraint($laravel),
             $input->flag('no-interaction'),
             ! $input->flag('no-install'),
         );
+
+        $printer->table(['Component', 'Path', 'Guards'], array_map(
+            static fn (Component $component): array => [
+                $component->name,
+                $component->path,
+                $component->guards === [] ? '—' : implode(', ', $component->guards),
+            ],
+            array_values($manifest->components())
+        ));
+        $printer->writeln();
 
         $printer->success("Workspace '{$target}' created successfully.");
         $printer->writeln();

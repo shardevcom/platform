@@ -30,13 +30,19 @@ enum ComponentType: string
         return 'demo/'.$this->value;
     }
 
-    public function defaultGuard(): ?string
+    /**
+     * Guards a component serves when nothing more specific is known.
+     *
+     * A workspace derives its real guard list from the API's platforms; this is
+     * only the fallback for a client created without one.
+     *
+     * @return list<string>
+     */
+    public function defaultGuards(): array
     {
         return match ($this) {
-            self::Api => null,
-            self::Web => 'admin',
-            self::Mobile => 'web',
-            self::Desktop => 'admin',
+            self::Api => [],
+            self::Web, self::Mobile, self::Desktop => ['web'],
         };
     }
 

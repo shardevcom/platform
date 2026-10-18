@@ -23,14 +23,20 @@ final class DesktopDriver extends AbstractDriver
         $this->run('./gradlew build -x test', $path);
     }
 
-    public function build(Component $component, string $path): void
+    public function build(Component $component, string $path, ?string $guard = null): void
     {
-        $this->run('./gradlew build', $path);
+        if ($guard === null) {
+            $this->run('./gradlew build', $path);
+
+            return;
+        }
+
+        $this->run('./gradlew :apps:'.self::app($guard).':build', $path);
     }
 
-    public function dev(Component $component, string $path): void
+    public function dev(Component $component, string $path, ?string $guard = null): void
     {
-        $this->run('./gradlew :apps:'.self::app($component->guard).':run', $path);
+        $this->run('./gradlew :apps:'.self::app($guard ?? $component->primaryGuard()).':run', $path);
     }
 
     protected function verifyCommand(Component $component): string

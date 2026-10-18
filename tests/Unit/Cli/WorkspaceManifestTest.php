@@ -33,16 +33,43 @@ final class WorkspaceManifestTest extends TestCase
         $this->assertSame('demo', $loaded->name);
         $this->assertTrue($loaded->has('api'));
         $this->assertSame(ComponentType::Api, $loaded->component('api')->type);
-        $this->assertSame('admin', $loaded->component('web')->guard);
+        $this->assertSame(['web'], $loaded->component('web')->guards);
         $this->assertCount(2, $loaded->enabled());
     }
 
-    public function test_defaults_the_guard_per_component_type(): void
+    public function test_round_trips_multiple_guards_per_component(): void
     {
-        $this->assertNull(Component::create('api')->guard);
-        $this->assertSame('admin', Component::create('web')->guard);
-        $this->assertSame('web', Component::create('mobile')->guard);
-        $this->assertSame('admin', Component::create('desktop')->guard);
+        $filesystem = new FakeFilesystem();
+        $manifest = WorkspaceManifest::make('demo', '0.1.0', [
+            new Component('web', ComponentType::Web, 'web', ['web', 'admin', 'employee']),
+        ]);
+        $manifest->save($filesystem, '/ws');
+
+        $loaded = WorkspaceManifest::load($filesystem, '/ws');
+
+        $this->assertSame(['web', 'admin', 'employee'], $loaded->component('web')->guards);
+        $this->assertSame(['web', 'admin', 'employee'], $loaded->guards());
+        $this->assertSame('web', $loaded->component('web')->primaryGuard());
+        $this->assertTrue($loaded->component('web')->serves('employee'));
+    }
+
+    public function test_loads_the_legacy_single_guard_key(): void
+    {
+        $filesystem = new FakeFilesystem([
+            '/ws/platform.json' => '{"name":"demo","components":{"web":{"type":"web","path":"web","guard":"admin"}}}',
+        ]);
+
+        $loaded = WorkspaceManifest::load($filesystem, '/ws');
+
+        $this->assertSame(['admin'], $loaded->component('web')->guards);
+    }
+
+    public function test_defaults_the_guards_per_component_type(): void
+    {
+        $this->assertSame([], Component::create('api')->guards);
+        $this->assertSame(['web'], Component::create('web')->guards);
+        $this->assertSame(['web'], Component::create('mobile')->guards);
+        $this->assertSame(['web'], Component::create('desktop')->guards);
     }
 
     public function test_locates_the_workspace_from_inside_a_component(): void

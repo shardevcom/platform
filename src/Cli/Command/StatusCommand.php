@@ -56,7 +56,7 @@ final class StatusCommand implements CommandInterface
         $printer->heading('Workspace: '.$workspace->manifest->name);
         $printer->writeln();
         $printer->table(
-            ['Component', 'Type', 'Path', 'Guard', 'Scaffolded', 'Installed'],
+            ['Component', 'Type', 'Path', 'Guards', 'Scaffolded', 'Installed'],
             array_map(
                 static fn (Component $component): array => self::row($workspace, $component, $filesystem),
                 array_values($workspace->manifest->components())
@@ -80,7 +80,7 @@ final class StatusCommand implements CommandInterface
             $component->name.($component->enabled ? '' : ' (off)'),
             $component->type->value,
             $component->path,
-            $component->guard ?? '—',
+            $component->guards === [] ? '—' : implode(', ', $component->guards),
             $scaffolded ? 'yes' : 'no',
             $installed ? 'yes' : 'no',
         ];

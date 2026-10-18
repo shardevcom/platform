@@ -11,6 +11,7 @@ use Shardevcom\Cli\Command\ConfigCommand;
 use Shardevcom\Cli\Command\DemoCommand;
 use Shardevcom\Cli\Command\DevCommand;
 use Shardevcom\Cli\Command\DoctorCommand;
+use Shardevcom\Cli\Command\GuardCommand;
 use Shardevcom\Cli\Command\HelpCommand;
 use Shardevcom\Cli\Command\InstallCommand;
 use Shardevcom\Cli\Command\ListCommand;
@@ -117,6 +118,7 @@ final class Application
             new StatusCommand(),
             new DoctorCommand($this->context),
             new PackageCommand(),
+            new GuardCommand(),
             new ConfigCommand(),
             new DemoCommand(),
             new PluginCommand(),

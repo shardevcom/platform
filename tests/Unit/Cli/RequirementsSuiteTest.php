@@ -73,7 +73,7 @@ final class RequirementsSuiteTest extends TestCase
         $process = new FakeProcessRunner();
 
         $workspace = $this->workspace([
-            new Component('web', ComponentType::Web, 'web', 'admin', false),
+            new Component('web', ComponentType::Web, 'web', ['admin'], false),
         ]);
 
         $results = $this->suite($workspace, $process)->run();

@@ -121,8 +121,8 @@ final class WorkspaceCommandTest extends TestCase
                 'name' => 'demo',
                 'platform' => '0.1.0',
                 'components' => [
-                    'api' => ['type' => 'api', 'path' => 'api', 'guard' => null, 'enabled' => true],
-                    'web' => ['type' => 'web', 'path' => 'web', 'guard' => 'admin', 'enabled' => true],
+                    'api' => ['type' => 'api', 'path' => 'api', 'guards' => [], 'enabled' => true],
+                    'web' => ['type' => 'web', 'path' => 'web', 'guards' => ['admin'], 'enabled' => true],
                 ],
             ]),
             self::ROOT.'/api/composer.json' => '{"require":{"laravel/framework":"^12.0"}}',

@@ -23,14 +23,14 @@ final class MobileDriver extends AbstractDriver
         $this->run('flutter pub get', $path);
     }
 
-    public function build(Component $component, string $path): void
+    public function build(Component $component, string $path, ?string $guard = null): void
     {
         $this->run('flutter build apk --debug', $path);
     }
 
-    public function dev(Component $component, string $path): void
+    public function dev(Component $component, string $path, ?string $guard = null): void
     {
-        $this->run('flutter run --dart-define=GUARD='.($component->guard ?? 'web'), $path);
+        $this->run('flutter run --dart-define=GUARD='.($guard ?? $component->primaryGuard() ?? 'web'), $path);
     }
 
     protected function verifyCommand(Component $component): string

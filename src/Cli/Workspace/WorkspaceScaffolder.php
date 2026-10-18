@@ -50,6 +50,9 @@ final class WorkspaceScaffolder
             $this->createComponent($target, $component, $laravelConstraint, $noInteraction, $installDependencies);
         }
 
+        $manifest = $this->syncGuards($manifest, $target);
+        $manifest->save($this->context->filesystem, $target);
+
         return $manifest;
     }
 
@@ -114,6 +117,30 @@ final class WorkspaceScaffolder
             ['php artisan config:show platform', 'platform', 'config/platform.php could not be read.'],
             ['php artisan --version', 'Laravel Framework', 'The generated application does not boot.'],
         ]);
+    }
+
+    /**
+     * Every component mirrors the guards the API exposes, so a client can never
+     * drift from the platforms it is supposed to serve.
+     */
+    private function syncGuards(WorkspaceManifest $manifest, string $root): WorkspaceManifest
+    {
+        if (! $manifest->has('api')) {
+            return $manifest;
+        }
+
+        $api = $manifest->component('api');
+        $guards = (new PlatformsReader($this->context->filesystem))->keys(rtrim($root, '/').'/'.$api->path);
+
+        if ($guards === []) {
+            return $manifest;
+        }
+
+        foreach ($manifest->components() as $component) {
+            $manifest = $manifest->with($component->withGuards($guards));
+        }
+
+        return $manifest;
     }
 
     private function copyTemplate(Component $component, string $path): void

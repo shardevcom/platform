@@ -42,6 +42,10 @@ final class BuildCommand implements CommandInterface
                     'description' => 'Comma-separated components to build',
                     'value' => true,
                 ],
+                'guard' => [
+                    'description' => 'Build only this guard\'s app (default: every guard)',
+                    'value' => true,
+                ],
             ]
         );
     }
@@ -50,9 +54,10 @@ final class BuildCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform build');
-            $printer->info('Usage: platform build [component] [--only=web,desktop]');
+            $printer->info('Usage: platform build [component] [--only=web,desktop] [--guard=admin]');
             $printer->writeln();
             $printer->note('Runs composer dump-autoload / npm run build / flutter build / gradlew build.');
+            $printer->note('--guard narrows the build to one guard\'s app.');
         });
     }
 
@@ -62,11 +67,12 @@ final class BuildCommand implements CommandInterface
         $targets = ComponentSelector::resolve($workspace, $input->argument('component'), $input->option('only'));
         $registry = new DriverRegistry($context);
         $printer = $context->printer();
+        $guard = $input->option('guard');
 
         $printer->heading('Building workspace');
 
         foreach ($targets as $component) {
-            $this->build($registry, $component, $workspace, $printer);
+            $this->build($registry, $component, $workspace, $printer, $guard);
         }
 
         $printer->success('Built '.count($targets).' component(s).');
@@ -74,10 +80,11 @@ final class BuildCommand implements CommandInterface
         return 0;
     }
 
-    private function build(DriverRegistry $registry, Component $component, Workspace $workspace, Printer $printer): void
+    private function build(DriverRegistry $registry, Component $component, Workspace $workspace, Printer $printer, ?string $guard): void
     {
         $path = $workspace->componentPath($component->name);
-        $printer->step(1, 1, "Building {$component->name} ({$component->type->value})");
-        $registry->driver($component->type)->build($component, $path);
+        $label = $guard === null ? $component->name : $component->name.':'.$guard;
+        $printer->step(1, 1, "Building {$label} ({$component->type->value})");
+        $registry->driver($component->type)->build($component, $path, $guard);
     }
 }

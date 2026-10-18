@@ -22,12 +22,12 @@ final class ApiDriver extends AbstractDriver
         $this->run('composer update --no-interaction -n', $path);
     }
 
-    public function build(Component $component, string $path): void
+    public function build(Component $component, string $path, ?string $guard = null): void
     {
         $this->run('composer dump-autoload -o', $path);
     }
 
-    public function dev(Component $component, string $path): void
+    public function dev(Component $component, string $path, ?string $guard = null): void
     {
         $this->run('php artisan serve', $path);
     }

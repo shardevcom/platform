@@ -38,7 +38,13 @@ final class DevCommand implements CommandInterface
     public function getDefinition(): InputDefinition
     {
         return InputDefinition::create(
-            arguments: ['component' => 'Component to run: '.implode(', ', ComponentType::names())]
+            arguments: ['component' => 'Component to run: '.implode(', ', ComponentType::names())],
+            options: [
+                'guard' => [
+                    'description' => 'Guard to run (defaults to the component\'s primary guard)',
+                    'value' => true,
+                ],
+            ]
         );
     }
 
@@ -46,9 +52,9 @@ final class DevCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform dev');
-            $printer->info('Usage: platform dev <component>');
+            $printer->info('Usage: platform dev <component> [--guard=admin]');
             $printer->writeln();
-            $printer->note('Runs the component toolchain in the foreground (artisan serve, npm run dev, flutter run, gradlew run).');
+            $printer->note('Runs the component toolchain in the foreground (artisan serve, npm run dev:<guard>, flutter run, gradlew run).');
         });
     }
 
@@ -63,12 +69,14 @@ final class DevCommand implements CommandInterface
         $workspace = $context->requireWorkspace();
         $component = $workspace->manifest->component($name);
         $printer = $context->printer();
+        $guard = $input->option('guard');
 
-        $printer->heading("Starting {$component->name} ({$component->type->value})");
+        $label = $guard === null ? $component->name : $component->name.':'.$guard;
+        $printer->heading("Starting {$label} ({$component->type->value})");
 
         (new DriverRegistry($context))
             ->driver($component->type)
-            ->dev($component, $workspace->componentPath($component->name));
+            ->dev($component, $workspace->componentPath($component->name), $guard);
 
         return 0;
     }
