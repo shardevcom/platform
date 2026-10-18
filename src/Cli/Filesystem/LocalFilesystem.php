@@ -175,6 +175,17 @@ final class LocalFilesystem implements Filesystem
         }
     }
 
+    public function makeExecutable(string $path): void
+    {
+        if (! $this->isFile($path)) {
+            return;
+        }
+
+        $permissions = @fileperms($path);
+
+        @chmod($path, ($permissions === false ? 0644 : $permissions & 0777) | 0111);
+    }
+
     public function delete(string $path): void
     {
         if ($this->isDirectory($path)) {

@@ -66,6 +66,11 @@ interface Filesystem
 
     public function touch(string $path): void;
 
+    /**
+     * Marks a file executable (adds the +x bits). No-op when the file is missing.
+     */
+    public function makeExecutable(string $path): void;
+
     public function delete(string $path): void;
 
     public function relativePath(string $path, string $base): string;

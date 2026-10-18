@@ -232,6 +232,21 @@ final class NewCommandTest extends TestCase
         $this->assertSame('api', $manifest['components']['api']['path']);
     }
 
+    public function test_drops_an_executable_control_shell_at_the_workspace_root(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile(self::WORKSPACE.'/platform.sh'));
+        $this->assertTrue($filesystem->isExecutable(self::WORKSPACE.'/platform.sh'));
+        $this->assertStringContainsString(
+            'control shell',
+            $filesystem->read(self::WORKSPACE.'/platform.sh')
+        );
+    }
+
     public function test_scaffolds_the_api_as_a_component_directory(): void
     {
         $this->execute(['platform', 'new', 'new-app']);

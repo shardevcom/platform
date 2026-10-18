@@ -34,6 +34,7 @@ final class WorkspaceScaffolder
     ): WorkspaceManifest {
         $this->assertTargetIsFree($target);
         $this->context->filesystem->createDirectory($target);
+        $this->writeControlScript($target);
 
         $manifest = WorkspaceManifest::make(
             basename(rtrim($target, '/')),
@@ -152,6 +153,19 @@ final class WorkspaceScaffolder
         }
 
         $this->context->filesystem->copyDirectory($source, $path, $component->type->exclude());
+    }
+
+    /**
+     * Drops the control shell (`platform.sh`) at the workspace root. It reads
+     * platform.json at runtime, so it never needs to be regenerated when a
+     * component or guard is added later.
+     */
+    private function writeControlScript(string $target): void
+    {
+        $script = rtrim($target, '/').'/'.WorkspaceScript::FILE;
+
+        $this->context->filesystem->write($script, WorkspaceScript::render());
+        $this->context->filesystem->makeExecutable($script);
     }
 
     private function assertTargetIsFree(string $target): void

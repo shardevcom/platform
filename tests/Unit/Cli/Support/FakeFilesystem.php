@@ -25,6 +25,9 @@ final class FakeFilesystem implements Filesystem
     /** @var list<string> */
     private array $unwritable = [];
 
+    /** @var array<string, bool> */
+    private array $executables = [];
+
     public function __construct(array $files = [], array $directories = [], array $unwritable = [])
     {
         $this->files = $files;
@@ -191,10 +194,17 @@ final class FakeFilesystem implements Filesystem
         }
     }
 
+    public function makeExecutable(string $path): void
+    {
+        if ($this->isFile($path)) {
+            $this->executables[$this->normalize($path)] = true;
+        }
+    }
+
     public function delete(string $path): void
     {
         $key = $this->normalize($path);
-        unset($this->files[$key]);
+        unset($this->files[$key], $this->executables[$key]);
         $this->directories = array_values(array_filter(
             $this->directories,
             static fn (string $directory): bool => $directory !== $key
@@ -223,6 +233,11 @@ final class FakeFilesystem implements Filesystem
     public function written(string $path): bool
     {
         return $this->isFile($path);
+    }
+
+    public function isExecutable(string $path): bool
+    {
+        return isset($this->executables[$this->normalize($path)]);
     }
 
     private function addParents(string $path): void

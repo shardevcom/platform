@@ -1,0 +1,46 @@
+{
+    "name": "demo",
+    "platform": "0.1.0-dev",
+    "components": {
+        "api": {
+            "type": "api",
+            "path": "api",
+            "guards": [
+                "web",
+                "admin",
+                "employee"
+            ],
+            "enabled": true
+        },
+        "web": {
+            "type": "web",
+            "path": "web",
+            "guards": [
+                "web",
+                "admin",
+                "employee"
+            ],
+            "enabled": true
+        },
+        "mobile": {
+            "type": "mobile",
+            "path": "mobile",
+            "guards": [
+                "web",
+                "admin",
+                "employee"
+            ],
+            "enabled": true
+        },
+        "desktop": {
+            "type": "desktop",
+            "path": "desktop",
+            "guards": [
+                "web",
+                "admin",
+                "employee"
+            ],
+            "enabled": true
+        }
+    }
+}

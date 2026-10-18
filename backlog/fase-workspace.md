@@ -29,16 +29,21 @@ my-project/                 # workspace (NO Laravel)
   "name": "my-project",
   "platform": "0.1.0",
   "components": {
-    "api":     { "type": "api",     "path": "api",     "guard": null,       "enabled": true },
-    "web":     { "type": "web",     "path": "web",     "guard": "admin",    "enabled": true },
-    "mobile":  { "type": "mobile",  "path": "mobile",  "guard": "web",      "enabled": false },
-    "desktop": { "type": "desktop", "path": "desktop", "guard": "admin",    "enabled": false }
+    "api":     { "type": "api",     "path": "api",     "guards": ["web","admin"], "enabled": true },
+    "web":     { "type": "web",     "path": "web",     "guards": ["web","admin"], "enabled": true },
+    "mobile":  { "type": "mobile",  "path": "mobile",  "guards": ["web","admin"], "enabled": false },
+    "desktop": { "type": "desktop", "path": "desktop", "guards": ["web","admin"], "enabled": false }
   }
 }
 ```
 
+- **N guards.** Un componente sirve una **lista** de guards. La API la declara
+  (`config/platforms.php`); los clientes la espejan (`WorkspaceScaffolder::syncGuards`
+  lee las plataformas vía `PlatformsReader` y las aplica a todo componente). Un
+  guard suelto es una lista de uno, así que nada especial-casa un único guard.
 - `ComponentType` (`api`/`web`/`mobile`/`desktop`) conoce su plantilla de
-  referencia (`demo/<tipo>`), su guard por defecto, el directorio que prueba que
+  referencia (`demo/<tipo>`), sus guards por defecto (`defaultGuards()`: `[]` para
+  la API, `['web']` para los clientes), el directorio que prueba que
   sus dependencias están instaladas (`vendor`/`node_modules`/`.dart_tool`/
   `.gradle`) y qué artefactos excluir al copiar.
 - `Workspace::locate` sube desde el cwd hasta `platform.json`, así los comandos
@@ -51,14 +56,43 @@ my-project/                 # workspace (NO Laravel)
 
 ```bash
 platform new <name> [--with=api,web,mobile,desktop] [--laravel=12] [--no-interaction] [--no-install]
-platform add <component> [--guard=admin] [--path=web] [--no-install]
+platform add <component> [--guards=web,admin] [--path=web] [--no-install]
 platform remove <component> [--delete]
 platform install [component] [--only=web,mobile]
-platform build   [component] [--only=web,mobile]
-platform dev     <component>
+platform build   [component] [--only=web,mobile] [--guard=admin]
+platform dev     <component> [--guard=admin]
 platform status
+platform guard add <guard> [--name=...] [--model=...] [--table=...] [--driver=passport] [--prefix=...] [--no-clients] [--no-migrate]
+platform guard list
 platform doctor            # incluye la suite Workspace (componentes en disco)
 ```
+
+`build`/`dev` aceptan `--guard` para construir/levantar una sola app del cliente;
+sin él recorren todos los guards del componente.
+
+## Añadir un guard (`platform guard add`)
+
+`guard add` da de alta un guard de punta a punta, partiendo de una única
+descripción (`GuardDefinition`) y sin listas hardcodeadas:
+
+- **API** (`GuardScaffolder`): inserta la entrada en `config/platforms.php`
+  (`PlatformsEditor`, con bracket-matching y awareness de strings/comentarios,
+  porque el config usa `env()` y `::class` y no se puede `require`), genera el
+  modelo (`App\Models\<Guard>User extends PlatformUser` con
+  `$platformGuard`/`$table`) y las migraciones `<table>` +
+  `<table>_password_resets`, y corre `php artisan migrate --force` (salvo
+  `--no-migrate`).
+- **Manifiesto**: añade el guard a todos los componentes de `platform.json`.
+- **Clientes** (`GuardClientScaffolder`): extiende el enum `Guard` de cada cliente
+  (union TS de `plugin-kit`, enum Dart de `plugin_kit`, enum Java de `plugin-kit`)
+  y clona la app existente para el nuevo guard — `web/apps/<guard>` (+ scripts
+  `dev|build|preview:<guard>`), `desktop/apps/<guard>` (+ include en
+  `settings.gradle.kts`). En mobile no hay app por guard (el guard es un
+  `--dart-define=GUARD=` de build), solo se extiende el enum. `--no-clients`
+  limita el cambio a la API + manifiesto.
+- El mapeo guard→app es `web→user` y el resto 1:1 (`GuardClientScaffolder::app`).
+
+`platform guard list` lista los guards del manifiesto y qué componentes los sirve.
 
 Cada tipo de componente tiene un **driver** (`ComponentDriver`) que sabe su
 toolchain: `composer`+`artisan` (api), `npm` (web), `flutter` (mobile),
@@ -112,24 +146,115 @@ detectada. `flutter` (instalado en `~/flutter/bin`, fuera del PATH por defecto)
 sugiere `export PATH="$HOME/flutter/bin:$PATH"`; tras exportarlo pasa con
 `Flutter 3.47.7` y `Dart 3.13.5`.
 
+## demo/ como workspace
+
+El propio `demo/` es un workspace: `demo/platform.json` (escrito por
+`WorkspaceManifest`, no a mano) declara los cuatro componentes con
+`guards: ["web","admin","employee"]` (los tres guards que publica la API). Así
+`platform status` y `platform doctor` funcionan igual desde `demo/` que desde un
+proyecto recién generado, y el demo deja de ser un fixture "invisible" para el
+CLI.
+
+```bash
+cd demo && php ../bin/platform status
+cd demo/api && php ../../bin/platform doctor   # incluye Workspace + Client requirements
+```
+
+## Correcciones del doctor (falsos positivos sobre el demo)
+
+Al pasar `doctor` sobre `demo/api` aparecieron fallos que no eran del demo sino
+de las comprobaciones. Corregidos:
+
+- `ApiSuite` (endpoint de configuración): las rutas se registran por guard
+  (`configuration.web.index`, `configuration.admin.index`), no como
+  `configuration.index`. Ahora se busca el prefijo `configuration.`.
+- `SessionCookieSecureRule`: `http_only` y `same_site` leen de `env(...)` (con
+  defaults seguros), pero la regla solo aceptaba el literal; ahora acepta
+  `env(...)` igual que la comprobación de `secure`.
+- `DebugModeEnabledRule`: marcaba `APP_DEBUG=true` como fallo aunque
+  `APP_ENV=local`. Ahora solo falla si el entorno no es local/development/testing
+  (y sigue marcando `APP_ENV=production` + `APP_DEBUG=true` como crítico).
+- `ApiSecurityRule`: trataba `routes/web.php` como API (la ruta `/` de Laravel
+  disparaba "sin auth") y no veía el versionado porque el prefijo `v1` lo aplica
+  el registro de rutas del framework, no el archivo. Ahora solo inspecciona
+  `routes/api.php` para auth y detecta el versionado desde `route:list`.
+
+También se corrigió un drift real del demo: `demo/api/composer.json` no mapeaba
+`Shardevcom\Documentation\` en `autoload.psr-4` (el paquete sí estaba en
+`require`/`repositories`), así que `PackagesSuite` lo reportaba como *Unmapped*.
+Añadido el mapeo + `composer dump-autoload --working-dir=demo/api`.
+
+Con esto, `platform doctor` sobre `demo/api` queda limpio (**64 checks, 0
+fallos**; `Application is ready.`) en un login shell con el toolchain en PATH.
+
+## Shell de control (`platform.sh`)
+
+`platform new` deja en la raíz del workspace un script bash ejecutable
+(`WorkspaceScript::render()`, escrito por `WorkspaceScaffolder::create` vía
+`Filesystem::makeExecutable`). No es un artefacto estático: lee `platform.json`
+en tiempo de ejecución, así que sobrevive a `platform add` / `platform guard add`
+sin regenerarse.
+
+| verbo | efecto |
+|-------|--------|
+| `up` | levanta la API en background (puerto `API_PORT`, 8000) |
+| `api` | alias de `up` |
+| `web [guards...]` | `npm run dev:<app>` de cada guard (o todas) |
+| `desktop [guards...]` | `./gradlew :apps:<app>:run` |
+| `mobile [guard]` | `flutter run --dart-define=GUARD=...` (foreground) |
+| `stop` \| `restart` | detiene (kill del árbol) / reinicia |
+| `status` \| `ps` | componentes, guards, procesos y puertos |
+| `logs [target]` | sigue un log de `.platform/logs/` |
+| `build` \| `install` | build/instala cada componente (o los indicados) |
+| `doctor` \| `check` | toolchain + dependencias; exit 1 si hay issues |
+| `fix` \| `repair` | intenta arreglar (install de clientes + `composer install`) |
+
+El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
+(`.platform/` está en `.gitignore`). Puertos: API `API_PORT` (8000); web user
+5175 / admin 5173 / employee 5174 (leídos del `createAppConfig(...)` del
+`vite.config.ts`). `MOBILE_API_HOST` por defecto `http://10.0.2.2:$API_PORT`
+(emulador Android).
+
 ## Verificación
 
-- `composer test` (root): **299 tests / 854 assertions** — OK.
-  - `WorkspaceManifestTest` (round-trip de `platform.json`, guards por defecto,
-    `locate`).
+- `composer test` (root): **316 tests / 924 assertions** — OK.
+  - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
+    clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
-    vive en `api/`; `--with` selecciona componentes.
+    vive en `api/`; `--with` selecciona componentes; deja `platform.sh` ejecutable
+    en la raíz.
   - `WorkspaceCommandTest`: status/install/build/dev/add/remove por manifiesto,
     incluyendo "no es un workspace".
+  - `GuardCommandTest`: `guard add` escribe `config/platforms.php`, modelo y
+    migraciones de la API, espeja el guard en `platform.json` y clona la app por
+    guard en web/desktop + extiende los enums (web/desktop/mobile); `--no-clients`,
+    `--no-migrate`, slug inválido, guard duplicado y `guard list`.
   - `RequirementsSuiteTest`: requisitos por cliente (tool presente/ausente,
     componentes deshabilitados, solo-API, probe en el directorio del componente).
   - `DoctorCommandTest`: incluye la suite `Client requirements` cuando hay
     workspace.
-- `php bin/platform` lista `new/add/remove/install/build/dev/status`.
+  - `WorkspaceScriptTest`: contrato del shell (`#!/usr/bin/env bash`, lee
+    `platform.json`, verbos del router presentes) + `bash -n` sobre el template.
+- `php bin/platform` lista `new/add/remove/install/build/dev/status` y `guard`.
+- `platform guard add <guard> --no-migrate` sobre una copia del demo genera
+  artefactos válidos (`platforms.php`/`package.json`/`platform.json` parsean) y
+  `guard list` muestra el guard nuevo.
+- `composer test` (demo/api): **212 tests / 2657 assertions** — OK.
+- `platform status` desde `demo/` lista los 4 componentes (`scaffolded`/`installed`
+  = yes).
+- `platform doctor` desde `demo/api` (login shell): **64 checks, 0 fallos** →
+  `Application is ready.`
+- `platform.sh`: `bash -n` OK; en `demo/` (`./platform.sh help|status|doctor`)
+  `status` lista los 4 componentes con sus guards y `doctor` sale con exit 1
+  cuando falta toolchain/dependencias mostrando el `fix` sugerido.
 
 ## Pendiente / siguiente iteración
 
 - `platform config` a nivel workspace (editar `platform.json` desde CLI).
-- `--guard` por cliente al crear (`platform new --with=web --guard=employee`).
+- `--guards` por cliente al crear (`platform new --with=web --guards=employee`).
 - `platform doctor --only=web` para diagnosticar un componente concreto.
-- Migrar `demo/` a un `platform.json` para que el propio repo sea un workspace.
+- `platform guard add` no siembra un usuario de ejemplo ni registra el guard en
+  `plugin.json` (los plugins declaran sus guards por vista; un guard nuevo queda
+  sin vista hasta que un plugin lo añada).
+- `platform dev`/`build` del demo: los clientes son monorepos con una app por
+  guard; `--guard` permite apuntar a una sola.

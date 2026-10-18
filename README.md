@@ -15,15 +15,18 @@
 ├── tests/                  # tests del framework (phpunit, sin Laravel)
 ├── backlog/ + BACKLOG.md   # backlog técnico por fases
 ├── AGENTS.md / CLAUDE.md   # instrucciones para IAs
-└── demo/                   # app de REFERENCIA (fixture manual hasta T-003)
+└── demo/                   # app de REFERENCIA — ella misma un workspace
+    ├── platform.json       #   manifiesto del workspace demo (fuente de verdad)
     ├── api/                #   Laravel 12 + copia de packages/ + config/platform.php
     ├── web/                #   monorepo Vite/React: apps/ por guard + packages/ + plugins/
     ├── mobile/             #   monorepo Flutter: un flavor por guard + packages/ + plugins/
     └── desktop/            #   monorepo Gradle/JavaFX: una app por guard + packages/ + plugins/
 ```
 
-`demo/` es el output que `platform new demo --laravel=12` producirá cuando T-003 exista.
-Hoy está scaffoldeada a mano: `demo/api/` (`laravel/laravel` 12.x + copia de `packages/` +
+`demo/` es el output que `platform new demo --laravel=12` produce. Hoy está
+scaffoldeada a mano y es **a la vez un workspace** (`demo/platform.json`, escrito
+por `WorkspaceManifest`): `platform status` / `doctor` la tratan como cualquier
+workspace. `demo/api/` (`laravel/laravel` 12.x + copia de `packages/` +
 `config/platform.php`), `demo/web/` (cliente de referencia: `apps/{user,admin,employee}`,
 una app por guard, sobre `packages/{ui,core,plugin-kit}` + `plugins/`), `demo/mobile/`
 (cliente de referencia Flutter: un flavor por guard sobre `packages/{plugin_kit,core}` + `plugins/`)
@@ -39,7 +42,7 @@ Plataforma API modular sobre Laravel. Proporciona:
 - **Repository pattern con autorización integrada**: Frontera autorizada a recursos (auth + validación + query constraints + lifecycle) — no un wrapper de Model
 - **REST y GraphQL como adapters delgados**: Comparten Use Cases + Repository. Cero duplicación de auth/validación/reglas
 - **Sistema de configuración extensible**: Providers con visibilidad (public/authenticated/admin) y resultados parciales (207)
-- **CLI cero-dependencias**: `platform new` (workspace), `platform add|remove|install|build|dev|status`, `platform package make`, `platform demo`, `platform plugin list|show`, `platform doctor`
+- **CLI cero-dependencias**: `platform new` (workspace), `platform add|remove|install|build|dev|status`, `platform guard add|list`, `platform package make`, `platform demo`, `platform plugin list|show`, `platform doctor`
 
 ## 2. Versiones soportadas
 
@@ -69,7 +72,7 @@ bin/platform new mi-proyecto --with=api,web,mobile,desktop
 
 # Añadir un cliente después
 cd mi-proyecto
-bin/platform add web --guard=admin
+bin/platform add web --guards=web,admin
 ```
 
 Cada componente se opera desde la raíz del workspace con un único CLI:
@@ -747,7 +750,8 @@ independiente con su propio toolchain.
 
 ```text
 mi-proyecto/
-├── platform.json     # fuente de verdad (name, platform, components)
+├── platform.json     # fuente de verdad (name, platform, components + guards)
+├── platform.sh       # shell de control (levantar/parar/build/doctor)
 ├── api/              # Laravel 12 (componente)
 ├── web/              # Vite/React (componente)
 ├── mobile/           # Flutter (componente)
@@ -759,10 +763,10 @@ mi-proyecto/
   "name": "mi-proyecto",
   "platform": "0.1.0",
   "components": {
-    "api":     { "type": "api",     "path": "api",     "guard": null,    "enabled": true },
-    "web":     { "type": "web",     "path": "web",     "guard": "admin", "enabled": true },
-    "mobile":  { "type": "mobile",  "path": "mobile",  "guard": "web",   "enabled": false },
-    "desktop": { "type": "desktop", "path": "desktop", "guard": "admin", "enabled": false }
+    "api":     { "type": "api",     "path": "api",     "guards": [],          "enabled": true },
+    "web":     { "type": "web",     "path": "web",     "guards": ["web"],     "enabled": true },
+    "mobile":  { "type": "mobile",  "path": "mobile",  "guards": ["web"],     "enabled": false },
+    "desktop": { "type": "desktop", "path": "desktop", "guards": ["web"],     "enabled": false }
   }
 }
 ```
@@ -781,13 +785,39 @@ Comandos:
 
 ```bash
 platform new <name> [--with=api,web,mobile,desktop] [--laravel=12] [--no-interaction] [--no-install]
-platform add <component> [--guard=admin] [--path=web] [--no-install]
+platform add <component> [--guards=web,admin] [--path=web] [--no-install]
 platform remove <component> [--delete]
 platform install [component] [--only=web,mobile]
-platform build   [component] [--only=web,mobile]
-platform dev     <component>
+platform build   [component] [--only=web,mobile] [--guard=admin]
+platform dev     <component> [--guard=admin]
 platform status
+platform guard add <guard> [--driver=passport] [--no-clients] [--no-migrate]
+platform guard list
 ```
+
+Cada componente sirve **N guards**: la API los publica en
+`config/platforms.php` y `platform guard add` los da de alta de punta a punta
+(entrada de plataforma + modelo + migraciones + una app por guard en cada
+cliente). El manifiesto guarda la lista `guards` por componente.
+
+### `platform.sh` — shell de control
+
+`platform new` deja un script ejecutable en la raíz del workspace que lee
+`platform.json` en tiempo de ejecución, así que nunca hay que regenerarlo al
+añadir un componente o un guard:
+
+```bash
+./platform.sh up             # levanta la API en background
+./platform.sh web admin      # levanta la app web del guard admin
+./platform.sh mobile web     # flutter run --dart-define=GUARD=web (foreground)
+./platform.sh stop|restart|status|logs
+./platform.sh build [api|web|mobile|desktop]...
+./platform.sh install [targets...]
+./platform.sh doctor|fix     # toolchain + dependencias; fix intenta arreglarlas
+```
+
+El estado de los procesos vive en `.platform/` (PIDs y logs) y está en
+`.gitignore`.
 
 `Context::projectRoot()` resuelve al componente `api`, de modo que `config`,
 `demo add`, `package make` y `doctor` siguen operando sobre Laravel. `doctor`
@@ -796,6 +826,11 @@ disco) y **Client requirements** (según los clientes instalados comprueba el
 toolchain que necesitan —Node/npm, Flutter/Dart, JDK— y sugiere cómo arreglarlo;
 si la herramienta está instalada fuera del PATH, devuelve el `export PATH=...`
 exacto). Detalle de diseño: `backlog/fase-workspace.md`.
+
+El propio `demo/` es un workspace: `demo/platform.json` declara `api`, `web`,
+`mobile` y `desktop` con `guards: ["web","admin","employee"]`, así que
+`platform status` y `platform doctor` funcionan igual desde `demo/` que desde un
+proyecto recién generado.
 
 ---
 
