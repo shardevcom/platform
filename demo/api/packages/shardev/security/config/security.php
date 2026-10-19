@@ -22,17 +22,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Password Reset
+    | First-party frontend
     |--------------------------------------------------------------------------
     |
-    | Base URL of the first-party SPA that owns the reset screen. The reset
-    | email links to `{frontend_url}/reset-password?token=&email=&guard=`.
-    | Leave empty to keep Laravel's default URL builder (useful in dev, where
+    | Base URL of the SPA that owns the account screens. Recovery and
+    | verification emails link here:
+    |   {url}{password_reset_path}?token=&email=&guard=
+    |   {url}{email_verification_path}?verify_url=<signed api url>&guard=
+    | Leave `url` empty to keep the raw API signed URL (useful in dev, where
     | the link is read from the mail log).
     |
     */
-    'password_reset' => [
-        'frontend_url' => env('PASSWORD_RESET_FRONTEND_URL', env('FRONTEND_URL', '')),
+    'frontend' => [
+        'url' => env('FRONTEND_URL', env('PASSWORD_RESET_FRONTEND_URL', '')),
+        'password_reset_path' => '/reset-password',
+        'email_verification_path' => '/verify-email',
     ],
 
     'csp' => [

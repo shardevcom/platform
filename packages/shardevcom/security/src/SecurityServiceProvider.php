@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Shardevcom\Security;
 
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Shardevcom\Security\Authentication\AuthBootstrapServiceProvider;
 use Shardevcom\Security\Authentication\ScopeCatalogue;
 use Shardevcom\Security\Http\Controllers\AuthController;
+use Shardevcom\Security\Http\Controllers\EmailVerificationController;
 use Shardevcom\Security\Http\Controllers\PasswordController;
+use Shardevcom\Security\Http\Controllers\RegistrationController;
 use Shardevcom\Security\Http\Middleware\BindGuard;
 use Shardevcom\Security\Http\Middleware\CrossTenantIdorMiddleware;
 use Shardevcom\Security\Http\Middleware\CspMiddleware;
@@ -61,22 +65,41 @@ final class SecurityServiceProvider extends ServiceProvider
             // CSP is applied globally via middleware registration in kernel
         });
 
-        // Point the reset email at the first-party SPA instead of Laravel's
-        // default `password.reset` route, which does not exist in an API-only
-        // app. The base URL is optional (dev often reads the link from logs).
-        $frontend = rtrim((string) config('security.password_reset.frontend_url', ''), '/');
+        // Point the recovery/verification emails at the first-party SPA instead
+        // of Laravel's default `password.reset`/`verification.verify` routes,
+        // which do not exist in an API-only app.
+        $frontend = rtrim((string) config('security.frontend.url', ''), '/');
 
-        if ($frontend !== '') {
-            ResetPassword::createUrlUsing(static function (object $notifiable, string $token) use ($frontend): string {
-                $guard = method_exists($notifiable, 'getGuard') ? (string) $notifiable->getGuard() : '';
-
-                return $frontend.'/reset-password?'.http_build_query([
-                    'token' => $token,
-                    'email' => $notifiable->getEmailForPasswordReset(),
-                    'guard' => $guard,
-                ]);
-            });
+        if ($frontend === '') {
+            $frontend = rtrim((string) config('app.url', 'http://localhost'), '/');
         }
+
+        $resetPath = (string) config('security.frontend.password_reset_path', '/reset-password');
+        $verifyPath = (string) config('security.frontend.email_verification_path', '/verify-email');
+
+        ResetPassword::createUrlUsing(static function (object $notifiable, string $token) use ($frontend, $resetPath): string {
+            $guard = method_exists($notifiable, 'getGuard') ? (string) $notifiable->getGuard() : '';
+
+            return $frontend.$resetPath.'?'.http_build_query([
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+                'guard' => $guard,
+            ]);
+        });
+
+        VerifyEmail::createUrlUsing(static function (object $notifiable) use ($frontend, $verifyPath): string {
+            $guard = method_exists($notifiable, 'getGuard') ? (string) $notifiable->getGuard() : '';
+            $signed = URL::temporarySignedRoute(
+                'auth.email.verify.'.$guard,
+                now()->addMinutes(60),
+                ['id' => $notifiable->getKey(), 'hash' => sha1($notifiable->getEmailForVerification())]
+            );
+
+            return $frontend.$verifyPath.'?'.http_build_query([
+                'verify_url' => $signed,
+                'guard' => $guard,
+            ]);
+        });
 
         $this->loadAuthRoutes();
     }
@@ -120,6 +143,15 @@ final class SecurityServiceProvider extends ServiceProvider
                             ->defaults('guard', $guard)
                             ->name('auth.password.reset.'.$guard);
 
+                        Route::post('auth/register', [RegistrationController::class, 'register'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.register.'.$guard);
+
+                        Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+                            ->middleware('signed')
+                            ->defaults('guard', $guard)
+                            ->name('auth.email.verify.'.$guard);
+
                         Route::middleware('auth:'.$apiGuard)->group(function () use ($guard, $apiGuard): void {
                             Route::get('auth/me', [AuthController::class, 'me'])
                                 ->defaults('guard', $guard)
@@ -128,6 +160,10 @@ final class SecurityServiceProvider extends ServiceProvider
                             Route::post('auth/logout', [AuthController::class, 'logout'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.logout.'.$guard);
+
+                            Route::post('auth/email/verify/resend', [EmailVerificationController::class, 'resend'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.email.verify.resend.'.$guard);
                         });
                     });
                 });

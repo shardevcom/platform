@@ -59,6 +59,10 @@ return [
             'prefix' => '',
             'middleware' => ['correlation', 'rate.limit', 'web'],
             'password_reset_table' => 'password_reset_tokens',
+            'public' => true,
+            'features' => [
+                'verification' => true,
+            ],
         ],
 
         'admin' => [

@@ -8,10 +8,10 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Shardevcom\Core\Contracts\ResourceRegistry;
 use Shardevcom\Core\Results\ApiError;
 use Shardevcom\Core\Results\ApiResponse;
-use Shardevcom\Security\Authentication\ScopeCatalogue;
+use Shardevcom\Security\Authentication\AccessTokenIssuer;
+use Shardevcom\Security\Authentication\UserPresenter;
 
 /**
  * First-party token login adapter (demo/showcase surface).
@@ -33,8 +33,8 @@ final class AuthController
     public function __construct(
         private readonly AuthManager $auth,
         private readonly ConfigRepository $config,
-        private readonly ResourceRegistry $registry,
-        private readonly ScopeCatalogue $scopes,
+        private readonly AccessTokenIssuer $tokens,
+        private readonly UserPresenter $presenter,
     ) {}
 
     public function login(Request $request): JsonResponse
@@ -69,17 +69,12 @@ final class AuthController
             return $this->error('INVALID_CREDENTIALS', 'These credentials do not match our records.', [], 401);
         }
 
-        $abilities = $this->scopes->abilities($this->registry);
-        $device = (string) $request->input('device_name', 'spa');
-        $issued = $user->createToken($device, $abilities);
+        $capabilities = $this->tokens->issue($user, (string) $request->input('device_name', 'spa'));
 
-        return $this->ok([
-            'token_type' => $issued->tokenType ?? 'Bearer',
-            'access_token' => $issued->accessToken,
-            'expires_in' => $issued->expiresIn,
-            'abilities' => $abilities,
-            'user' => $this->presentUser($user, $abilities),
-        ], 'Authenticated.');
+        return $this->ok(
+            $capabilities + ['user' => $this->presenter->present($user, $capabilities['abilities'])],
+            'Authenticated.'
+        );
     }
 
     public function me(Request $request): JsonResponse
@@ -92,7 +87,7 @@ final class AuthController
 
         $abilities = data_get($user->currentAccessToken(), 'scopes', []);
 
-        return $this->ok($this->presentUser($user, is_array($abilities) ? $abilities : []), 'Identity loaded.');
+        return $this->ok($this->presenter->present($user, is_array($abilities) ? $abilities : []), 'Identity loaded.');
     }
 
     public function logout(Request $request): JsonResponse
@@ -115,22 +110,6 @@ final class AuthController
         $platform = $this->config->get('platforms.platforms.'.$guard);
 
         return is_array($platform) ? $platform : null;
-    }
-
-    /**
-     * @param list<string> $abilities
-     *
-     * @return array{id: string, name: mixed, email: mixed, guard: mixed, abilities: list<string>}
-     */
-    private function presentUser(object $user, array $abilities): array
-    {
-        return [
-            'id' => (string) $user->getAuthIdentifier(),
-            'name' => $user->name ?? null,
-            'email' => $user->email ?? null,
-            'guard' => method_exists($user, 'getGuard') ? $user->getGuard() : null,
-            'abilities' => $abilities,
-        ];
     }
 
     /**

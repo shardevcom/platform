@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Shardevcom\Core\Models;
 
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\Contracts\OAuthenticatable;
@@ -21,9 +23,9 @@ use Laravel\Passport\HasApiTokens;
  * withAccessToken(), así que un guard `passport` devolvería null y devolvería
  * 401 aunque el token fuera válido.
  */
-abstract class PlatformUser extends Authenticatable implements OAuthenticatable
+abstract class PlatformUser extends Authenticatable implements OAuthenticatable, MustVerifyEmailContract
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, MustVerifyEmail;
 
     /**
      * El guard de autenticación que usa este modelo.

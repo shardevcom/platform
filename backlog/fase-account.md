@@ -28,8 +28,8 @@ es el login).
 | 1 | Login email/password | ✅ existía | ✅ | ✅ existía |
 | 2 | `auth/me` (lectura) / logout | ✅ existía | ✅ | ✅ existía |
 | 3 | Recuperación (forgot/reset) | ✅ nuevo | ✅ | ⏳ |
-| 4 | Registro | ⏳ | — | ⏳ |
-| 5 | Verificación email/cuenta | ⏳ | — | ⏳ |
+| 4 | Registro (plataforma pública) | ✅ nuevo | ✅ | ⏳ |
+| 5 | Verificación email/cuenta | ✅ nuevo | ✅ | ⏳ |
 | 6 | Update perfil + password | ⏳ | — | ⏳ |
 | 7 | Preferencias (update) | ⏳ | — | ⏳ |
 | 8 | Notificaciones | ⏳ | — | ⏳ |
@@ -48,26 +48,28 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 
 - `POST {prefix}/api/v1/auth/forgot-password` → `PasswordController@sendResetLink`
 - `POST {prefix}/api/v1/auth/reset-password` → `PasswordController@reset`
+- `POST {prefix}/api/v1/auth/register` → `RegistrationController@register` (solo `public: true`)
+- `GET {prefix}/api/v1/auth/email/verify/{id}/{hash}` → `EmailVerificationController@verify` (`signed`)
+- `POST {prefix}/api/v1/auth/email/verify/resend` → `EmailVerificationController@resend` (`auth`)
 
-La recuperación delega en el broker Laravel de la plataforma
-(`AuthBootstrapServiceProvider` ya registra `auth.passwords.{reset}`), y el
-email apunta al SPA vía `security.password_reset.frontend_url`
-(`PASSWORD_RESET_FRONTEND_URL`/`FRONTEND_URL`):
-`{frontend}/reset-password?token=&email=&guard=`.
+El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
+emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
+si `features.verification`, envía el correo de verificación. El enlace de
+verificación es un signed URL de Laravel; los correos apuntan al SPA vía
+`security.frontend.url` (`FRONTEND_URL`), con `password_reset_path` y
+`email_verification_path`. `PlatformUser` implementa `MustVerifyEmail`.
 
 ## Verificación
 
-- `demo/api`: `tests/Feature/Platform/PasswordResetEndpointTest.php` (7 tests) —
-  notificación enviada, sin enumeración de emails, token válido cambia la
-  contraseña y el login de la plataforma la acepta, broker por plataforma
-  (admin), token inválido y confirmación.
-- `composer test --working-dir=demo/api` → **219 passed (2680 assertions)**.
-- `composer test` (root) → pendiente de re-ejecutar en cada entrega.
+- `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5) y
+  `EmailVerificationEndpointTest` (5).
+- `composer test --working-dir=demo/api` → **229 passed (2748 assertions)**.
+- `composer test` (root) → **351 passed (1010 assertions)**.
 
 ## Orden de implementación
 
 1. Recuperación ✅
-2. Registro + verificación email
+2. Registro + verificación email ✅
 3. Perfil (update) + cambio de contraseña
 4. Preferencias (update)
 5. Notificaciones
