@@ -35,7 +35,7 @@ es el login).
 | 8 | Notificaciones | ✅ nuevo | ✅ | ⏳ |
 | 9 | Bloqueo/disable individual | ✅ nuevo | ✅ | ⏳ |
 | 10 | Invitaciones + verificación | ✅ nuevo | ✅ | ⏳ |
-| 11 | OTP login | ⏳ | — | ⏳ |
+| 11 | OTP login | ✅ nuevo | ✅ | ⏳ |
 | 12 | Passkeys/WebAuthn | ⏳ | — | ⏳ |
 | 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ⏳ |
 | 14 | 2FA TOTP | ✅ existía | ✅ | ✅ existía |
@@ -64,6 +64,8 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 - `POST {prefix}/api/v1/auth/invitations` → `InvitationController@store` (`auth`)
 - `GET {prefix}/api/v1/auth/invitations/{token}` → `InvitationController@show` (público)
 - `POST {prefix}/api/v1/auth/invitations/accept` → `InvitationController@accept` (público)
+- `POST {prefix}/api/v1/auth/otp/request` → `OtpController@request` (público, opaco)
+- `POST {prefix}/api/v1/auth/otp/verify` → `OtpController@verify` (público)
 
 El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
 emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
@@ -88,15 +90,18 @@ en `platform_invitations` (migración del paquete; token guardado con SHA-256,
 `security.invitations.ttl_hours`): un miembro autenticado invita un email, el
 invitado inspecciona el token y lo acepta con nombre + contraseña, creando la
 cuenta ya verificada. `UserRegistrar` centraliza la creación de cuentas para que
-registro e invitación no diverjan.
+registro e invitación no diverjan. El OTP (`platform_otp_codes`, migración del
+paquete; `security.otp.*`) guarda el hash del código, lo ata a la plataforma, lo
+expira, limita intentos y es de un solo uso; `otp/request` responde igual exista
+o no la cuenta.
 
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
   `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8),
-  `NotificationsEndpointTest` (6), `AccountLockEndpointTest` (7) y
-  `InvitationEndpointTest` (7).
-- `composer test --working-dir=demo/api` → **257 passed (2888 assertions)**.
+  `NotificationsEndpointTest` (6), `AccountLockEndpointTest` (7),
+  `InvitationEndpointTest` (7) y `OtpEndpointTest` (8).
+- `composer test --working-dir=demo/api` → **265 passed (2942 assertions)**.
 - `composer test` (root) → **351 passed (1010 assertions)**.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
@@ -111,7 +116,7 @@ registro e invitación no diverjan.
 5. Notificaciones ✅
 6. Bloqueo/disable ✅
 7. Invitaciones ✅
-8. OTP
+8. OTP ✅
 9. Passkeys
 10. Flag público/privado en `platform.json` + `guard add`
 11. Vistas base web

@@ -16,6 +16,7 @@ use Shardevcom\Security\Http\Controllers\AuthController;
 use Shardevcom\Security\Http\Controllers\EmailVerificationController;
 use Shardevcom\Security\Http\Controllers\InvitationController;
 use Shardevcom\Security\Http\Controllers\NotificationsController;
+use Shardevcom\Security\Http\Controllers\OtpController;
 use Shardevcom\Security\Http\Controllers\PasswordController;
 use Shardevcom\Security\Http\Controllers\PreferencesController;
 use Shardevcom\Security\Http\Controllers\RegistrationController;
@@ -152,6 +153,14 @@ final class SecurityServiceProvider extends ServiceProvider
                         Route::post('auth/reset-password', [PasswordController::class, 'reset'])
                             ->defaults('guard', $guard)
                             ->name('auth.password.reset.'.$guard);
+
+                        Route::post('auth/otp/request', [OtpController::class, 'request'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.otp.request.'.$guard);
+
+                        Route::post('auth/otp/verify', [OtpController::class, 'verify'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.otp.verify.'.$guard);
 
                         Route::post('auth/register', [RegistrationController::class, 'register'])
                             ->defaults('guard', $guard)

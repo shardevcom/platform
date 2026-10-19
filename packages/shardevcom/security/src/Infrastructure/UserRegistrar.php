@@ -23,9 +23,17 @@ final class UserRegistrar
      */
     public function exists(array $platform, string $email): bool
     {
+        return $this->find($platform, $email) !== null;
+    }
+
+    /**
+     * @param array<string, mixed> $platform
+     */
+    public function find(array $platform, string $email): ?object
+    {
         $provider = $this->auth->createUserProvider($platform['provider'] ?? null);
 
-        return $provider?->retrieveByCredentials(['email' => $email]) !== null;
+        return $provider?->retrieveByCredentials(['email' => $email]);
     }
 
     /**

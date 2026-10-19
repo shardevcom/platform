@@ -52,6 +52,21 @@ return [
         'ttl_hours' => (int) env('INVITATIONS_TTL_HOURS', 72),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | OTP (passwordless login)
+    |--------------------------------------------------------------------------
+    |
+    | Numeric code length, how long it stays valid, and how many wrong guesses
+    | it tolerates before it is consumed.
+    |
+    */
+    'otp' => [
+        'length' => (int) env('OTP_LENGTH', 6),
+        'ttl_minutes' => (int) env('OTP_TTL_MINUTES', 10),
+        'max_attempts' => (int) env('OTP_MAX_ATTEMPTS', 5),
+    ],
+
     'csp' => [
         'enabled' => true,
         'report_only' => false,
