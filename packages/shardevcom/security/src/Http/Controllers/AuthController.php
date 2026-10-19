@@ -8,6 +8,7 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Shardevcom\Core\Results\ApiError;
 use Shardevcom\Core\Results\ApiResponse;
 use Shardevcom\Security\Authentication\AccessTokenIssuer;
@@ -99,6 +100,115 @@ final class AuthController
         }
 
         return $this->ok(null, 'Logged out.');
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $platform = $this->platform($request);
+
+        if ($user === null || $platform === null) {
+            return $this->error('UNAUTHENTICATED', 'Unauthenticated.', [], 401);
+        }
+
+        $name = $request->input('name');
+        $email = $request->input('email');
+
+        $errors = [];
+
+        if ($name !== null && (! is_string($name) || trim($name) === '')) {
+            $errors['name'][] = 'The name field is required.';
+        }
+
+        if ($email !== null && (! is_string($email) || ! filter_var($email, FILTER_VALIDATE_EMAIL))) {
+            $errors['email'][] = 'The email field must be a valid email address.';
+        }
+
+        if ($errors !== []) {
+            return $this->error('VALIDATION_FAILED', 'The given data was invalid.', $errors, 422);
+        }
+
+        $changingEmail = is_string($email) && $email !== $user->email;
+
+        if ($changingEmail) {
+            $provider = $this->auth->createUserProvider($platform['provider']);
+            $taken = $provider?->retrieveByCredentials(['email' => $email]);
+
+            if ($taken !== null && (string) $taken->getAuthIdentifier() !== (string) $user->getAuthIdentifier()) {
+                return $this->error('VALIDATION_FAILED', 'The given data was invalid.', [
+                    'email' => ['The email has already been taken.'],
+                ], 422);
+            }
+        }
+
+        $attributes = [];
+
+        if (is_string($name)) {
+            $attributes['name'] = trim($name);
+        }
+
+        if (is_string($email)) {
+            $attributes['email'] = $email;
+        }
+
+        if ($attributes !== []) {
+            $user->forceFill($attributes);
+        }
+
+        // A new address is unverified until the owner proves it.
+        if ($changingEmail) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($changingEmail && ($platform['features']['verification'] ?? false)
+            && method_exists($user, 'sendEmailVerificationNotification')) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        $abilities = data_get($user->currentAccessToken(), 'scopes', []);
+
+        return $this->ok($this->presenter->present($user, is_array($abilities) ? $abilities : []), 'Profile updated.');
+    }
+
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return $this->error('UNAUTHENTICATED', 'Unauthenticated.', [], 401);
+        }
+
+        $current = $request->input('current_password');
+        $password = $request->input('password');
+        $confirmation = $request->input('password_confirmation');
+
+        $errors = [];
+
+        if (! is_string($current) || $current === '') {
+            $errors['current_password'][] = 'The current password field is required.';
+        }
+
+        if (! is_string($password) || strlen($password) < 8) {
+            $errors['password'][] = 'The password must be at least 8 characters.';
+        } elseif ($password !== $confirmation) {
+            $errors['password_confirmation'][] = 'The password confirmation does not match.';
+        }
+
+        if ($errors !== []) {
+            return $this->error('VALIDATION_FAILED', 'The given data was invalid.', $errors, 422);
+        }
+
+        if (! Hash::check((string) $current, (string) $user->getAuthPassword())) {
+            return $this->error('INVALID_CURRENT_PASSWORD', 'The current password is incorrect.', [], 422);
+        }
+
+        // The model's `password` cast is `hashed`, so the plain value is hashed
+        // on assignment.
+        $user->forceFill(['password' => $password])->save();
+
+        return $this->ok(null, 'Password changed.');
     }
 
     /**

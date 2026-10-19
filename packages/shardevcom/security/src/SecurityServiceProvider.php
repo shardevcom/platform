@@ -14,6 +14,7 @@ use Shardevcom\Security\Authentication\ScopeCatalogue;
 use Shardevcom\Security\Http\Controllers\AuthController;
 use Shardevcom\Security\Http\Controllers\EmailVerificationController;
 use Shardevcom\Security\Http\Controllers\PasswordController;
+use Shardevcom\Security\Http\Controllers\PreferencesController;
 use Shardevcom\Security\Http\Controllers\RegistrationController;
 use Shardevcom\Security\Http\Middleware\BindGuard;
 use Shardevcom\Security\Http\Middleware\CrossTenantIdorMiddleware;
@@ -48,6 +49,10 @@ final class SecurityServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/security.php' => config_path('security.php'),
         ], 'security-config');
+
+        // Account tables owned by the package (user preferences, ...) rather
+        // than by each platform's user table.
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Register middleware aliases. Router::aliasMiddleware is the only
         // registry the pipeline reads during route resolution;
@@ -160,6 +165,22 @@ final class SecurityServiceProvider extends ServiceProvider
                             Route::post('auth/logout', [AuthController::class, 'logout'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.logout.'.$guard);
+
+                            Route::patch('auth/profile', [AuthController::class, 'updateProfile'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.profile.update.'.$guard);
+
+                            Route::put('auth/password', [AuthController::class, 'updatePassword'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.password.update.'.$guard);
+
+                            Route::get('auth/preferences', [PreferencesController::class, 'show'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.preferences.show.'.$guard);
+
+                            Route::put('auth/preferences', [PreferencesController::class, 'update'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.preferences.update.'.$guard);
 
                             Route::post('auth/email/verify/resend', [EmailVerificationController::class, 'resend'])
                                 ->defaults('guard', $guard)

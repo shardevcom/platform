@@ -30,8 +30,8 @@ es el login).
 | 3 | Recuperación (forgot/reset) | ✅ nuevo | ✅ | ⏳ |
 | 4 | Registro (plataforma pública) | ✅ nuevo | ✅ | ⏳ |
 | 5 | Verificación email/cuenta | ✅ nuevo | ✅ | ⏳ |
-| 6 | Update perfil + password | ⏳ | — | ⏳ |
-| 7 | Preferencias (update) | ⏳ | — | ⏳ |
+| 6 | Update perfil + password | ✅ nuevo | ✅ | ⏳ |
+| 7 | Preferencias (update) | ✅ nuevo | ✅ | ⏳ |
 | 8 | Notificaciones | ⏳ | — | ⏳ |
 | 9 | Bloqueo/disable individual | ⏳ | — | ⏳ |
 | 10 | Invitaciones + verificación | ⏳ | — | ⏳ |
@@ -51,6 +51,10 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 - `POST {prefix}/api/v1/auth/register` → `RegistrationController@register` (solo `public: true`)
 - `GET {prefix}/api/v1/auth/email/verify/{id}/{hash}` → `EmailVerificationController@verify` (`signed`)
 - `POST {prefix}/api/v1/auth/email/verify/resend` → `EmailVerificationController@resend` (`auth`)
+- `PATCH {prefix}/api/v1/auth/profile` → `AuthController@updateProfile` (`auth`)
+- `PUT {prefix}/api/v1/auth/password` → `AuthController@updatePassword` (`auth`)
+- `GET {prefix}/api/v1/auth/preferences` → `PreferencesController@show` (`auth`)
+- `PUT {prefix}/api/v1/auth/preferences` → `PreferencesController@update` (`auth`)
 
 El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
 emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
@@ -59,19 +63,29 @@ verificación es un signed URL de Laravel; los correos apuntan al SPA vía
 `security.frontend.url` (`FRONTEND_URL`), con `password_reset_path` y
 `email_verification_path`. `PlatformUser` implementa `MustVerifyEmail`.
 
+Cambiar el email en `auth/profile` lo deja sin verificar y reenvía el enlace;
+`auth/password` exige `current_password`. Las preferencias (tema, idioma,
+canales de notificación) se guardan por usuario y guard en
+`platform_user_preferences` (migración **del paquete**, `loadMigrationsFrom`),
+fusionadas sobre los defaults para que el cliente siempre reciba un objeto
+completo.
+
 ## Verificación
 
-- `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5) y
-  `EmailVerificationEndpointTest` (5).
-- `composer test --working-dir=demo/api` → **229 passed (2748 assertions)**.
+- `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
+  `EmailVerificationEndpointTest` (5) y `AccountEndpointTest` (8).
+- `composer test --working-dir=demo/api` → **237 passed (2787 assertions)**.
 - `composer test` (root) → **351 passed (1010 assertions)**.
+- Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
+  `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
+  pasa la mayoría de las corridas.
 
 ## Orden de implementación
 
 1. Recuperación ✅
 2. Registro + verificación email ✅
-3. Perfil (update) + cambio de contraseña
-4. Preferencias (update)
+3. Perfil (update) + cambio de contraseña ✅
+4. Preferencias (update) ✅
 5. Notificaciones
 6. Bloqueo/disable
 7. Invitaciones
