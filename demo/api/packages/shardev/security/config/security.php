@@ -67,6 +67,23 @@ return [
         'max_attempts' => (int) env('OTP_MAX_ATTEMPTS', 5),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | WebAuthn / passkeys
+    |--------------------------------------------------------------------------
+    |
+    | Relying Party identity and the browser origins allowed to run a ceremony.
+    | `rp_id` must be the registrable domain the passkeys are bound to; the
+    | allowed origins must match what the sysadmin configures in the client.
+    |
+    */
+    'webauthn' => [
+        'rp_id' => env('WEBAUTHN_RP_ID') ?: parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST),
+        'rp_name' => env('WEBAUTHN_RP_NAME', 'Shardev'),
+        'allowed_origins' => array_values(array_filter(explode(',', (string) env('WEBAUTHN_ALLOWED_ORIGINS', (string) env('APP_URL', 'http://localhost'))))),
+        'challenge_ttl_seconds' => (int) env('WEBAUTHN_CHALLENGE_TTL', 300),
+    ],
+
     'csp' => [
         'enabled' => true,
         'report_only' => false,

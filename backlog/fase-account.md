@@ -36,7 +36,7 @@ es el login).
 | 9 | Bloqueo/disable individual | ✅ nuevo | ✅ | ⏳ |
 | 10 | Invitaciones + verificación | ✅ nuevo | ✅ | ⏳ |
 | 11 | OTP login | ✅ nuevo | ✅ | ⏳ |
-| 12 | Passkeys/WebAuthn | ⏳ | — | ⏳ |
+| 12 | Passkeys/WebAuthn | ✅ nuevo | ✅ | ⏳ |
 | 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ⏳ |
 | 14 | 2FA TOTP | ✅ existía | ✅ | ✅ existía |
 | 15 | Dashboard/widgets | ✅ existía | ✅ | ✅ existía |
@@ -66,6 +66,12 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 - `POST {prefix}/api/v1/auth/invitations/accept` → `InvitationController@accept` (público)
 - `POST {prefix}/api/v1/auth/otp/request` → `OtpController@request` (público, opaco)
 - `POST {prefix}/api/v1/auth/otp/verify` → `OtpController@verify` (público)
+- `POST {prefix}/api/v1/auth/webauthn/login/options` → `WebAuthnController@loginOptions` (público, opaco)
+- `POST {prefix}/api/v1/auth/webauthn/login` → `WebAuthnController@login` (público)
+- `GET {prefix}/api/v1/auth/webauthn/credentials` → `WebAuthnController@index` (`auth`)
+- `POST {prefix}/api/v1/auth/webauthn/register/options` → `WebAuthnController@registerOptions` (`auth`)
+- `POST {prefix}/api/v1/auth/webauthn/register` → `WebAuthnController@register` (`auth`)
+- `DELETE {prefix}/api/v1/auth/webauthn/credentials/{id}` → `WebAuthnController@destroy` (`auth`)
 
 El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
 emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
@@ -93,15 +99,20 @@ cuenta ya verificada. `UserRegistrar` centraliza la creación de cuentas para qu
 registro e invitación no diverjan. El OTP (`platform_otp_codes`, migración del
 paquete; `security.otp.*`) guarda el hash del código, lo ata a la plataforma, lo
 expira, limita intentos y es de un solo uso; `otp/request` responde igual exista
-o no la cuenta.
+o no la cuenta. Las passkeys usan `web-auth/webauthn-lib` (`WebAuthnBridge`,
+singleton): `platform_webauthn_credentials` (migración del paquete) guarda el
+`CredentialRecord` serializado por guard y usuario; el registro está autenticado
+y el login es passwordless. Los challenges se cachean por su valor codificado,
+son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
 
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
   `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8),
   `NotificationsEndpointTest` (6), `AccountLockEndpointTest` (7),
-  `InvitationEndpointTest` (7) y `OtpEndpointTest` (8).
-- `composer test --working-dir=demo/api` → **265 passed (2942 assertions)**.
+  `InvitationEndpointTest` (7), `OtpEndpointTest` (8) y `WebAuthnEndpointTest`
+  (7, con `Tests\Support\WebAuthnAuthenticator`).
+- `composer test --working-dir=demo/api` → **272 passed (2996 assertions)**.
 - `composer test` (root) → **351 passed (1010 assertions)**.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
@@ -117,6 +128,6 @@ o no la cuenta.
 6. Bloqueo/disable ✅
 7. Invitaciones ✅
 8. OTP ✅
-9. Passkeys
+9. Passkeys ✅
 10. Flag público/privado en `platform.json` + `guard add`
 11. Vistas base web

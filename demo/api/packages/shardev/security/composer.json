@@ -15,6 +15,7 @@
     },
     "require": {
         "php": "^8.3",
-        "shardev/core": "@dev"
+        "shardev/core": "@dev",
+        "web-auth/webauthn-lib": "^5.3"
     }
 }

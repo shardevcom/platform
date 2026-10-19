@@ -20,6 +20,7 @@ use Shardevcom\Security\Http\Controllers\OtpController;
 use Shardevcom\Security\Http\Controllers\PasswordController;
 use Shardevcom\Security\Http\Controllers\PreferencesController;
 use Shardevcom\Security\Http\Controllers\RegistrationController;
+use Shardevcom\Security\Http\Controllers\WebAuthnController;
 use Shardevcom\Security\Http\Middleware\BindGuard;
 use Shardevcom\Security\Http\Middleware\CrossTenantIdorMiddleware;
 use Shardevcom\Security\Http\Middleware\CspMiddleware;
@@ -47,6 +48,9 @@ final class SecurityServiceProvider extends ServiceProvider
         // Scope vocabulary shared by Passport::tokensCan() (app) and the login
         // adapter's createToken() (issuance).
         $this->app->singleton(ScopeCatalogue::class);
+
+        // WebAuthn wiring: one bridge keeps the (expensive) serializer around.
+        $this->app->singleton(\Shardevcom\Security\WebAuthn\WebAuthnBridge::class);
     }
 
     public function boot(): void
@@ -162,6 +166,14 @@ final class SecurityServiceProvider extends ServiceProvider
                             ->defaults('guard', $guard)
                             ->name('auth.otp.verify.'.$guard);
 
+                        Route::post('auth/webauthn/login/options', [WebAuthnController::class, 'loginOptions'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.webauthn.login.options.'.$guard);
+
+                        Route::post('auth/webauthn/login', [WebAuthnController::class, 'login'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.webauthn.login.'.$guard);
+
                         Route::post('auth/register', [RegistrationController::class, 'register'])
                             ->defaults('guard', $guard)
                             ->name('auth.register.'.$guard);
@@ -235,6 +247,22 @@ final class SecurityServiceProvider extends ServiceProvider
                             Route::post('auth/invitations', [InvitationController::class, 'store'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.invitations.store.'.$guard);
+
+                            Route::get('auth/webauthn/credentials', [WebAuthnController::class, 'index'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.webauthn.credentials.index.'.$guard);
+
+                            Route::post('auth/webauthn/register/options', [WebAuthnController::class, 'registerOptions'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.webauthn.register.options.'.$guard);
+
+                            Route::post('auth/webauthn/register', [WebAuthnController::class, 'register'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.webauthn.register.'.$guard);
+
+                            Route::delete('auth/webauthn/credentials/{id}', [WebAuthnController::class, 'destroy'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.webauthn.credentials.destroy.'.$guard);
                         });
                     });
                 });

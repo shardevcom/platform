@@ -39,6 +39,16 @@ final class UserRegistrar
     /**
      * @param array<string, mixed> $platform
      */
+    public function findById(array $platform, int|string $id): ?object
+    {
+        $provider = $this->auth->createUserProvider($platform['provider'] ?? null);
+
+        return $provider?->retrieveById($id);
+    }
+
+    /**
+     * @param array<string, mixed> $platform
+     */
     public function create(array $platform, string $name, string $email, string $password, bool $verified = false): ?object
     {
         $model = (string) ($platform['model'] ?? '');
