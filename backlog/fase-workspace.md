@@ -90,18 +90,26 @@ descripción (`GuardDefinition`) y sin listas hardcodeadas:
   `<table>_password_resets` y un seeder `<Guard>UserSeeder` (usuario demo
   `<guard>@example.com` / `password`), y corre `php artisan migrate --force`
   seguido de `db:seed --class=...` (salvo `--no-migrate`/`--no-seed`).
-- **Plugins**: registra el guard en el `guards` de cada `plugin.json` instalado
-  (`PluginCatalog::discover` + `PluginGuardEditor`, que edita el JSON en texto
-  para no reformatearlo) con modo `read` por defecto; `--no-plugins` lo omite. La
-  vista del cliente sigue siendo responsabilidad del plugin (ver Pendiente).
+- **Plugins (API)**: registra el guard en el `guards` de cada `plugin.json`
+  instalado (`PluginCatalog::discover` + `PluginGuardEditor`, que edita el JSON
+  en texto para no reformatearlo) con modo `read` por defecto; `--no-plugins` lo
+  omite.
 - **Manifiesto**: añade el guard a todos los componentes de `platform.json`.
 - **Clientes** (`GuardClientScaffolder`): extiende el enum `Guard` de cada cliente
   (union TS de `plugin-kit`, enum Dart de `plugin_kit`, enum Java de `plugin-kit`)
-  y clona la app existente para el nuevo guard — `web/apps/<guard>` (+ scripts
-  `dev|build|preview:<guard>`), `desktop/apps/<guard>` (+ include en
+  y cada enumeración de `core` que dependa de él —la unión `Platform` del cliente
+  web, y el `demoEmail`/preset de login de web (TS), desktop (Java) y mobile
+  (Dart)—, y clona la app existente para el nuevo guard — `web/apps/<guard>`
+  (+ scripts `dev|build|preview:<guard>`), `desktop/apps/<guard>` (+ include en
   `settings.gradle.kts`). En mobile no hay app por guard (el guard es un
-  `--dart-define=GUARD=` de build), solo se extiende el enum. `--no-clients`
+  `--dart-define=GUARD=` de build), solo se extienden los enums. `--no-clients`
   limita el cambio a la API + manifiesto.
+- **Vistas de plugin** (`GuardPluginScaffolder`): por cada plugin presente en un
+  cliente, escribe una vista placeholder que compila (React/JavaFX/Flutter, sin
+  componentes del plugin) y la registra en el mapa `guards` del plugin
+  (`plugins/<name>/…`), usando el `resource` del `plugin.json` como ruta. Cierra
+  el ciclo: el guard nuevo ya se monta en cada cliente hasta que el autor
+  sustituya el placeholder por la pantalla real.
 - El mapeo guard→app es `web→user` y el resto 1:1 (`GuardClientScaffolder::app`).
 
 `platform guard list` lista los guards del manifiesto y qué componentes los sirve.
@@ -260,7 +268,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Verificación
 
-- `composer test` (root): **340 tests / 979 assertions** — OK.
+- `composer test` (root): **348 tests / 1003 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
@@ -271,10 +279,16 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
     incluyendo "no es un workspace".
   - `GuardCommandTest`: `guard add` escribe `config/platforms.php`, modelo,
     migraciones y el seeder de usuario demo, registra el guard en los
-    `plugin.json` instalados, espeja el guard en `platform.json` y clona la app
-    por guard en web/desktop + extiende los enums (web/desktop/mobile);
-    `--no-clients`, `--no-plugins`, `--no-migrate`, `--no-seed`, slug inválido,
-    guard duplicado y `guard list`.
+    `plugin.json` instalados, espeja el guard en `platform.json`, clona la app
+    por guard en web/desktop + extiende los enums (web/desktop/mobile) y añade la
+    vista placeholder de cada plugin; `--no-clients`, `--no-plugins`,
+    `--no-migrate`, `--no-seed`, slug inválido, guard duplicado y `guard list`.
+  - `GuardClientScaffolderTest`: además del enum, extiende la unión `Platform` y
+    el preset de login del cliente web, y el `demoEmail` (switch exhaustivo) de
+    desktop (Java) y mobile (Dart).
+  - `GuardPluginScaffolderTest`: escribe y registra la vista placeholder por
+    plugin en web/mobile/desktop, sin duplicar una vista ya registrada y sin
+    fallar cuando el plugin no está presente.
   - `PluginGuardEditorTest`: añade un guard al `plugin.json` conservando el
     formato de una línea por descriptor (modo por defecto `read`, mapa vacío,
     `has`).
@@ -291,6 +305,13 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 - `platform guard add partner --no-clients --no-migrate` sobre `demo/` genera
   artefactos válidos (modelo, migraciones, `PartnerUserSeeder`, `plugin.json`
   con el guard nuevo y `platform.json`) y se revierte sin dejar rastro.
+- `platform guard add partner --no-migrate` sobre `demo/` (clientes + plugins):
+  tras el guard los tres clientes siguen compilando — `npm run typecheck` y
+  `npm test` (web: 14 tests), `./gradlew …compileJava` (desktop),
+  `flutter analyze` y `./tool/test.sh` (mobile) — y se revierte sin dejar rastro.
+  Sin las extensiones de `core` (unión `Platform`, preset de login) TypeScript
+  falla con `TS2741`/`TS2345` y Java con *switch expression does not cover all
+  possible input values*; por eso `GuardClientScaffolder` también las edita.
 - `composer test` (demo/api): **212 tests / 2657 assertions** — OK.
 - `platform status` desde `demo/` lista los 4 componentes (`scaffolded`/`installed`
   = yes).
@@ -305,9 +326,11 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Pendiente / siguiente iteración
 
-- `platform guard add` registra el guard en cada `plugin.json` (modo `read` por
-  defecto) y siembra el usuario demo, pero la **vista** del cliente sigue siendo
-  del plugin: un guard nuevo no se ve en la SPA hasta que el plugin añade su
-  pantalla por guard.
+- `platform guard add` cierra el ciclo en el servidor y en los clientes:
+  registra el guard en cada `plugin.json` (modo `read`), siembra el usuario demo,
+  extiende los enums de cada cliente y añade una **vista placeholder** por plugin
+  (`GuardPluginScaffolder`) para que la SPA monte el guard nuevo; el autor del
+  plugin sustituye luego el placeholder por la pantalla real. Queda pendiente
+  validar `--guard` (rechazar un guard desconocido o que no viva en la API).
 - `platform dev`/`build` del demo: los clientes son monorepos con una app por
   guard; `--guard` permite apuntar a una sola.

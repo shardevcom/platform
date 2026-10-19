@@ -50,6 +50,8 @@ final class GuardClientScaffolder
     private function web(string $path, GuardDefinition $guard): array
     {
         $this->extendTypeScriptGuard($path.'/packages/plugin-kit/src/types.ts', $guard);
+        $this->extendTypeScriptPlatform($path.'/packages/core/src/types.ts', $guard);
+        $this->addWebLoginPresets($path.'/packages/core/src/pages/LoginPage.tsx', $guard);
 
         $apps = $path.'/apps';
         $app = $this->app($guard->key);
@@ -94,6 +96,10 @@ final class GuardClientScaffolder
     private function desktop(string $path, GuardDefinition $guard): array
     {
         $this->extendJavaGuard($path.'/packages/plugin-kit/src/main/java/dev/shardev/pluginkit/Guard.java', $guard);
+        $this->extendJavaDemoEmail(
+            $path.'/packages/core/src/main/java/dev/shardev/core/ui/LoginView.java',
+            $guard
+        );
 
         $apps = $path.'/apps';
         $app = $this->app($guard->key);
@@ -136,6 +142,7 @@ final class GuardClientScaffolder
     private function mobile(string $path, GuardDefinition $guard): array
     {
         $this->extendDartGuard($path.'/packages/plugin_kit/lib/src/guard.dart', $guard);
+        $this->extendDartDemoEmail($path.'/packages/core/lib/src/pages/login_page.dart', $guard);
 
         return [];
     }
@@ -159,6 +166,117 @@ final class GuardClientScaffolder
         );
 
         $this->filesystem->write($file, $source);
+    }
+
+    /**
+     * The web app has a second guard union, `Platform` (used by setPlatform and
+     * the API base), that must grow with the plugin-kit `Guard` union.
+     */
+    private function extendTypeScriptPlatform(string $file, GuardDefinition $guard): void
+    {
+        if (! $this->filesystem->isFile($file) || str_contains($this->filesystem->read($file), '"'.$guard->key.'"')) {
+            return;
+        }
+
+        $source = $this->replacePattern(
+            $this->filesystem->read($file),
+            '/(export type Platform = [^\n;]+)/',
+            '$1 | "'.$guard->key.'"'
+        );
+
+        $this->filesystem->write($file, $source);
+    }
+
+    /**
+     * The web login presets are exhaustive `Record<Guard, string>` maps, so a
+     * new guard needs its demo email and label or the app stops type-checking.
+     */
+    private function addWebLoginPresets(string $file, GuardDefinition $guard): void
+    {
+        if (! $this->filesystem->isFile($file)) {
+            return;
+        }
+
+        $source = $this->filesystem->read($file);
+
+        if (str_contains($source, $guard->key.': "')) {
+            return;
+        }
+
+        $source = $this->insertAfterOpeningBrace(
+            $source,
+            'const DEMO_EMAIL: Record<Guard, string> = {',
+            '  '.$guard->key.': "'.$guard->key.'@example.com",'
+        );
+        $source = $this->insertAfterOpeningBrace(
+            $source,
+            'const GUARD_LABEL: Record<Guard, string> = {',
+            '  '.$guard->key.': "'.$guard->label().'",'
+        );
+
+        $this->filesystem->write($file, $source);
+    }
+
+    /**
+     * The Java login screen resolves the demo email from the guard in a switch
+     * expression, which stays exhaustive only if every guard has a case.
+     */
+    private function extendJavaDemoEmail(string $file, GuardDefinition $guard): void
+    {
+        if (! $this->filesystem->isFile($file)
+            || str_contains($this->filesystem->read($file), 'case '.strtoupper($guard->key).' ->')) {
+            return;
+        }
+
+        $source = $this->insertBeforeClosingBrace(
+            $this->filesystem->read($file),
+            'return switch (guard) {',
+            static fn (string $indent): string => $indent.'    case '.strtoupper($guard->key)
+                .' -> "'.$guard->key.'@example.com";'.PHP_EOL
+        );
+
+        $this->filesystem->write($file, $source);
+    }
+
+    /**
+     * The Flutter login screen resolves the demo email from the guard in a
+     * switch statement, which stays exhaustive only if every guard has a case.
+     */
+    private function extendDartDemoEmail(string $file, GuardDefinition $guard): void
+    {
+        if (! $this->filesystem->isFile($file)
+            || str_contains($this->filesystem->read($file), 'case Guard.'.$guard->key.':')) {
+            return;
+        }
+
+        $source = $this->insertBeforeClosingBrace(
+            $this->filesystem->read($file),
+            'switch (guard) {',
+            static fn (string $indent): string => $indent.'  case Guard.'.$guard->key.':'.PHP_EOL
+                .$indent."    return '".$guard->key."@example.com';".PHP_EOL
+        );
+
+        $this->filesystem->write($file, $source);
+    }
+
+    /**
+     * Inserts $block right after the `{` that opens the object named by $needle.
+     */
+    private function insertAfterOpeningBrace(string $source, string $needle, string $block): string
+    {
+        $position = strpos($source, $needle);
+
+        if ($position === false) {
+            return $source;
+        }
+
+        $open = strpos($source, '{', $position + strlen($needle) - 1);
+
+        if ($open === false) {
+            return $source;
+        }
+
+        return substr($source, 0, $open + 1)."\n".$block.substr($source, $open + 1);
     }
 
     private function extendDartGuard(string $file, GuardDefinition $guard): void

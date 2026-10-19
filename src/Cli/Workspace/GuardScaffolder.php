@@ -64,15 +64,23 @@ final class GuardScaffolder
         $manifest->save($this->context->filesystem, $workspace->root);
 
         if ($scaffoldClients) {
+            $plugins = $this->pluginResources();
+            $scaffolder = new GuardClientScaffolder($this->context->filesystem);
+            $pluginScaffolder = new GuardPluginScaffolder($this->context->filesystem);
+
             foreach ($manifest->components() as $component) {
                 if ($component->type === ComponentType::Api || ! $component->enabled) {
                     continue;
                 }
 
-                $scaffolder = new GuardClientScaffolder($this->context->filesystem);
+                $path = $workspace->componentPath($component->name);
 
-                foreach ($scaffolder->scaffold($component->type, $workspace->componentPath($component->name), $guard) as $path) {
-                    $written[] = $component->path.'/'.$path;
+                foreach ($scaffolder->scaffold($component->type, $path, $guard) as $file) {
+                    $written[] = $component->path.'/'.$file;
+                }
+
+                foreach ($pluginScaffolder->scaffold($component->type, $path, $guard, $plugins) as $file) {
+                    $written[] = $component->path.'/'.$file;
                 }
             }
         }
@@ -138,18 +146,18 @@ final class GuardScaffolder
 
     /**
      * Registers the guard in every installed plugin's manifest so `plugin list`
-     * and `plugin show` know the resource now serves the new guard. The client
-     * view is the plugin author's follow-up: only the plugin knows its screens.
+     * and `plugin show` know the resource now serves the new guard.
      *
      * @return list<string>
      */
     private function registerInPlugins(GuardDefinition $guard): array
     {
-        if (! $this->context->isInstalledProject()) {
+        $catalog = $this->pluginCatalog();
+
+        if ($catalog === null) {
             return [];
         }
 
-        $catalog = new PluginCatalog($this->context->filesystem, $this->context->packageCatalog());
         $editor = new PluginGuardEditor();
         $written = [];
 
@@ -165,6 +173,37 @@ final class GuardScaffolder
         }
 
         return $written;
+    }
+
+    /**
+     * API plugin name => resource, used to scaffold the client-side views.
+     *
+     * @return array<string, string>
+     */
+    private function pluginResources(): array
+    {
+        $catalog = $this->pluginCatalog();
+
+        if ($catalog === null) {
+            return [];
+        }
+
+        $resources = [];
+
+        foreach ($catalog->all() as $plugin) {
+            $resources[$plugin->name] = $plugin->resource;
+        }
+
+        return $resources;
+    }
+
+    private function pluginCatalog(): ?PluginCatalog
+    {
+        if (! $this->context->isInstalledProject()) {
+            return null;
+        }
+
+        return new PluginCatalog($this->context->filesystem, $this->context->packageCatalog());
     }
 
     private function mirrorIntoManifest(WorkspaceManifest $manifest, GuardDefinition $guard): WorkspaceManifest

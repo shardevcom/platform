@@ -807,10 +807,11 @@ platform config name <name> | guard <component> <list> | enable|disable <compone
 Cada componente sirve **N guards**: la API los publica en
 `config/platforms.php` y `platform guard add` los da de alta de punta a punta
 (entrada de plataforma + modelo + migraciones + seeder de usuario demo + registro
-en cada `plugin.json` instalado + una app por guard en cada cliente). El
-manifiesto guarda la lista `guards` por componente. `--guards` en `new` (y en
-`add`) fija esa lista para los clientes; sin él, los clientes espejan los guards
-que publica la API.
+en cada `plugin.json` instalado + extensión de los enums/presets de cada cliente
++ una app por guard + una vista placeholder por plugin para que el guard ya se
+monte). El manifiesto guarda la lista `guards` por componente. `--guards` en
+`new` (y en `add`) fija esa lista para los clientes; sin él, los clientes espejan
+los guards que publica la API.
 
 ### `platform.sh` — shell de control
 
