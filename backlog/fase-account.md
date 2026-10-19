@@ -32,7 +32,7 @@ es el login).
 | 5 | Verificación email/cuenta | ✅ nuevo | ✅ | ⏳ |
 | 6 | Update perfil + password | ✅ nuevo | ✅ | ⏳ |
 | 7 | Preferencias (update) | ✅ nuevo | ✅ | ⏳ |
-| 8 | Notificaciones | ⏳ | — | ⏳ |
+| 8 | Notificaciones | ✅ nuevo | ✅ | ⏳ |
 | 9 | Bloqueo/disable individual | ⏳ | — | ⏳ |
 | 10 | Invitaciones + verificación | ⏳ | — | ⏳ |
 | 11 | OTP login | ⏳ | — | ⏳ |
@@ -55,6 +55,10 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 - `PUT {prefix}/api/v1/auth/password` → `AuthController@updatePassword` (`auth`)
 - `GET {prefix}/api/v1/auth/preferences` → `PreferencesController@show` (`auth`)
 - `PUT {prefix}/api/v1/auth/preferences` → `PreferencesController@update` (`auth`)
+- `GET {prefix}/api/v1/auth/notifications` → `NotificationsController@index` (`auth`)
+- `POST {prefix}/api/v1/auth/notifications/read-all` → `NotificationsController@readAll` (`auth`)
+- `POST {prefix}/api/v1/auth/notifications/{id}/read` → `NotificationsController@read` (`auth`)
+- `DELETE {prefix}/api/v1/auth/notifications/{id}` → `NotificationsController@destroy` (`auth`)
 
 El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
 emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
@@ -68,13 +72,16 @@ Cambiar el email en `auth/profile` lo deja sin verificar y reenvía el enlace;
 canales de notificación) se guardan por usuario y guard en
 `platform_user_preferences` (migración **del paquete**, `loadMigrationsFrom`),
 fusionadas sobre los defaults para que el cliente siempre reciba un objeto
-completo.
+completo. Las notificaciones usan la tabla estándar `notifications` (migración
+del paquete, solo si falta) y el `Notifiable` del modelo; el adapter se apoya en
+`$user->notifications()` y nunca deja tocar filas de otra cuenta.
 
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
-  `EmailVerificationEndpointTest` (5) y `AccountEndpointTest` (8).
-- `composer test --working-dir=demo/api` → **237 passed (2787 assertions)**.
+  `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8) y
+  `NotificationsEndpointTest` (6).
+- `composer test --working-dir=demo/api` → **243 passed (2818 assertions)**.
 - `composer test` (root) → **351 passed (1010 assertions)**.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
@@ -86,7 +93,7 @@ completo.
 2. Registro + verificación email ✅
 3. Perfil (update) + cambio de contraseña ✅
 4. Preferencias (update) ✅
-5. Notificaciones
+5. Notificaciones ✅
 6. Bloqueo/disable
 7. Invitaciones
 8. OTP

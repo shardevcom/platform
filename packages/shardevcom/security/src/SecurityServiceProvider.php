@@ -13,6 +13,7 @@ use Shardevcom\Security\Authentication\AuthBootstrapServiceProvider;
 use Shardevcom\Security\Authentication\ScopeCatalogue;
 use Shardevcom\Security\Http\Controllers\AuthController;
 use Shardevcom\Security\Http\Controllers\EmailVerificationController;
+use Shardevcom\Security\Http\Controllers\NotificationsController;
 use Shardevcom\Security\Http\Controllers\PasswordController;
 use Shardevcom\Security\Http\Controllers\PreferencesController;
 use Shardevcom\Security\Http\Controllers\RegistrationController;
@@ -181,6 +182,22 @@ final class SecurityServiceProvider extends ServiceProvider
                             Route::put('auth/preferences', [PreferencesController::class, 'update'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.preferences.update.'.$guard);
+
+                            Route::get('auth/notifications', [NotificationsController::class, 'index'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.notifications.index.'.$guard);
+
+                            Route::post('auth/notifications/read-all', [NotificationsController::class, 'readAll'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.notifications.read-all.'.$guard);
+
+                            Route::post('auth/notifications/{id}/read', [NotificationsController::class, 'read'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.notifications.read.'.$guard);
+
+                            Route::delete('auth/notifications/{id}', [NotificationsController::class, 'destroy'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.notifications.destroy.'.$guard);
 
                             Route::post('auth/email/verify/resend', [EmailVerificationController::class, 'resend'])
                                 ->defaults('guard', $guard)
