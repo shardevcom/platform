@@ -33,7 +33,7 @@ es el login).
 | 6 | Update perfil + password | ✅ nuevo | ✅ | ⏳ |
 | 7 | Preferencias (update) | ✅ nuevo | ✅ | ⏳ |
 | 8 | Notificaciones | ✅ nuevo | ✅ | ⏳ |
-| 9 | Bloqueo/disable individual | ⏳ | — | ⏳ |
+| 9 | Bloqueo/disable individual | ✅ nuevo | ✅ | ⏳ |
 | 10 | Invitaciones + verificación | ⏳ | — | ⏳ |
 | 11 | OTP login | ⏳ | — | ⏳ |
 | 12 | Passkeys/WebAuthn | ⏳ | — | ⏳ |
@@ -59,6 +59,8 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 - `POST {prefix}/api/v1/auth/notifications/read-all` → `NotificationsController@readAll` (`auth`)
 - `POST {prefix}/api/v1/auth/notifications/{id}/read` → `NotificationsController@read` (`auth`)
 - `DELETE {prefix}/api/v1/auth/notifications/{id}` → `NotificationsController@destroy` (`auth`)
+- `POST {prefix}/api/v1/auth/account/disable` → `AccountController@disable` (`auth`, `current_password`)
+- `POST {prefix}/api/v1/auth/account/reactivate` → `AccountController@reactivate` (público, credenciales)
 
 El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
 emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
@@ -74,14 +76,18 @@ canales de notificación) se guardan por usuario y guard en
 fusionadas sobre los defaults para que el cliente siempre reciba un objeto
 completo. Las notificaciones usan la tabla estándar `notifications` (migración
 del paquete, solo si falta) y el `Notifiable` del modelo; el adapter se apoya en
-`$user->notifications()` y nunca deja tocar filas de otra cuenta.
+`$user->notifications()` y nunca deja tocar filas de otra cuenta. El bloqueo de
+cuenta vive en `platform_user_locks` (migración del paquete, `AccountLock`):
+deshabilitar exige `current_password` y revoca los tokens; el login devuelve
+`ACCOUNT_DISABLED`, y el middleware `account.active` rechaza cualquier token vivo
+de una cuenta deshabilitada. Reactivar exige credenciales.
 
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
-  `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8) y
-  `NotificationsEndpointTest` (6).
-- `composer test --working-dir=demo/api` → **243 passed (2818 assertions)**.
+  `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8),
+  `NotificationsEndpointTest` (6) y `AccountLockEndpointTest` (7).
+- `composer test --working-dir=demo/api` → **250 passed (2845 assertions)**.
 - `composer test` (root) → **351 passed (1010 assertions)**.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
@@ -94,7 +100,7 @@ del paquete, solo si falta) y el `Notifiable` del modelo; el adapter se apoya en
 3. Perfil (update) + cambio de contraseña ✅
 4. Preferencias (update) ✅
 5. Notificaciones ✅
-6. Bloqueo/disable
+6. Bloqueo/disable ✅
 7. Invitaciones
 8. OTP
 9. Passkeys

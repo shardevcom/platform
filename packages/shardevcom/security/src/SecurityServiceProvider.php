@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Shardevcom\Security\Authentication\AuthBootstrapServiceProvider;
 use Shardevcom\Security\Authentication\ScopeCatalogue;
+use Shardevcom\Security\Http\Controllers\AccountController;
 use Shardevcom\Security\Http\Controllers\AuthController;
 use Shardevcom\Security\Http\Controllers\EmailVerificationController;
 use Shardevcom\Security\Http\Controllers\NotificationsController;
@@ -20,6 +21,7 @@ use Shardevcom\Security\Http\Controllers\RegistrationController;
 use Shardevcom\Security\Http\Middleware\BindGuard;
 use Shardevcom\Security\Http\Middleware\CrossTenantIdorMiddleware;
 use Shardevcom\Security\Http\Middleware\CspMiddleware;
+use Shardevcom\Security\Http\Middleware\EnsureAccountActive;
 use Shardevcom\Security\Http\Middleware\RateLimitMiddleware;
 use Shardevcom\Security\Http\Middleware\SecurityHeadersMiddleware;
 
@@ -65,6 +67,7 @@ final class SecurityServiceProvider extends ServiceProvider
         $router->aliasMiddleware('csp', CspMiddleware::class);
         $router->aliasMiddleware('rate.limit', RateLimitMiddleware::class);
         $router->aliasMiddleware('security.headers', SecurityHeadersMiddleware::class);
+        $router->aliasMiddleware('account.active', EnsureAccountActive::class);
 
         // Auto-apply CSP to all API routes
         Route::middleware('csp')->group(function () {
@@ -153,12 +156,16 @@ final class SecurityServiceProvider extends ServiceProvider
                             ->defaults('guard', $guard)
                             ->name('auth.register.'.$guard);
 
+                        Route::post('auth/account/reactivate', [AccountController::class, 'reactivate'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.account.reactivate.'.$guard);
+
                         Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
                             ->middleware('signed')
                             ->defaults('guard', $guard)
                             ->name('auth.email.verify.'.$guard);
 
-                        Route::middleware('auth:'.$apiGuard)->group(function () use ($guard, $apiGuard): void {
+                        Route::middleware(['auth:'.$apiGuard, 'account.active'])->group(function () use ($guard, $apiGuard): void {
                             Route::get('auth/me', [AuthController::class, 'me'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.me.'.$guard);
@@ -202,6 +209,10 @@ final class SecurityServiceProvider extends ServiceProvider
                             Route::post('auth/email/verify/resend', [EmailVerificationController::class, 'resend'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.email.verify.resend.'.$guard);
+
+                            Route::post('auth/account/disable', [AccountController::class, 'disable'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.account.disable.'.$guard);
                         });
                     });
                 });

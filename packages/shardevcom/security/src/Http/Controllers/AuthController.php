@@ -13,6 +13,7 @@ use Shardevcom\Core\Results\ApiError;
 use Shardevcom\Core\Results\ApiResponse;
 use Shardevcom\Security\Authentication\AccessTokenIssuer;
 use Shardevcom\Security\Authentication\UserPresenter;
+use Shardevcom\Security\Infrastructure\AccountLock;
 
 /**
  * First-party token login adapter (demo/showcase surface).
@@ -36,6 +37,7 @@ final class AuthController
         private readonly ConfigRepository $config,
         private readonly AccessTokenIssuer $tokens,
         private readonly UserPresenter $presenter,
+        private readonly AccountLock $locks,
     ) {}
 
     public function login(Request $request): JsonResponse
@@ -68,6 +70,12 @@ final class AuthController
 
         if ($user === null || ! $provider->validateCredentials($user, ['password' => $password])) {
             return $this->error('INVALID_CREDENTIALS', 'These credentials do not match our records.', [], 401);
+        }
+
+        // Checked after credentials so a disabled account is not revealed to
+        // anyone who does not already know its password.
+        if ($this->locks->isDisabled($platform['guard'], $user->getAuthIdentifier())) {
+            return $this->error('ACCOUNT_DISABLED', 'This account has been disabled.', [], 403);
         }
 
         $capabilities = $this->tokens->issue($user, (string) $request->input('device_name', 'spa'));
