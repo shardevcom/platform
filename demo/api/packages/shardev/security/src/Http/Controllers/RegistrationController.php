@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Shardevcom\Security\Http\Controllers;
 
-use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,6 +11,7 @@ use Shardevcom\Core\Results\ApiError;
 use Shardevcom\Core\Results\ApiResponse;
 use Shardevcom\Security\Authentication\AccessTokenIssuer;
 use Shardevcom\Security\Authentication\UserPresenter;
+use Shardevcom\Security\Infrastructure\UserRegistrar;
 
 /**
  * First-party self-registration adapter.
@@ -26,10 +26,10 @@ use Shardevcom\Security\Authentication\UserPresenter;
 final class RegistrationController
 {
     public function __construct(
-        private readonly AuthManager $auth,
         private readonly ConfigRepository $config,
         private readonly AccessTokenIssuer $tokens,
         private readonly UserPresenter $presenter,
+        private readonly UserRegistrar $registrar,
     ) {}
 
     public function register(Request $request): JsonResponse
@@ -69,28 +69,17 @@ final class RegistrationController
             return $this->error('VALIDATION_FAILED', 'The given data was invalid.', $errors, 422);
         }
 
-        $provider = $this->auth->createUserProvider($platform['provider']);
-
-        if ($provider?->retrieveByCredentials(['email' => $email]) !== null) {
+        if ($this->registrar->exists($platform, $email)) {
             return $this->error('VALIDATION_FAILED', 'The given data was invalid.', [
                 'email' => ['The email has already been taken.'],
             ], 422);
         }
 
-        $model = (string) $platform['model'];
+        $user = $this->registrar->create($platform, (string) $name, $email, (string) $password);
 
-        if (! class_exists($model)) {
+        if ($user === null) {
             return $this->error('REGISTRATION_UNAVAILABLE', 'This platform cannot create accounts.', [], 500);
         }
-
-        $user = new $model();
-        $user->forceFill([
-            'name' => trim((string) $name),
-            'email' => $email,
-            // The model's `password` cast is `hashed`, so the plain value is
-            // hashed on assignment.
-            'password' => $password,
-        ])->save();
 
         if (($platform['features']['verification'] ?? false) && method_exists($user, 'sendEmailVerificationNotification')) {
             $user->sendEmailVerificationNotification();

@@ -37,6 +37,19 @@ return [
         'url' => env('FRONTEND_URL', env('PASSWORD_RESET_FRONTEND_URL', '')),
         'password_reset_path' => '/reset-password',
         'email_verification_path' => '/verify-email',
+        'invitation_path' => '/accept-invitation',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Invitations
+    |--------------------------------------------------------------------------
+    |
+    | How long an invitation stays valid before it must be reissued.
+    |
+    */
+    'invitations' => [
+        'ttl_hours' => (int) env('INVITATIONS_TTL_HOURS', 72),
     ],
 
     'csp' => [

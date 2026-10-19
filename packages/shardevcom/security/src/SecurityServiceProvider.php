@@ -14,6 +14,7 @@ use Shardevcom\Security\Authentication\ScopeCatalogue;
 use Shardevcom\Security\Http\Controllers\AccountController;
 use Shardevcom\Security\Http\Controllers\AuthController;
 use Shardevcom\Security\Http\Controllers\EmailVerificationController;
+use Shardevcom\Security\Http\Controllers\InvitationController;
 use Shardevcom\Security\Http\Controllers\NotificationsController;
 use Shardevcom\Security\Http\Controllers\PasswordController;
 use Shardevcom\Security\Http\Controllers\PreferencesController;
@@ -160,6 +161,14 @@ final class SecurityServiceProvider extends ServiceProvider
                             ->defaults('guard', $guard)
                             ->name('auth.account.reactivate.'.$guard);
 
+                        Route::get('auth/invitations/{token}', [InvitationController::class, 'show'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.invitations.show.'.$guard);
+
+                        Route::post('auth/invitations/accept', [InvitationController::class, 'accept'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.invitations.accept.'.$guard);
+
                         Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
                             ->middleware('signed')
                             ->defaults('guard', $guard)
@@ -213,6 +222,10 @@ final class SecurityServiceProvider extends ServiceProvider
                             Route::post('auth/account/disable', [AccountController::class, 'disable'])
                                 ->defaults('guard', $guard)
                                 ->name('auth.account.disable.'.$guard);
+
+                            Route::post('auth/invitations', [InvitationController::class, 'store'])
+                                ->defaults('guard', $guard)
+                                ->name('auth.invitations.store.'.$guard);
                         });
                     });
                 });

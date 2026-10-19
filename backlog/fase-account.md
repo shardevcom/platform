@@ -34,7 +34,7 @@ es el login).
 | 7 | Preferencias (update) | ✅ nuevo | ✅ | ⏳ |
 | 8 | Notificaciones | ✅ nuevo | ✅ | ⏳ |
 | 9 | Bloqueo/disable individual | ✅ nuevo | ✅ | ⏳ |
-| 10 | Invitaciones + verificación | ⏳ | — | ⏳ |
+| 10 | Invitaciones + verificación | ✅ nuevo | ✅ | ⏳ |
 | 11 | OTP login | ⏳ | — | ⏳ |
 | 12 | Passkeys/WebAuthn | ⏳ | — | ⏳ |
 | 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ⏳ |
@@ -61,6 +61,9 @@ Registrados por plataforma en `SecurityServiceProvider::loadAuthRoutes()`, con
 - `DELETE {prefix}/api/v1/auth/notifications/{id}` → `NotificationsController@destroy` (`auth`)
 - `POST {prefix}/api/v1/auth/account/disable` → `AccountController@disable` (`auth`, `current_password`)
 - `POST {prefix}/api/v1/auth/account/reactivate` → `AccountController@reactivate` (público, credenciales)
+- `POST {prefix}/api/v1/auth/invitations` → `InvitationController@store` (`auth`)
+- `GET {prefix}/api/v1/auth/invitations/{token}` → `InvitationController@show` (público)
+- `POST {prefix}/api/v1/auth/invitations/accept` → `InvitationController@accept` (público)
 
 El registro crea la cuenta por el modelo de la plataforma (mismo que su provider),
 emite el token igual que el login (shared `AccessTokenIssuer`/`UserPresenter`) y,
@@ -80,14 +83,20 @@ del paquete, solo si falta) y el `Notifiable` del modelo; el adapter se apoya en
 cuenta vive en `platform_user_locks` (migración del paquete, `AccountLock`):
 deshabilitar exige `current_password` y revoca los tokens; el login devuelve
 `ACCOUNT_DISABLED`, y el middleware `account.active` rechaza cualquier token vivo
-de una cuenta deshabilitada. Reactivar exige credenciales.
+de una cuenta deshabilitada. Reactivar exige credenciales. Las invitaciones viven
+en `platform_invitations` (migración del paquete; token guardado con SHA-256,
+`security.invitations.ttl_hours`): un miembro autenticado invita un email, el
+invitado inspecciona el token y lo acepta con nombre + contraseña, creando la
+cuenta ya verificada. `UserRegistrar` centraliza la creación de cuentas para que
+registro e invitación no diverjan.
 
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
   `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8),
-  `NotificationsEndpointTest` (6) y `AccountLockEndpointTest` (7).
-- `composer test --working-dir=demo/api` → **250 passed (2845 assertions)**.
+  `NotificationsEndpointTest` (6), `AccountLockEndpointTest` (7) y
+  `InvitationEndpointTest` (7).
+- `composer test --working-dir=demo/api` → **257 passed (2888 assertions)**.
 - `composer test` (root) → **351 passed (1010 assertions)**.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
@@ -101,7 +110,7 @@ de una cuenta deshabilitada. Reactivar exige credenciales.
 4. Preferencias (update) ✅
 5. Notificaciones ✅
 6. Bloqueo/disable ✅
-7. Invitaciones
+7. Invitaciones ✅
 8. OTP
 9. Passkeys
 10. Flag público/privado en `platform.json` + `guard add`
