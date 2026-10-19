@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Shardevcom\Security;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Shardevcom\Security\Authentication\AuthBootstrapServiceProvider;
 use Shardevcom\Security\Authentication\ScopeCatalogue;
 use Shardevcom\Security\Http\Controllers\AuthController;
+use Shardevcom\Security\Http\Controllers\PasswordController;
 use Shardevcom\Security\Http\Middleware\BindGuard;
 use Shardevcom\Security\Http\Middleware\CrossTenantIdorMiddleware;
 use Shardevcom\Security\Http\Middleware\CspMiddleware;
@@ -59,6 +61,23 @@ final class SecurityServiceProvider extends ServiceProvider
             // CSP is applied globally via middleware registration in kernel
         });
 
+        // Point the reset email at the first-party SPA instead of Laravel's
+        // default `password.reset` route, which does not exist in an API-only
+        // app. The base URL is optional (dev often reads the link from logs).
+        $frontend = rtrim((string) config('security.password_reset.frontend_url', ''), '/');
+
+        if ($frontend !== '') {
+            ResetPassword::createUrlUsing(static function (object $notifiable, string $token) use ($frontend): string {
+                $guard = method_exists($notifiable, 'getGuard') ? (string) $notifiable->getGuard() : '';
+
+                return $frontend.'/reset-password?'.http_build_query([
+                    'token' => $token,
+                    'email' => $notifiable->getEmailForPasswordReset(),
+                    'guard' => $guard,
+                ]);
+            });
+        }
+
         $this->loadAuthRoutes();
     }
 
@@ -92,6 +111,14 @@ final class SecurityServiceProvider extends ServiceProvider
                         Route::post('auth/login', [AuthController::class, 'login'])
                             ->defaults('guard', $guard)
                             ->name('auth.login.'.$guard);
+
+                        Route::post('auth/forgot-password', [PasswordController::class, 'sendResetLink'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.password.email.'.$guard);
+
+                        Route::post('auth/reset-password', [PasswordController::class, 'reset'])
+                            ->defaults('guard', $guard)
+                            ->name('auth.password.reset.'.$guard);
 
                         Route::middleware('auth:'.$apiGuard)->group(function () use ($guard, $apiGuard): void {
                             Route::get('auth/me', [AuthController::class, 'me'])
