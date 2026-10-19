@@ -71,6 +71,37 @@ final class WorkspaceCommandTest extends TestCase
         $this->assertTrue($process->ranIn('npm run dev:admin', self::ROOT.'/web'));
     }
 
+    public function test_build_accepts_a_guard_the_component_serves(): void
+    {
+        $process = new FakeProcessRunner();
+
+        $exit = $this->execute(['platform', 'build', 'web', '--guard=admin'], $this->workspaceFiles(), $process);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($process->ranIn('npm run build:admin', self::ROOT.'/web'));
+    }
+
+    public function test_build_rejects_a_guard_the_component_does_not_serve(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'build', 'web', '--guard=partner'], $this->workspaceFiles(), new FakeProcessRunner(), $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString("does not serve the 'partner' guard", $recorder->stderr());
+        $this->assertStringContainsString('known: admin', $recorder->stderr());
+    }
+
+    public function test_dev_rejects_an_unknown_guard(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(['platform', 'dev', 'web', '--guard=partner'], $this->workspaceFiles(), new FakeProcessRunner(), $recorder);
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString("does not serve the 'partner' guard", $recorder->stderr());
+    }
+
     public function test_add_scaffolds_a_component_and_records_it(): void
     {
         $filesystem = $this->workspaceFiles();

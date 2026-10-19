@@ -788,6 +788,9 @@ ningún comando ramifica por tipo:
 | `mobile`  | `flutter pub get`     | `flutter build apk`    | `flutter run --dart-define=GUARD=<guard>` |
 | `desktop` | `./gradlew build -x test` | `./gradlew build` | `./gradlew :apps:<app>:run` |
 
+`build`/`dev` aceptan `--guard=<guard>`; el guard debe estar en la lista del
+componente (`platform.json`), si no el comando falla y lista los guards válidos.
+
 Comandos:
 
 ```bash

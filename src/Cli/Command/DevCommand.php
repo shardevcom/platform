@@ -9,6 +9,7 @@ use Shardevcom\Cli\Console\Printer;
 use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
+use Shardevcom\Cli\Workspace\ComponentSelector;
 use Shardevcom\Cli\Workspace\ComponentType;
 use Shardevcom\Cli\Workspace\DriverRegistry;
 
@@ -69,7 +70,7 @@ final class DevCommand implements CommandInterface
         $workspace = $context->requireWorkspace();
         $component = $workspace->manifest->component($name);
         $printer = $context->printer();
-        $guard = $input->option('guard');
+        $guard = ComponentSelector::guard($component, $input->option('guard'));
 
         $label = $guard === null ? $component->name : $component->name.':'.$guard;
         $printer->heading("Starting {$label} ({$component->type->value})");

@@ -101,7 +101,7 @@ grep -rn "whereRaw(\$request" packages/ || echo "SIN WHERERAW DESDE CLIENTE OK"
 
 ## Estado actual global (análisis 2026-10-15)
 
-- **Framework (root):** 348 tests / 1003 assertions — **OK**. CLI (`bin/platform`) completo (new, add, remove, install, build, dev, status, package make/list, doctor, config, demo, plugin list/show). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
+- **Framework (root):** 351 tests / 1010 assertions — **OK**. CLI (`bin/platform`) completo (new, add, remove, install, build, dev, status, package make/list, doctor, config, demo, plugin list/show). Core agnóstico (Contracts, ApplicationContext, ResourceAction, Exceptions, ApiResponse) completo.
 - **Packages (fuente):** `core`, `application`, `resources`, `authorization`, `persistence`, `configuration`, `rest`, `graphql`, `security`, `socialite`, `twofactor`, `widgets`, `observability`, `documentation`, `product`, `catalog` — implementados con arquitectura limpia (adapters delgados, lifecycle único, repo base sobre persistencia Eloquent trait).
 - **Demo (fixture y workspace):** 212 tests / 2657 assertions — **OK, todo verde**. `demo/platform.json` convierte el propio demo en workspace, así que `platform status`/`doctor` operan igual desde `demo/`.
 - **Arquitectura:** CORE LIMPIO confirmado por grep (sin Eloquent/Http/`abort()` en `core/src`), adapters sin `::query()`, sin `whereRaw` desde request, lifecycle único, ApplicationContext con user/tenant/application separados. El bootstrap de auth (`AuthBootstrapServiceProvider`) y el middleware `BindGuard` viven ahora en el paquete `security`, no en `core`.

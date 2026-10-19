@@ -82,6 +82,7 @@ final class BuildCommand implements CommandInterface
 
     private function build(DriverRegistry $registry, Component $component, Workspace $workspace, Printer $printer, ?string $guard): void
     {
+        $guard = ComponentSelector::guard($component, $guard);
         $path = $workspace->componentPath($component->name);
         $label = $guard === null ? $component->name : $component->name.':'.$guard;
         $printer->step(1, 1, "Building {$label} ({$component->type->value})");

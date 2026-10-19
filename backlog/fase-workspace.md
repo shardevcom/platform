@@ -268,7 +268,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 
 ## Verificación
 
-- `composer test` (root): **348 tests / 1003 assertions** — OK.
+- `composer test` (root): **351 tests / 1010 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
@@ -276,6 +276,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
     platforms de la API y `--guards` los fija (api incluida aparte); deja
     `platform.sh` ejecutable en la raíz.
   - `WorkspaceCommandTest`: status/install/build/dev/add/remove por manifiesto,
+    `--guard` servido (build) o rechazado con el guard desconocido (build/dev),
     incluyendo "no es un workspace".
   - `GuardCommandTest`: `guard add` escribe `config/platforms.php`, modelo,
     migraciones y el seeder de usuario demo, registra el guard en los
@@ -323,6 +324,8 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 - `platform config` en `demo/` muestra el manifiesto; `config disable desktop`,
   `config guard web employee` y la vuelta a `config enable desktop` editan
   `platform.json` correctamente (restaurado tras la prueba).
+- `platform build web --guard=partner` en `demo/` falla con
+  `Component 'web' does not serve the 'partner' guard (known: web, admin, employee).`
 
 ## Pendiente / siguiente iteración
 
@@ -330,7 +333,7 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
   registra el guard en cada `plugin.json` (modo `read`), siembra el usuario demo,
   extiende los enums de cada cliente y añade una **vista placeholder** por plugin
   (`GuardPluginScaffolder`) para que la SPA monte el guard nuevo; el autor del
-  plugin sustituye luego el placeholder por la pantalla real. Queda pendiente
-  validar `--guard` (rechazar un guard desconocido o que no viva en la API).
+  plugin sustituye luego el placeholder por la pantalla real.
 - `platform dev`/`build` del demo: los clientes son monorepos con una app por
-  guard; `--guard` permite apuntar a una sola.
+  guard; `--guard` permite apuntar a una sola (y el CLI rechaza un guard que el
+  componente no sirve, ver `ComponentSelector::guard`).

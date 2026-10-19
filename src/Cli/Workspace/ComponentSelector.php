@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Shardevcom\Cli\Workspace;
 
+use Shardevcom\Cli\Exception\CommandFailed;
+
 /**
  * Resolves which components a workspace command should act on.
  *
@@ -13,6 +15,30 @@ namespace Shardevcom\Cli\Workspace;
  */
 final class ComponentSelector
 {
+    /**
+     * Resolves the guard a build/dev command targets.
+     *
+     * `--guard` must name a guard the component actually serves: otherwise the
+     * driver would shell out to a non-existent app (`npm run dev:<guard>`).
+     * Kept here so build and dev reject an unknown guard the same way.
+     */
+    public static function guard(Component $component, ?string $guard): ?string
+    {
+        if ($guard === null || $guard === '') {
+            return null;
+        }
+
+        if ($component->serves($guard)) {
+            return $guard;
+        }
+
+        $known = $component->guards === [] ? 'none' : implode(', ', $component->guards);
+
+        throw CommandFailed::create(
+            "Component '{$component->name}' does not serve the '{$guard}' guard (known: {$known})."
+        );
+    }
+
     /**
      * @return list<Component>
      */
