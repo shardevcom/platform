@@ -27,6 +27,7 @@ final class GuardDefinition
         public readonly ?string $apiGuard,
         public readonly string $passwordResetTable,
         public readonly array $middleware,
+        public readonly bool $public = false,
     ) {}
 
     public static function create(
@@ -36,9 +37,11 @@ final class GuardDefinition
         ?string $table = null,
         ?string $driver = null,
         ?string $prefix = null,
+        ?bool $public = null,
     ): self {
         $driver ??= 'passport';
         $table ??= $key.'s';
+        $public ??= $key === 'web';
 
         $middleware = $driver === 'session'
             ? ['correlation', 'rate.limit', 'web']
@@ -54,6 +57,7 @@ final class GuardDefinition
             apiGuard: $driver === 'session' ? 'api' : null,
             passwordResetTable: $table.'_password_resets',
             middleware: $middleware,
+            public: $public,
         );
     }
 
@@ -111,6 +115,7 @@ final class GuardDefinition
             $this->middleware
         )).'],';
         $lines[] = $pad."'password_reset_table' => '{$this->passwordResetTable}',";
+        $lines[] = $pad.'\'public\' => '.($this->public ? 'true' : 'false').',';
         $lines[] = $indent.'],';
 
         return implode("\n", $lines);

@@ -29,10 +29,10 @@ my-project/                 # workspace (NO Laravel)
   "name": "my-project",
   "platform": "0.1.0",
   "components": {
-    "api":     { "type": "api",     "path": "api",     "guards": ["web","admin"], "enabled": true },
-    "web":     { "type": "web",     "path": "web",     "guards": ["web","admin"], "enabled": true },
-    "mobile":  { "type": "mobile",  "path": "mobile",  "guards": ["web","admin"], "enabled": false },
-    "desktop": { "type": "desktop", "path": "desktop", "guards": ["web","admin"], "enabled": false }
+    "api":     { "type": "api",     "path": "api",     "guards": { "web": { "public": true }, "admin": { "public": false } }, "enabled": true },
+    "web":     { "type": "web",     "path": "web",     "guards": { "web": { "public": true }, "admin": { "public": false } }, "enabled": true },
+    "mobile":  { "type": "mobile",  "path": "mobile",  "guards": { "web": { "public": true }, "admin": { "public": false } }, "enabled": false },
+    "desktop": { "type": "desktop", "path": "desktop", "guards": { "web": { "public": true }, "admin": { "public": false } }, "enabled": false }
   }
 }
 ```
@@ -201,7 +201,7 @@ Todos requieren un workspace (`Context::requireWorkspace`).
 
 El propio `demo/` es un workspace: `demo/platform.json` (escrito por
 `WorkspaceManifest`, no a mano) declara los cuatro componentes con
-`guards: ["web","admin","employee"]` (los tres guards que publica la API). Así
+`guards: { web: public, admin: private, employee: private }` (los tres guards que publica la API). Así
 `platform status` y `platform doctor` funcionan igual desde `demo/` que desde un
 proyecto recién generado, y el demo deja de ser un fixture "invisible" para el
 CLI.

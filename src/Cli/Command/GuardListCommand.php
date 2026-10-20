@@ -72,10 +72,14 @@ final class GuardListCommand implements CommandInterface
                 }
             }
 
-            $rows[] = [$guard, $served === [] ? '—' : implode(', ', $served)];
+            $rows[] = [
+                $guard,
+                $workspace->manifest->isPublicGuard($guard) ? 'public' : 'private',
+                $served === [] ? '—' : implode(', ', $served),
+            ];
         }
 
-        $printer->table(['Guard', 'Served by'], $rows);
+        $printer->table(['Guard', 'Visibility', 'Served by'], $rows);
 
         return 0;
     }

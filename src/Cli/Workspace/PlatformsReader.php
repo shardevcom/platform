@@ -23,6 +23,19 @@ final class PlatformsReader
      */
     public function keys(string $apiPath): array
     {
+        return array_keys($this->visibility($apiPath));
+    }
+
+    /**
+     * Guard name => whether its client view is public, as declared by the API.
+     *
+     * Each platform block runs from its `'key' => '...'` line to the next one;
+     * `'public' => true` anywhere inside that block marks the guard public.
+     *
+     * @return array<string, bool>
+     */
+    public function visibility(string $apiPath): array
+    {
         $file = rtrim($apiPath, '/').'/config/platforms.php';
 
         if (! $this->filesystem->isFile($file)) {
@@ -30,8 +43,24 @@ final class PlatformsReader
         }
 
         $config = $this->filesystem->read($file);
-        preg_match_all("/'key'\s*=>\s*'([a-z0-9_-]+)'/i", $config, $matches);
+        preg_match_all("/'key'\s*=>\s*'([a-z0-9_-]+)'/i", $config, $matches, PREG_OFFSET_CAPTURE);
 
-        return array_values(array_unique($matches[1] ?? []));
+        $visibility = [];
+        $found = $matches[1] ?? [];
+
+        foreach ($found as $index => $match) {
+            $key = $match[0];
+            $start = $match[1];
+            $end = $found[$index + 1][1] ?? strlen($config);
+            $block = substr($config, $start, $end - $start);
+
+            $visibility[$key] = match (true) {
+                preg_match("/'public'\s*=>\s*true/i", $block) === 1 => true,
+                preg_match("/'public'\s*=>\s*false/i", $block) === 1 => false,
+                default => $key === 'web',
+            };
+        }
+
+        return $visibility;
     }
 }

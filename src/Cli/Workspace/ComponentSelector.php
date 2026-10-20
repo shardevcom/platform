@@ -32,7 +32,7 @@ final class ComponentSelector
             return $guard;
         }
 
-        $known = $component->guards === [] ? 'none' : implode(', ', $component->guards);
+        $known = $component->guards === [] ? 'none' : implode(', ', $component->guardNames());
 
         throw CommandFailed::create(
             "Component '{$component->name}' does not serve the '{$guard}' guard (known: {$known})."

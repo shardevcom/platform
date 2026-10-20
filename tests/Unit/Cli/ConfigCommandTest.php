@@ -278,9 +278,36 @@ final class ConfigCommandTest extends TestCase
 
         $this->assertSame(0, $exit);
         $this->assertSame(
-            ['employee', 'admin'],
+            ['employee' => ['public' => false], 'admin' => ['public' => false]],
             $filesystem->readJson('/app/platform.json')['components']['web']['guards']
         );
+    }
+
+    public function test_sets_guard_visibility(): void
+    {
+        $filesystem = $this->workspaceFilesystem();
+
+        $exit = $this->execute(['platform', 'config', 'guard', 'web', 'web:public,admin'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertSame(
+            ['web' => ['public' => true], 'admin' => ['public' => false]],
+            $filesystem->readJson('/app/platform.json')['components']['web']['guards']
+        );
+    }
+
+    public function test_rejects_an_invalid_visibility(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(
+            ['platform', 'config', 'guard', 'web', 'web:everyone'],
+            $this->workspaceFilesystem(),
+            $recorder
+        );
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString("Invalid visibility 'everyone'", $recorder->stderr());
     }
 
     public function test_rejects_changing_the_api_guards(): void

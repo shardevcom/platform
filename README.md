@@ -770,10 +770,10 @@ mi-proyecto/
   "name": "mi-proyecto",
   "platform": "0.1.0",
   "components": {
-    "api":     { "type": "api",     "path": "api",     "guards": [],          "enabled": true },
-    "web":     { "type": "web",     "path": "web",     "guards": ["web"],     "enabled": true },
-    "mobile":  { "type": "mobile",  "path": "mobile",  "guards": ["web"],     "enabled": false },
-    "desktop": { "type": "desktop", "path": "desktop", "guards": ["web"],     "enabled": false }
+    "api":     { "type": "api",     "path": "api",     "guards": {},                                  "enabled": true },
+    "web":     { "type": "web",     "path": "web",     "guards": { "web": { "public": true } },       "enabled": true },
+    "mobile":  { "type": "mobile",  "path": "mobile",  "guards": { "web": { "public": true } },       "enabled": false },
+    "desktop": { "type": "desktop", "path": "desktop", "guards": { "web": { "public": true } },       "enabled": false }
   }
 }
 ```
@@ -794,14 +794,14 @@ componente (`platform.json`), si no el comando falla y lista los guards válidos
 Comandos:
 
 ```bash
-platform new <name> [--with=api,web,mobile,desktop] [--guards=web,admin] [--laravel=12] [--no-interaction] [--no-install]
-platform add <component> [--guards=web,admin] [--path=web] [--no-install]
+platform new <name> [--with=api,web,mobile,desktop] [--guards=web:public,admin] [--laravel=12] [--no-interaction] [--no-install]
+platform add <component> [--guards=web:public,admin] [--path=web] [--no-install]
 platform remove <component> [--delete]
 platform install [component] [--only=web,mobile]
 platform build   [component] [--only=web,mobile] [--guard=admin]
 platform dev     <component> [--guard=admin]
 platform status
-platform guard add <guard> [--driver=passport] [--no-clients] [--no-plugins] [--no-migrate] [--no-seed]
+platform guard add <guard> [--driver=passport] [--public|--private] [--no-clients] [--no-plugins] [--no-migrate] [--no-seed]
 platform guard list
 platform doctor [--only=<component>]
 platform config name <name> | guard <component> <list> | enable|disable <component>
@@ -812,9 +812,12 @@ Cada componente sirve **N guards**: la API los publica en
 (entrada de plataforma + modelo + migraciones + seeder de usuario demo + registro
 en cada `plugin.json` instalado + extensión de los enums/presets de cada cliente
 + una app por guard + una vista placeholder por plugin para que el guard ya se
-monte). El manifiesto guarda la lista `guards` por componente. `--guards` en
-`new` (y en `add`) fija esa lista para los clientes; sin él, los clientes espejan
-los guards que publica la API.
+monte). El manifiesto guarda por componente un objeto `guards` (`{ "web": { "public": true } }`):
+un guard **público** abre su app directamente y uno **privado** arranca en el
+login. `--guards` en `new`/`add` fija la lista y la visibilidad para los clientes
+(`web:public,admin`, sin sufijo = privado salvo `web`); sin él, los clientes
+espejan los guards y la visibilidad que publica la API. Las listas antiguas
+(`["web"]`) siguen cargando y se leen como privadas salvo `web`.
 
 ### `platform.sh` — shell de control
 
@@ -846,7 +849,7 @@ API conserva sus suites y un cliente queda acotado a su `Workspace` +
 `Client requirements`. Detalle de diseño: `backlog/fase-workspace.md`.
 
 El propio `demo/` es un workspace: `demo/platform.json` declara `api`, `web`,
-`mobile` y `desktop` con `guards: ["web","admin","employee"]`, así que
+`mobile` y `desktop` con `guards: { web: public, admin/employee: private }`, así que
 `platform status` y `platform doctor` funcionan igual desde `demo/` que desde un
 proyecto recién generado.
 

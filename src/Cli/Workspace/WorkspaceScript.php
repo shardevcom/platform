@@ -79,7 +79,7 @@ component_field() { # <name> <path|guards|enabled>
     if($c===null){exit(0);}
     switch($argv[3]){
       case "path": echo $c["path"]??$argv[2]; break;
-      case "guards": echo implode(" ",array_map("strval",$c["guards"]??[])); break;
+      case "guards": $n=[];foreach(($c["guards"]??[]) as $k=>$v){$n[]=is_string($k)?$k:(string)$v;}echo implode(" ",$n); break;
       case "enabled": echo !empty($c["enabled"])?"1":"0"; break;
     }
   ' "$MANIFEST" "$1" "$2"
@@ -95,7 +95,7 @@ comp_guards()   { component_field "$1" guards; }
 comp_enabled()  { [ "$(component_field "$1" enabled)" = "1" ]; }
 
 all_guards() {
-  php -r '$d=json_decode((string)file_get_contents($argv[1]),true);$g=[];foreach(($d["components"]??[]) as $c){foreach(($c["guards"]??[]) as $x){$g[(string)$x]=1;}}echo implode(" ",array_keys($g));' "$MANIFEST"
+  php -r '$d=json_decode((string)file_get_contents($argv[1]),true);$g=[];foreach(($d["components"]??[]) as $c){foreach(($c["guards"]??[]) as $k=>$v){$g[is_string($k)?$k:(string)$v]=1;}}echo implode(" ",array_keys($g));' "$MANIFEST"
 }
 
 app_for_guard() { if [ "$1" = "web" ]; then printf 'user'; else printf '%s' "$1"; fi; }

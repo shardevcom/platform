@@ -46,7 +46,7 @@ final class AddCommand implements CommandInterface
             arguments: ['component' => 'Component to add: '.implode(', ', ComponentType::names())],
             options: [
                 'guards' => [
-                    'description' => 'Comma-separated guards this client serves (defaults to the API platforms)',
+                    'description' => 'Comma-separated guards this client serves, optionally with :public/:private (defaults to the API platforms)',
                     'value' => true,
                 ],
                 'path' => [
@@ -73,13 +73,13 @@ final class AddCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform add');
-            $printer->info('Usage: platform add <component> [--guards=web,admin] [--path=web] [--no-install]');
+            $printer->info('Usage: platform add <component> [--guards=web:public,admin] [--path=web] [--no-install]');
             $printer->writeln();
             $printer->writeln('  Arguments & options:');
             $printer->table([], $this->getDefinition()->helpRows());
             $printer->writeln();
             $printer->note('Run it from the workspace root; the component is recorded in platform.json.');
-            $printer->note('Without --guards the component mirrors the guards the API exposes.');
+            $printer->note('Without --guards the component mirrors the guards and visibility the API exposes.');
         });
     }
 
@@ -119,23 +119,31 @@ final class AddCommand implements CommandInterface
     }
 
     /**
-     * @return list<string>
+     * @return array<string, bool>
      */
     private function guards(Input $input, Context $context, Workspace $workspace, ComponentType $type): array
     {
         $option = $input->option('guards');
 
         if ($option !== null) {
-            return array_values(array_filter(
-                array_map('trim', explode(',', $option)),
-                static fn (string $guard): bool => $guard !== ''
-            ));
+            $guards = [];
+
+            foreach (array_filter(array_map('trim', explode(',', $option))) as $entry) {
+                [$guard, $visibility] = array_pad(explode(':', $entry, 2), 2, null);
+                $guards[$guard] = $visibility === null ? $guard === 'web' : $visibility === 'public';
+            }
+
+            return $guards;
         }
 
         $api = $workspace->manifest->has('api') ? $workspace->componentPath('api') : null;
-        $guards = $api !== null ? (new PlatformsReader($context->filesystem))->keys($api) : [];
+        $guards = $api !== null ? (new PlatformsReader($context->filesystem))->visibility($api) : [];
 
-        return $guards !== [] ? $guards : $type->defaultGuards();
+        if ($guards !== []) {
+            return $guards;
+        }
+
+        return Component::create($type->value)->guards;
     }
 
     private function laravelConstraint(string $laravel): string

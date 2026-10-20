@@ -5,41 +5,65 @@
         "api": {
             "type": "api",
             "path": "api",
-            "guards": [
-                "web",
-                "admin",
-                "employee"
-            ],
+            "guards": {
+                "web": {
+                    "public": true
+                },
+                "admin": {
+                    "public": false
+                },
+                "employee": {
+                    "public": false
+                }
+            },
             "enabled": true
         },
         "web": {
             "type": "web",
             "path": "web",
-            "guards": [
-                "web",
-                "admin",
-                "employee"
-            ],
+            "guards": {
+                "web": {
+                    "public": true
+                },
+                "admin": {
+                    "public": false
+                },
+                "employee": {
+                    "public": false
+                }
+            },
             "enabled": true
         },
         "mobile": {
             "type": "mobile",
             "path": "mobile",
-            "guards": [
-                "web",
-                "admin",
-                "employee"
-            ],
+            "guards": {
+                "web": {
+                    "public": true
+                },
+                "admin": {
+                    "public": false
+                },
+                "employee": {
+                    "public": false
+                }
+            },
             "enabled": true
         },
         "desktop": {
             "type": "desktop",
             "path": "desktop",
-            "guards": [
-                "web",
-                "admin",
-                "employee"
-            ],
+            "guards": {
+                "web": {
+                    "public": true
+                },
+                "admin": {
+                    "public": false
+                },
+                "employee": {
+                    "public": false
+                }
+            },
             "enabled": true
         }
     }

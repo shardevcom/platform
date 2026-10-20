@@ -117,7 +117,7 @@ final class ConfigCommand implements GroupCommandInterface
                         $component->name,
                         $component->type->value,
                         $component->path,
-                        $component->guards === [] ? '—' : implode(', ', $component->guards),
+                        $component->guards === [] ? '—' : implode(', ', $component->guardNames()),
                         $component->enabled ? 'yes' : 'no',
                     ],
                     array_values($workspace->manifest->components())

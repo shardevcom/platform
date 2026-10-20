@@ -56,7 +56,7 @@ final class NewCommand implements CommandInterface
                     'default' => 'api',
                 ],
                 'guards' => [
-                    'description' => 'Comma-separated guards the clients serve (defaults to the API platforms)',
+                    'description' => 'Comma-separated guards the clients serve; append :public to open the app directly (e.g. web:public,admin)',
                     'value' => true,
                 ],
                 'no-interaction' => [
@@ -74,13 +74,14 @@ final class NewCommand implements CommandInterface
     {
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform new');
-            $printer->info('Usage: platform new <target> [--with=api,web,mobile,desktop] [--guards=web,admin] [--laravel=12] [--no-interaction] [--no-install]');
+            $printer->info('Usage: platform new <target> [--with=api,web,mobile,desktop] [--guards=web:public,admin] [--laravel=12] [--no-interaction] [--no-install]');
             $printer->writeln();
             $printer->writeln('  Arguments & options:');
             $printer->table([], $this->getDefinition()->helpRows());
             $printer->writeln();
             $printer->note('The workspace root holds platform.json; the API and every client are independent components.');
-            $printer->note('Without --guards the clients mirror the guards the API exposes.');
+            $printer->note('Without --guards the clients mirror the guards and visibility the API exposes.');
+            $printer->note('A public guard opens its app directly; a private guard (the default) starts on login.');
             $printer->note('Manage them with: platform add, platform install, platform build, platform dev, platform status.');
         });
     }
@@ -124,7 +125,7 @@ final class NewCommand implements CommandInterface
             static fn (Component $component): array => [
                 $component->name,
                 $component->path,
-                $component->guards === [] ? '—' : implode(', ', $component->guards),
+                self::guardLabel($component),
             ],
             array_values($manifest->components())
         ));
@@ -143,7 +144,7 @@ final class NewCommand implements CommandInterface
     }
 
     /**
-     * @param list<string>|null $guards guards the clients serve, when given explicitly
+     * @param array<string, bool>|null $guards guards the clients serve, when given explicitly
      *
      * @return list<Component>
      */
@@ -166,7 +167,7 @@ final class NewCommand implements CommandInterface
     }
 
     /**
-     * @return list<string>|null
+     * @return array<string, bool>|null
      */
     private function guards(mixed $option): ?array
     {
@@ -174,24 +175,49 @@ final class NewCommand implements CommandInterface
             return null;
         }
 
-        $guards = array_values(array_filter(
+        $entries = array_values(array_filter(
             array_map('trim', explode(',', (string) $option)),
-            static fn (string $guard): bool => $guard !== ''
+            static fn (string $entry): bool => $entry !== ''
         ));
 
-        if ($guards === []) {
+        if ($entries === []) {
             throw InvalidInput::create('--guards expects at least one guard name.');
         }
 
-        foreach ($guards as $guard) {
+        $guards = [];
+
+        foreach ($entries as $entry) {
+            [$guard, $visibility] = array_pad(explode(':', $entry, 2), 2, null);
+
             if (preg_match('/^[a-z][a-z0-9_-]*$/', $guard) !== 1) {
                 throw InvalidInput::create(
                     "Invalid guard '{$guard}'. Use lowercase letters, digits, dashes and underscores, starting with a letter."
                 );
             }
+
+            if ($visibility !== null && ! in_array($visibility, ['public', 'private'], true)) {
+                throw InvalidInput::create(
+                    "Invalid visibility '{$visibility}' for guard '{$guard}'. Use ':public' or ':private'."
+                );
+            }
+
+            $guards[$guard] = $visibility === null ? $guard === 'web' : $visibility === 'public';
         }
 
         return $guards;
+    }
+
+    private static function guardLabel(Component $component): string
+    {
+        if ($component->guards === []) {
+            return '—';
+        }
+
+        return implode(', ', array_map(
+            static fn (string $guard, bool $public): string => $public ? $guard.' (public)' : $guard,
+            $component->guardNames(),
+            array_values($component->guards),
+        ));
     }
 
     private function laravelConstraint(string $laravel): string

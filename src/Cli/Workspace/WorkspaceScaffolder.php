@@ -134,7 +134,8 @@ final class WorkspaceScaffolder
         }
 
         $api = $manifest->component('api');
-        $guards = (new PlatformsReader($this->context->filesystem))->keys(rtrim($root, '/').'/'.$api->path);
+        $guards = (new PlatformsReader($this->context->filesystem))
+            ->visibility(rtrim($root, '/').'/'.$api->path);
 
         if ($guards === []) {
             return $manifest;

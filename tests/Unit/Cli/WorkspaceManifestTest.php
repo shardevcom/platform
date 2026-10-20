@@ -33,7 +33,7 @@ final class WorkspaceManifestTest extends TestCase
         $this->assertSame('demo', $loaded->name);
         $this->assertTrue($loaded->has('api'));
         $this->assertSame(ComponentType::Api, $loaded->component('api')->type);
-        $this->assertSame(['web'], $loaded->component('web')->guards);
+        $this->assertSame(['web' => true], $loaded->component('web')->guards);
         $this->assertCount(2, $loaded->enabled());
     }
 
@@ -47,7 +47,10 @@ final class WorkspaceManifestTest extends TestCase
 
         $loaded = WorkspaceManifest::load($filesystem, '/ws');
 
-        $this->assertSame(['web', 'admin', 'employee'], $loaded->component('web')->guards);
+        $this->assertSame(
+            ['web' => true, 'admin' => false, 'employee' => false],
+            $loaded->component('web')->guards
+        );
         $this->assertSame(['web', 'admin', 'employee'], $loaded->guards());
         $this->assertSame('web', $loaded->component('web')->primaryGuard());
         $this->assertTrue($loaded->component('web')->serves('employee'));
@@ -61,15 +64,15 @@ final class WorkspaceManifestTest extends TestCase
 
         $loaded = WorkspaceManifest::load($filesystem, '/ws');
 
-        $this->assertSame(['admin'], $loaded->component('web')->guards);
+        $this->assertSame(['admin' => false], $loaded->component('web')->guards);
     }
 
     public function test_defaults_the_guards_per_component_type(): void
     {
         $this->assertSame([], Component::create('api')->guards);
-        $this->assertSame(['web'], Component::create('web')->guards);
-        $this->assertSame(['web'], Component::create('mobile')->guards);
-        $this->assertSame(['web'], Component::create('desktop')->guards);
+        $this->assertSame(['web' => true], Component::create('web')->guards);
+        $this->assertSame(['web' => true], Component::create('mobile')->guards);
+        $this->assertSame(['web' => true], Component::create('desktop')->guards);
     }
 
     public function test_locates_the_workspace_from_inside_a_component(): void

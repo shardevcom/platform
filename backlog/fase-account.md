@@ -16,8 +16,9 @@ es el login).
   para preferencias).
 - **Web es la referencia**; mobile/desktop se espejan después.
 - **Público/privado por guard** como metadato en `platform.json` (la lista
-  `guards` pasa de `list<string>` a objeto con `public: bool`, con compat
-  legacy).
+  `guards` pasa a objeto `{ "guard": { "public": bool } }`, con compat legacy:
+  las listas se leen como privadas salvo `web`). Un guard público abre su app
+  directamente; uno privado arranca en el login.
 - No se crean módulos `users`/`notifications` (prohibido T-110): el surface de
   cuenta vive en `security`; la preferencia en `configuration`.
 
@@ -113,7 +114,11 @@ son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
   `InvitationEndpointTest` (7), `OtpEndpointTest` (8) y `WebAuthnEndpointTest`
   (7, con `Tests\Support\WebAuthnAuthenticator`).
 - `composer test --working-dir=demo/api` → **272 passed (2996 assertions)**.
-- `composer test` (root) → **351 passed (1010 assertions)**.
+- `composer test` (root) → **358 passed (1023 assertions)** (incluye visibilidad
+  de guards en `new`/`add`/`config guard` y `guard list`).
+- `platform guard list` muestra `public`/`private` por guard; `platform new
+  --guards=web:private,admin:public` y `platform guard add <g> --public|--private`
+  persisten la visibilidad en `platform.json` y en `config/platforms.php`.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
   pasa la mayoría de las corridas.
@@ -129,5 +134,5 @@ son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
 7. Invitaciones ✅
 8. OTP ✅
 9. Passkeys ✅
-10. Flag público/privado en `platform.json` + `guard add`
+10. Flag público/privado en `platform.json` + `guard add` ✅
 11. Vistas base web

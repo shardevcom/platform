@@ -39,7 +39,7 @@ final class ConfigGuardCommand implements CommandInterface
     {
         return InputDefinition::create(arguments: [
             'component' => 'Component whose guards change',
-            'guards' => 'Comma-separated guards (e.g. web,admin)',
+            'guards' => 'Comma-separated guards, optionally with visibility (e.g. web:public,admin)',
         ]);
     }
 
@@ -48,6 +48,7 @@ final class ConfigGuardCommand implements CommandInterface
         return Printer::capture(function (Printer $printer): void {
             $printer->heading('platform config guard');
             $printer->info('Usage: platform config guard <component> <guards>');
+            $printer->note('Append :public to open the guard app directly; :private (default) starts on login.');
             $printer->writeln();
             $printer->note('The guards are stored in platform.json; the apps themselves are not created.');
             $printer->note('For the API use: platform guard add <guard>.');
@@ -78,39 +79,51 @@ final class ConfigGuardCommand implements CommandInterface
         $list = $this->guards($guards);
 
         if ($list === $target->guards) {
-            $printer->info('Already configured: '.$component.' = '.implode(', ', $list));
+            $printer->info('Already configured: '.$component.' = '.implode(', ', array_keys($list)));
 
             return 0;
         }
 
         $workspace->manifest->with($target->withGuards($list))->save($context->filesystem, $workspace->root);
 
-        $printer->success("Component '{$component}' now serves: ".implode(', ', $list).'.');
+        $printer->success("Component '{$component}' now serves: ".implode(', ', array_keys($list)).'.');
         $printer->note('Run platform dev/build <component> to use the new guards.');
 
         return 0;
     }
 
     /**
-     * @return list<string>
+     * @return array<string, bool>
      */
     private function guards(string $value): array
     {
-        $guards = array_values(array_filter(
+        $entries = array_values(array_filter(
             array_map('trim', explode(',', $value)),
-            static fn (string $guard): bool => $guard !== ''
+            static fn (string $entry): bool => $entry !== ''
         ));
 
-        if ($guards === []) {
-            throw InvalidInput::create('Provide at least one guard, e.g. platform config guard web employee.');
+        if ($entries === []) {
+            throw InvalidInput::create('Provide at least one guard, e.g. platform config guard web:public employee.');
         }
 
-        foreach ($guards as $guard) {
+        $guards = [];
+
+        foreach ($entries as $entry) {
+            [$guard, $visibility] = array_pad(explode(':', $entry, 2), 2, null);
+
             if (preg_match('/^[a-z][a-z0-9_-]*$/', $guard) !== 1) {
                 throw InvalidInput::create(
                     "Invalid guard '{$guard}'. Use lowercase letters, digits, dashes and underscores, starting with a letter."
                 );
             }
+
+            if ($visibility !== null && ! in_array($visibility, ['public', 'private'], true)) {
+                throw InvalidInput::create(
+                    "Invalid visibility '{$visibility}' for guard '{$guard}'. Use ':public' or ':private'."
+                );
+            }
+
+            $guards[$guard] = $visibility === null ? $guard === 'web' : $visibility === 'public';
         }
 
         return $guards;

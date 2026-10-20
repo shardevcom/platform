@@ -117,12 +117,27 @@ final class WorkspaceManifest
         $guards = [];
 
         foreach ($this->components as $component) {
-            foreach ($component->guards as $guard) {
+            foreach ($component->guardNames() as $guard) {
                 $guards[$guard] = true;
             }
         }
 
         return array_keys($guards);
+    }
+
+    /**
+     * Whether the guard's client view is public, taking the first component
+     * that serves it as the reference (the API when present).
+     */
+    public function isPublicGuard(string $guard): bool
+    {
+        foreach ($this->components as $component) {
+            if ($component->serves($guard)) {
+                return $component->isPublic($guard);
+            }
+        }
+
+        return false;
     }
 
     public function with(Component $component): self

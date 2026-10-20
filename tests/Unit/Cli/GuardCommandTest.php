@@ -109,11 +109,43 @@ final class GuardCommandTest extends TestCase
         $this->execute(['platform', 'guard', 'add', 'partner', '--no-migrate'], $filesystem);
 
         foreach (['api', 'web', 'mobile', 'desktop'] as $component) {
-            $this->assertContains(
+            $this->assertArrayHasKey(
                 'partner',
                 $filesystem->readJson(self::ROOT.'/platform.json')['components'][$component]['guards']
             );
         }
+    }
+
+    public function test_add_defaults_to_a_private_guard(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--no-migrate'], $filesystem);
+
+        $manifest = $filesystem->readJson(self::ROOT.'/platform.json');
+        $this->assertSame(['public' => false], $manifest['components']['web']['guards']['partner']);
+        $this->assertStringContainsString("'public' => false,", $filesystem->read(self::ROOT.'/api/config/platforms.php'));
+    }
+
+    public function test_add_public_flag_marks_the_guard_public(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--public', '--no-migrate'], $filesystem);
+
+        $manifest = $filesystem->readJson(self::ROOT.'/platform.json');
+        $this->assertSame(['public' => true], $manifest['components']['web']['guards']['partner']);
+        $this->assertStringContainsString("'public' => true,", $filesystem->read(self::ROOT.'/api/config/platforms.php'));
+    }
+
+    public function test_web_is_public_by_default(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'web', '--no-migrate'], $filesystem);
+
+        $manifest = $filesystem->readJson(self::ROOT.'/platform.json');
+        $this->assertSame(['public' => true], $manifest['components']['web']['guards']['web']);
     }
 
     public function test_no_clients_limits_the_change_to_the_api_and_manifest(): void
@@ -124,7 +156,7 @@ final class GuardCommandTest extends TestCase
 
         $this->assertSame(0, $exit);
         $this->assertFalse($filesystem->isFile(self::ROOT.'/web/apps/partner/src/main.tsx'));
-        $this->assertContains('partner', $filesystem->readJson(self::ROOT.'/platform.json')['components']['web']['guards']);
+        $this->assertArrayHasKey('partner', $filesystem->readJson(self::ROOT.'/platform.json')['components']['web']['guards']);
     }
 
     public function test_add_runs_the_migration_in_the_api(): void

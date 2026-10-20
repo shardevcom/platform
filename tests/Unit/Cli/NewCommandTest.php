@@ -256,8 +256,13 @@ final class NewCommandTest extends TestCase
         $this->assertSame(0, $exit);
         $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
 
-        $this->assertSame(['web', 'admin', 'employee'], $manifest['components']['api']['guards']);
-        $this->assertSame(['web', 'admin', 'employee'], $manifest['components']['web']['guards']);
+        $expected = [
+            'web' => ['public' => true],
+            'admin' => ['public' => false],
+            'employee' => ['public' => false],
+        ];
+        $this->assertSame($expected, $manifest['components']['api']['guards']);
+        $this->assertSame($expected, $manifest['components']['web']['guards']);
     }
 
     public function test_pins_the_client_guards_when_asked(): void
@@ -269,8 +274,15 @@ final class NewCommandTest extends TestCase
         $this->assertSame(0, $exit);
         $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
 
-        $this->assertSame(['employee'], $manifest['components']['web']['guards']);
-        $this->assertSame(['web', 'admin', 'employee'], $manifest['components']['api']['guards']);
+        $this->assertSame(['employee' => ['public' => false]], $manifest['components']['web']['guards']);
+        $this->assertSame(
+            [
+                'web' => ['public' => true],
+                'admin' => ['public' => false],
+                'employee' => ['public' => false],
+            ],
+            $manifest['components']['api']['guards']
+        );
     }
 
     public function test_pins_the_client_guards_without_an_api(): void
@@ -282,8 +294,41 @@ final class NewCommandTest extends TestCase
         $this->assertSame(0, $exit);
         $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
 
-        $this->assertSame(['employee'], $manifest['components']['web']['guards']);
+        $this->assertSame(['employee' => ['public' => false]], $manifest['components']['web']['guards']);
         $this->assertArrayNotHasKey('api', $manifest['components']);
+    }
+
+    public function test_accepts_visibility_suffixes(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(
+            ['platform', 'new', 'new-app', '--with=web', '--guards=web:private,admin:public'],
+            $filesystem
+        );
+
+        $this->assertSame(0, $exit);
+        $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
+
+        $this->assertSame(
+            ['web' => ['public' => false], 'admin' => ['public' => true]],
+            $manifest['components']['web']['guards']
+        );
+    }
+
+    public function test_rejects_an_invalid_visibility(): void
+    {
+        $recorder = RecordingPrinter::create();
+
+        $exit = $this->execute(
+            ['platform', 'new', 'new-app', '--with=web', '--guards=web:everyone'],
+            null,
+            null,
+            $recorder
+        );
+
+        $this->assertSame(1, $exit);
+        $this->assertStringContainsString("Invalid visibility 'everyone'", $recorder->stderr());
     }
 
     public function test_rejects_an_invalid_guard(): void

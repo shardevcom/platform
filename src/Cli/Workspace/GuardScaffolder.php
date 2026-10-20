@@ -209,12 +209,12 @@ final class GuardScaffolder
     private function mirrorIntoManifest(WorkspaceManifest $manifest, GuardDefinition $guard): WorkspaceManifest
     {
         foreach ($manifest->components() as $component) {
-            if (in_array($guard->key, $component->guards, true)) {
+            if ($component->serves($guard->key)) {
                 continue;
             }
 
             $guards = $component->guards;
-            $guards[] = $guard->key;
+            $guards[$guard->key] = $guard->public;
 
             $manifest = $manifest->with($component->withGuards($guards));
         }

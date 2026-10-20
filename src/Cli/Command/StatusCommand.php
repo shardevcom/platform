@@ -80,7 +80,7 @@ final class StatusCommand implements CommandInterface
             $component->name.($component->enabled ? '' : ' (off)'),
             $component->type->value,
             $component->path,
-            $component->guards === [] ? '—' : implode(', ', $component->guards),
+            $component->guards === [] ? '—' : implode(', ', $component->guardNames()),
             $scaffolded ? 'yes' : 'no',
             $installed ? 'yes' : 'no',
         ];
