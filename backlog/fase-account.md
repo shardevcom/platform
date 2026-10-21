@@ -28,16 +28,16 @@ es el login).
 |---|-----------|-----|-------|-------------|
 | 1 | Login email/password | ✅ existía | ✅ | ✅ existía |
 | 2 | `auth/me` (lectura) / logout | ✅ existía | ✅ | ✅ existía |
-| 3 | Recuperación (forgot/reset) | ✅ nuevo | ✅ | ⏳ |
-| 4 | Registro (plataforma pública) | ✅ nuevo | ✅ | ⏳ |
-| 5 | Verificación email/cuenta | ✅ nuevo | ✅ | ⏳ |
-| 6 | Update perfil + password | ✅ nuevo | ✅ | ⏳ |
-| 7 | Preferencias (update) | ✅ nuevo | ✅ | ⏳ |
-| 8 | Notificaciones | ✅ nuevo | ✅ | ⏳ |
-| 9 | Bloqueo/disable individual | ✅ nuevo | ✅ | ⏳ |
-| 10 | Invitaciones + verificación | ✅ nuevo | ✅ | ⏳ |
-| 11 | OTP login | ✅ nuevo | ✅ | ⏳ |
-| 12 | Passkeys/WebAuthn | ✅ nuevo | ✅ | ⏳ |
+| 3 | Recuperación (forgot/reset) | ✅ nuevo | ✅ | ✅ |
+| 4 | Registro (plataforma pública) | ✅ nuevo | ✅ | ✅ |
+| 5 | Verificación email/cuenta | ✅ nuevo | ✅ | ✅ |
+| 6 | Update perfil + password | ✅ nuevo | ✅ | ✅ |
+| 7 | Preferencias (update) | ✅ nuevo | ✅ | ✅ |
+| 8 | Notificaciones | ✅ nuevo | ✅ | ✅ |
+| 9 | Bloqueo/disable individual | ✅ nuevo | ✅ | ✅ |
+| 10 | Invitaciones + verificación | ✅ nuevo | ✅ | ✅ |
+| 11 | OTP login | ✅ nuevo | ✅ | ✅ |
+| 12 | Passkeys/WebAuthn | ✅ nuevo | ✅ | ✅ |
 | 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ⏳ |
 | 14 | 2FA TOTP | ✅ existía | ✅ | ✅ existía |
 | 15 | Dashboard/widgets | ✅ existía | ✅ | ✅ existía |
@@ -114,11 +114,14 @@ son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
   `InvitationEndpointTest` (7), `OtpEndpointTest` (8) y `WebAuthnEndpointTest`
   (7, con `Tests\Support\WebAuthnAuthenticator`).
 - `composer test --working-dir=demo/api` → **272 passed (2996 assertions)**.
-- `composer test` (root) → **358 passed (1023 assertions)** (incluye visibilidad
+- `composer test` (root) → **359 passed (1026 assertions)** (incluye visibilidad
   de guards en `new`/`add`/`config guard` y `guard list`).
 - `platform guard list` muestra `public`/`private` por guard; `platform new
   --guards=web:private,admin:public` y `platform guard add <g> --public|--private`
   persisten la visibilidad en `platform.json` y en `config/platforms.php`.
+- `demo/web`: `npm run typecheck`, `npm run lint`, `npm test`
+  → **21 passed** (5 archivos; incluye `webauthn`, auth y cuenta) y
+  `npm run build` (user/admin/employee).
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
   pasa la mayoría de las corridas.
@@ -135,4 +138,20 @@ son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
 8. OTP ✅
 9. Passkeys ✅
 10. Flag público/privado en `platform.json` + `guard add` ✅
-11. Vistas base web
+11. Vistas base web ✅
+
+## Vistas base web
+
+`demo/web/packages/core/src` es la referencia: `lib/endpoints.ts` expone los
+grupos `auth` (login, register, forgot/reset, verify/resend, OTP, passkeys) y
+`account` (perfil, password, preferencias, notificaciones, disable/reactivate,
+invitaciones); `lib/webauthn.ts` convierte las options base64url y las respuestas
+del navegador (`navigator.credentials.create/get`) al payload que espera la API;
+`AuthProvider` añade `loginWithOtp`, `loginWithPasskey`, `register`,
+`acceptInvitation` y `refreshUser`. `PlatformApp` monta las rutas públicas
+(`/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`,
+`/accept-invitation`) y protegidas (`/preferences`, `/notifications`) con la prop
+`public`: los guards públicos muestran el enlace de registro, los privados solo
+invitación. `GuardClientScaffolder::web` inyecta `public={true|false}` en el
+`App.tsx` clonado según `platform.json`. El login social (OAuth) queda pendiente
+como paso aparte por el flujo de callback.

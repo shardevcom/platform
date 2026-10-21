@@ -25,6 +25,7 @@ const user: User = {
   name: "Ada",
   email: "admin@example.com",
   guard: "admin",
+  email_verified: true,
   abilities: ["products.*"],
 }
 

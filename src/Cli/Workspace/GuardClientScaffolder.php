@@ -416,7 +416,11 @@ final class GuardClientScaffolder
 
         $source = $this->filesystem->read($file);
         $source = str_replace('guard="'.$sourceGuard.'"', 'guard="'.$guard->key.'"', $source);
-        $source = $this->replacePattern($source, '/appName="[^"]*"/', 'appName="Shardev '.$guard->label().'"');
+        $source = $this->replacePattern(
+            $source,
+            '/appName="[^"]*"/',
+            'appName="Shardev '.$guard->label().'" public={'.($guard->public ? 'true' : 'false').'}'
+        );
 
         $this->filesystem->write($file, $source);
     }

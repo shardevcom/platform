@@ -12,6 +12,13 @@ import { NavProvider } from "./nav-context"
 import { BASE_NAV } from "./nav"
 import { Layout } from "./components/layout"
 import { LoginPage } from "./pages/LoginPage"
+import { RegisterPage } from "./pages/RegisterPage"
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
+import { ResetPasswordPage } from "./pages/ResetPasswordPage"
+import { VerifyEmailPage } from "./pages/VerifyEmailPage"
+import { AcceptInvitationPage } from "./pages/AcceptInvitationPage"
+import { PreferencesPage } from "./pages/PreferencesPage"
+import { NotificationsPage } from "./pages/NotificationsPage"
 import { DashboardPage } from "./pages/DashboardPage"
 import { ProfilePage } from "./pages/ProfilePage"
 import { ConfigurationPage } from "./pages/ConfigurationPage"
@@ -50,6 +57,11 @@ export interface PlatformAppProps {
   appName: string
   /** Plugins whose per-guard views should be mounted. */
   plugins?: PluginDefinition[]
+  /**
+   * Whether this guard allows self-registration. Public guards show the
+   * register link; private ones only offer invited access.
+   */
+  public?: boolean
 }
 
 /**
@@ -57,7 +69,7 @@ export interface PlatformAppProps {
  * only declares its guard and the plugins it wants; the plugin-kit decides
  * which views that guard actually gets.
  */
-export function PlatformApp({ guard, appName, plugins = [] }: PlatformAppProps) {
+export function PlatformApp({ guard, appName, plugins = [], public: isPublic = guard === "web" }: PlatformAppProps) {
   const registry = useMemo(() => createRegistry(plugins, guard), [plugins, guard])
 
   const nav = useMemo(
@@ -71,7 +83,15 @@ export function PlatformApp({ guard, appName, plugins = [] }: PlatformAppProps) 
         <AuthProvider guard={guard}>
           <NavProvider items={nav}>
             <Routes>
-              <Route path="/login" element={<LoginPage appName={appName} guard={guard} />} />
+              <Route path="/login" element={<LoginPage appName={appName} guard={guard} public={isPublic} />} />
+              <Route
+                path="/register"
+                element={isPublic ? <RegisterPage appName={appName} /> : <Navigate to="/login" replace />}
+              />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
               <Route element={<RequireAuth />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
@@ -80,6 +100,8 @@ export function PlatformApp({ guard, appName, plugins = [] }: PlatformAppProps) 
                 <Route path="widgets" element={<WidgetsPage />} />
                 <Route path="graphql" element={<GraphQLPage />} />
                 <Route path="profile" element={<ProfilePage />} />
+                <Route path="preferences" element={<PreferencesPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
                 {registry.views.map((view) => (
                   <Route key={view.plugin} path={view.path} element={<view.component />} />
                 ))}

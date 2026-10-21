@@ -29,7 +29,77 @@ export interface User {
   name: string | null
   email: string | null
   guard: string | null
+  email_verified: boolean
   abilities: string[]
+}
+
+/** Preferences always arrive complete: the API merges them over its defaults. */
+export interface Preferences {
+  theme: "light" | "dark" | "system"
+  language: string
+  notifications: Record<string, boolean>
+}
+
+export interface AccountNotification {
+  id: string
+  type: string
+  data: Record<string, unknown>
+  read_at: string | null
+  created_at: string | null
+}
+
+export interface NotificationsPayload {
+  items: AccountNotification[]
+  unread_count: number
+}
+
+export interface InvitationSummary {
+  email: string
+  guard: string
+  valid: true
+}
+
+export interface Passkey {
+  id: number
+  name: string | null
+  credential_id: string
+  created_at: string | null
+  last_used_at: string | null
+}
+
+/** Options returned by the API for `navigator.credentials.create`. */
+export interface PublicKeyCredentialCreationOptionsJSON {
+  challenge: string
+  rp: { id: string; name: string }
+  user: { id: string; name: string; displayName: string }
+  pubKeyCredParams: Array<{ type: "public-key"; alg: number }>
+  timeout?: number
+  attestation?: AttestationConveyancePreference
+  authenticatorSelection?: AuthenticatorSelectionCriteria
+  excludeCredentials?: PublicKeyCredentialDescriptorJSON[]
+}
+
+/** Options returned by the API for `navigator.credentials.get`. */
+export interface PublicKeyCredentialRequestOptionsJSON {
+  challenge: string
+  rpId: string
+  allowCredentials: PublicKeyCredentialDescriptorJSON[]
+  userVerification?: UserVerificationRequirement
+  timeout?: number
+}
+
+export interface PublicKeyCredentialDescriptorJSON {
+  type: "public-key"
+  id: string
+  transports?: AuthenticatorTransport[]
+}
+
+export interface RegisterPayload {
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+  device_name?: string
 }
 
 export interface LoginResponse {

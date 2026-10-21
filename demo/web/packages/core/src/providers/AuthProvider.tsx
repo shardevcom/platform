@@ -12,8 +12,8 @@ import {
 
 import type { Guard } from "@shardev/plugin-kit"
 import { getToken, setPlatform, setToken } from "../lib/api"
-import { auth } from "../lib/endpoints"
-import type { User } from "../types"
+import { account, auth, type CredentialPayload } from "../lib/endpoints"
+import type { LoginResponse, RegisterPayload, User } from "../types"
 
 interface AuthContextValue {
   user: User | null
@@ -21,6 +21,11 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithOtp: (email: string, code: string) => Promise<void>
+  loginWithPasskey: (credential: CredentialPayload) => Promise<void>
+  register: (payload: RegisterPayload) => Promise<void>
+  acceptInvitation: (payload: Parameters<typeof account.acceptInvitation>[0]) => Promise<void>
+  refreshUser: () => Promise<void>
   logout: () => Promise<void>
   /** True when the token's abilities grant the permission (supports `resource.*` and `*`). */
   can: (permission: string) => boolean
@@ -66,15 +71,54 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
     }
   }, [])
 
+  const complete = useCallback((result: LoginResponse) => {
+    setToken(result.access_token)
+    setUser(result.user)
+  }, [])
+
   const login = useCallback(
     async (email: string, password: string) => {
       setPlatform(guard)
-      const result = await auth.login(email, password)
-      setToken(result.access_token)
-      setUser(result.user)
+      complete(await auth.login(email, password))
     },
-    [guard],
+    [guard, complete],
   )
+
+  const loginWithOtp = useCallback(
+    async (email: string, code: string) => {
+      setPlatform(guard)
+      complete(await auth.otpVerify(email, code))
+    },
+    [guard, complete],
+  )
+
+  const loginWithPasskey = useCallback(
+    async (credential: CredentialPayload) => {
+      setPlatform(guard)
+      complete(await auth.webauthnLogin(credential))
+    },
+    [guard, complete],
+  )
+
+  const register = useCallback(
+    async (payload: RegisterPayload) => {
+      setPlatform(guard)
+      complete(await auth.register(payload))
+    },
+    [guard, complete],
+  )
+
+  const acceptInvitation = useCallback(
+    async (payload: Parameters<typeof account.acceptInvitation>[0]) => {
+      setPlatform(guard)
+      complete(await account.acceptInvitation(payload))
+    },
+    [guard, complete],
+  )
+
+  const refreshUser = useCallback(async () => {
+    setUser(await auth.me())
+  }, [])
 
   const logout = useCallback(async () => {
     try {
@@ -97,8 +141,21 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
   )
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, guard, isAuthenticated: user !== null, isLoading, login, logout, can }),
-    [user, guard, isLoading, login, logout, can],
+    () => ({
+      user,
+      guard,
+      isAuthenticated: user !== null,
+      isLoading,
+      login,
+      loginWithOtp,
+      loginWithPasskey,
+      register,
+      acceptInvitation,
+      refreshUser,
+      logout,
+      can,
+    }),
+    [user, guard, isLoading, login, loginWithOtp, loginWithPasskey, register, acceptInvitation, refreshUser, logout, can],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

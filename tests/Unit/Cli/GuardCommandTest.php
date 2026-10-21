@@ -52,6 +52,7 @@ final class GuardCommandTest extends TestCase
         $this->assertTrue($filesystem->isFile(self::ROOT.'/web/apps/partner/src/main.tsx'));
         $this->assertStringContainsString('setPlatform("partner")', $filesystem->read(self::ROOT.'/web/apps/partner/src/main.tsx'));
         $this->assertStringContainsString('guard="partner"', $filesystem->read(self::ROOT.'/web/apps/partner/src/App.tsx'));
+        $this->assertStringContainsString('public={false}', $filesystem->read(self::ROOT.'/web/apps/partner/src/App.tsx'));
         $this->assertStringContainsString('5176', $filesystem->read(self::ROOT.'/web/apps/partner/vite.config.ts'));
         $this->assertStringContainsString('Shardev · Partner', $filesystem->read(self::ROOT.'/web/apps/partner/index.html'));
 
@@ -64,6 +65,22 @@ final class GuardCommandTest extends TestCase
         $this->assertArrayHasKey('dev:partner', $scripts);
         $this->assertArrayHasKey('build:partner', $scripts);
         $this->assertStringContainsString('build:partner', $scripts['build']);
+    }
+
+    public function test_add_scaffolds_a_public_web_app_when_the_guard_is_public(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--public', '--no-migrate'], $filesystem);
+
+        $this->assertStringContainsString(
+            'public',
+            $filesystem->read(self::ROOT.'/web/apps/partner/src/App.tsx')
+        );
+        $this->assertStringNotContainsString(
+            'public={false}',
+            $filesystem->read(self::ROOT.'/web/apps/partner/src/App.tsx')
+        );
     }
 
     public function test_add_scaffolds_one_desktop_app_per_guard(): void
