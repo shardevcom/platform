@@ -60,9 +60,18 @@ public final class ApiClient {
         return data("DELETE", path, null, null);
     }
 
+    /** Hits an absolute URL (e.g. the signed email-verification link). */
+    public JsonElement absolute(String method, String url, JsonElement body) {
+        return request(method, URI.create(url), body);
+    }
+
     /** Performs a request and returns the envelope's {@code data}. */
     public JsonElement data(String method, String path, Map<String, Object> query, JsonElement body) {
-        HttpRequest.Builder builder = HttpRequest.newBuilder(URI.create(baseUrl + path + QueryString.build(query)))
+        return request(method, URI.create(baseUrl + path + QueryString.build(query)), body);
+    }
+
+    private JsonElement request(String method, URI uri, JsonElement body) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
                 .header("Accept", "application/json");
 
         if (token != null && !token.isBlank()) {

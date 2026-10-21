@@ -1,5 +1,6 @@
 package dev.shardev.core.ui;
 
+import dev.shardev.core.account.AccountApi;
 import dev.shardev.core.api.ApiClient;
 import dev.shardev.core.auth.AuthService;
 import dev.shardev.core.auth.PreferencesTokenStore;
@@ -26,6 +27,7 @@ public final class PlatformApp {
     private final PluginRegistry registry;
     private final ApiClient api;
     private final AuthService auth;
+    private final AccountApi account;
     private final StackPane root = new StackPane();
 
     public PlatformApp(Guard guard, List<PluginDefinition> plugins) {
@@ -33,6 +35,7 @@ public final class PlatformApp {
         this.registry = PluginRegistry.create(plugins, guard);
         this.api = new ApiClient(guard, PlatformConfig.host());
         this.auth = new AuthService(guard, api, new PreferencesTokenStore());
+        this.account = new AccountApi(api);
     }
 
     public void start(Stage stage) {
@@ -63,11 +66,11 @@ public final class PlatformApp {
     }
 
     private void showLogin() {
-        root.getChildren().setAll(new LoginView(guard, auth, this::showShell));
+        root.getChildren().setAll(new LoginFlowView(guard, auth, account, this::showShell));
     }
 
     private void showShell() {
         root.getChildren().setAll(
-                new ShellView(new PlatformContext(guard, api, auth, registry), this::showLogin));
+                new ShellView(new PlatformContext(guard, api, auth, account, registry), this::showLogin));
     }
 }

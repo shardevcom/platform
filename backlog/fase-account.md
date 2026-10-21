@@ -122,6 +122,18 @@ notificaciones. Las passkeys quedan fuera del móvil hasta añadir un plugin
 WebAuthn de plataforma. Verificación: `cd demo/mobile && flutter analyze &&
 ./tool/test.sh` (core 9 tests, plugin_kit 6, product 5).
 
+## Vistas base desktop
+
+`demo/desktop/packages/core` añade `account/` (`Preferences`, `AccountNotification`,
+`NotificationsFeed`, `InvitationSummary`, `AccountApi`) y `AuthService` gana
+`loginWithOtp`, `register`, `acceptInvitation` y `refreshUser`. `LoginFlowView`
+encadena login (password/OTP), registro, recuperación/reset, verificación e
+invitación sin tocar la shell; `ShellView` incorpora Preferencias y
+Notificaciones; `ProfileView` permite editar perfil, reenviar verificación,
+cambiar contraseña y deshabilitar la cuenta. La visibilidad se lee de
+`shardev.guard.public`/`SHARDEV_GUARD_PUBLIC` (default `web` público). Verificado
+con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
+
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
@@ -140,6 +152,8 @@ WebAuthn de plataforma. Verificación: `cd demo/mobile && flutter analyze &&
   `npm run build` (user/admin/employee).
 - `demo/mobile`: `flutter analyze` (sin issues) y `./tool/test.sh`
   → core 9 + plugin_kit 6 + product 5 tests.
+- `demo/desktop`: `./gradlew build` (core/plugin-kit/product + apps) y
+  `./gradlew :packages:core:test` (modelos de cuenta y `email_verified`).
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
   pasa la mayoría de las corridas.
@@ -158,6 +172,7 @@ WebAuthn de plataforma. Verificación: `cd demo/mobile && flutter analyze &&
 10. Flag público/privado en `platform.json` + `guard add` ✅
 11. Vistas base web ✅
 12. Vistas base mobile ✅
+13. Vistas base desktop ✅
 
 ## Vistas base web
 

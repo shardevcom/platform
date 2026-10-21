@@ -61,7 +61,52 @@ public final class AuthService {
         body.addProperty("password", password);
         body.addProperty("device_name", "desktop");
 
-        JsonObject result = api.data("POST", "auth/login", null, body).getAsJsonObject();
+        return authenticate("auth/login", body);
+    }
+
+    /** Passwordless sign-in with the code emailed to {@code email}. */
+    public AuthUser loginWithOtp(String email, String code) {
+        JsonObject body = new JsonObject();
+        body.addProperty("email", email);
+        body.addProperty("code", code);
+        body.addProperty("device_name", "desktop");
+
+        return authenticate("auth/otp/verify", body);
+    }
+
+    /** Self-registration; only offered when the guard is public. */
+    public AuthUser register(String name, String email, String password, String confirmation) {
+        JsonObject body = new JsonObject();
+        body.addProperty("name", name);
+        body.addProperty("email", email);
+        body.addProperty("password", password);
+        body.addProperty("password_confirmation", confirmation);
+        body.addProperty("device_name", "desktop");
+
+        return authenticate("auth/register", body);
+    }
+
+    /** Accepts an invitation and leaves the new account signed in. */
+    public AuthUser acceptInvitation(String token, String name, String password, String confirmation) {
+        JsonObject body = new JsonObject();
+        body.addProperty("token", token);
+        body.addProperty("name", name);
+        body.addProperty("password", password);
+        body.addProperty("password_confirmation", confirmation);
+        body.addProperty("device_name", "desktop");
+
+        return authenticate("auth/invitations/accept", body);
+    }
+
+    /** Re-reads {@code auth/me}, e.g. after editing the profile. */
+    public AuthUser refreshUser() {
+        AuthUser user = AuthUser.fromJson(api.get("auth/me").getAsJsonObject());
+        state = AuthState.authenticated(user);
+        return user;
+    }
+
+    private AuthUser authenticate(String path, JsonObject body) {
+        JsonObject result = api.data("POST", path, null, body).getAsJsonObject();
 
         JsonElement rawToken = result.get("access_token");
         String token = rawToken != null && !rawToken.isJsonNull() ? rawToken.getAsString() : null;

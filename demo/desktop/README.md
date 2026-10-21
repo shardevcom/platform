@@ -38,11 +38,15 @@ El guard se fija en el módulo de app (`Main.java`), no en runtime:
 new PlatformApp(Guard.ADMIN, List.of(ProductPlugin.productPlugin())).start(stage);
 ```
 
-| Módulo | Guard | Prefijo API |
-| --- | --- | --- |
-| `apps/user` | `Guard.WEB` | `/api/v1` |
-| `apps/employee` | `Guard.EMPLOYEE` | `/employee/api/v1` |
-| `apps/admin` | `Guard.ADMIN` | `/admin/api/v1` |
+| Módulo | Guard | Prefijo API | Registro |
+| --- | --- | --- | --- |
+| `apps/user` | `Guard.WEB` | `/api/v1` | público (default) |
+| `apps/employee` | `Guard.EMPLOYEE` | `/employee/api/v1` | privado (default) |
+| `apps/admin` | `Guard.ADMIN` | `/admin/api/v1` | privado (default) |
+
+`-Dshardev.guard.public=true|false` (o `SHARDEV_GUARD_PUBLIC`) refleja la
+visibilidad de `platform.json`: un guard público muestra el enlace de registro;
+uno privado solo permite entrar por invitación.
 
 ```bash
 # Admin (por defecto apunta a http://localhost:8000)
@@ -103,6 +107,10 @@ platform demo add product --with-desktop-client --no-install
 platform demo add product --with-client --with-mobile-client --with-desktop-client
 ```
 
+Las passkeys/WebAuthn no se incluyen en el cliente de escritorio porque
+requieren integración con el navegador del sistema; el resto de la base de
+cuenta es paritario con la web.
+
 ## Comandos
 
 ```bash
@@ -118,6 +126,15 @@ Requiere **JDK 21** (el wrapper descarga Gradle; JavaFX se resuelve como depende
 | Acción | REST |
 | --- | --- |
 | Login | `POST {base}/auth/login` |
+| Login OTP | `POST {base}/auth/otp/request` · `POST {base}/auth/otp/verify` |
+| Registro | `POST {base}/auth/register` |
+| Recuperación | `POST {base}/auth/forgot-password` · `POST {base}/auth/reset-password` |
+| Verificación | `GET {base}/auth/email/verify/{id}/{hash}` · `POST .../resend` |
+| Invitaciones | `POST {base}/auth/invitations` · `GET .../{token}` · `POST .../accept` |
+| Perfil | `PATCH {base}/auth/profile` · `PUT {base}/auth/password` |
+| Preferencias | `GET/PUT {base}/auth/preferences` |
+| Notificaciones | `GET {base}/auth/notifications` · `POST .../read-all` · `POST .../{id}/read` · `DELETE .../{id}` |
+| Deshabilitar | `POST {base}/auth/account/disable` · `POST {base}/auth/account/reactivate` |
 | Sesión | `GET {base}/auth/me` |
 | Logout | `POST {base}/auth/logout` |
 | Listar | `GET {base}/products` |

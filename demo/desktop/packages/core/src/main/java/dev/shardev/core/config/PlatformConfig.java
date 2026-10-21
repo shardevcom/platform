@@ -1,5 +1,7 @@
 package dev.shardev.core.config;
 
+import dev.shardev.pluginkit.Guard;
+
 /**
  * Build/run configuration, read from system properties or the environment.
  *
@@ -18,6 +20,22 @@ public final class PlatformConfig {
                 System.getProperty("shardev.api.host"),
                 System.getenv("SHARDEV_API_HOST"),
                 "http://localhost:8000");
+    }
+
+    /**
+     * Whether the guard allows self-registration.
+     *
+     * <p>{@code -Dshardev.guard.public=true|false} or
+     * {@code SHARDEV_GUARD_PUBLIC}; defaults to {@code true} only for the web
+     * guard, mirroring {@code platform.json}.
+     */
+    public static boolean isPublic(Guard guard) {
+        String value = firstNonBlank(
+                System.getProperty("shardev.guard.public"),
+                System.getenv("SHARDEV_GUARD_PUBLIC"),
+                "");
+
+        return value.isBlank() ? guard == Guard.WEB : Boolean.parseBoolean(value);
     }
 
     /** Window/app name; {@code -Dshardev.app.name=...}. */

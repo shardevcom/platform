@@ -2,6 +2,7 @@ package dev.shardev.core.ui;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import dev.shardev.core.account.AccountApi;
 import dev.shardev.core.api.ApiClient;
 import dev.shardev.core.auth.AuthService;
 import dev.shardev.core.auth.AuthUser;
@@ -16,12 +17,14 @@ public final class PlatformContext implements PluginContext {
     private final Guard guard;
     private final ApiClient api;
     private final AuthService auth;
+    private final AccountApi account;
     private final PluginRegistry registry;
 
-    PlatformContext(Guard guard, ApiClient api, AuthService auth, PluginRegistry registry) {
+    PlatformContext(Guard guard, ApiClient api, AuthService auth, AccountApi account, PluginRegistry registry) {
         this.guard = guard;
         this.api = api;
         this.auth = auth;
+        this.account = account;
         this.registry = registry;
     }
 
@@ -53,5 +56,9 @@ public final class PlatformContext implements PluginContext {
 
     public AuthService auth() {
         return auth;
+    }
+
+    public AccountApi account() {
+        return account;
     }
 }

@@ -20,7 +20,9 @@ import javafx.scene.layout.VBox;
 public final class ShellView extends BorderPane {
 
     private static final String DASHBOARD = "/dashboard";
+    private static final String PREFERENCES = "/preferences";
     private static final String PROFILE = "/profile";
+    private static final String NOTIFICATIONS = "/notifications";
 
     private final PlatformContext context;
     private final StackPane content = new StackPane();
@@ -57,7 +59,9 @@ public final class ShellView extends BorderPane {
         for (NavItem item : context.registry().nav()) {
             addNav(nav, item.label(), item.to());
         }
+        addNav(nav, "Preferencias", PREFERENCES);
         addNav(nav, "Perfil", PROFILE);
+        addNav(nav, "Notificaciones", NOTIFICATIONS);
 
         setTop(top);
         setLeft(nav);
@@ -90,8 +94,14 @@ public final class ShellView extends BorderPane {
         if (path.equals(DASHBOARD)) {
             return "Dashboard";
         }
+        if (path.equals(PREFERENCES)) {
+            return "Preferencias";
+        }
         if (path.equals(PROFILE)) {
             return "Perfil";
+        }
+        if (path.equals(NOTIFICATIONS)) {
+            return "Notificaciones";
         }
         return context.registry().nav().stream()
                 .filter(item -> item.to().equals(path))
@@ -104,8 +114,14 @@ public final class ShellView extends BorderPane {
         if (path.equals(DASHBOARD)) {
             return new DashboardView(context);
         }
+        if (path.equals(PREFERENCES)) {
+            return new PreferencesView(context.account());
+        }
         if (path.equals(PROFILE)) {
             return new ProfileView(context, this::doLogout);
+        }
+        if (path.equals(NOTIFICATIONS)) {
+            return new NotificationsView(context.account());
         }
         for (ResolvedView view : context.registry().views()) {
             if (("/" + view.path()).equals(path)) {

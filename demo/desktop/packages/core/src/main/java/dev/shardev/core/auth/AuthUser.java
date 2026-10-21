@@ -13,13 +13,25 @@ public final class AuthUser {
     private final String name;
     private final String email;
     private final String guard;
+    private final boolean emailVerified;
     private final List<String> abilities;
 
     public AuthUser(String id, String name, String email, String guard, List<String> abilities) {
+        this(id, name, email, guard, abilities, false);
+    }
+
+    public AuthUser(
+            String id,
+            String name,
+            String email,
+            String guard,
+            List<String> abilities,
+            boolean emailVerified) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.guard = guard;
+        this.emailVerified = emailVerified;
         this.abilities = List.copyOf(abilities);
     }
 
@@ -37,6 +49,10 @@ public final class AuthUser {
 
     public String guard() {
         return guard;
+    }
+
+    public boolean emailVerified() {
+        return emailVerified;
     }
 
     public List<String> abilities() {
@@ -60,7 +76,9 @@ public final class AuthUser {
                 string(json, "name", null),
                 string(json, "email", null),
                 string(json, "guard", null),
-                abilities);
+                abilities,
+                json.has("email_verified") && !json.get("email_verified").isJsonNull()
+                        && json.get("email_verified").getAsBoolean());
     }
 
     /**
