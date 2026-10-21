@@ -79,6 +79,17 @@ platform plugin list            # tabla (o --json para tooling)
 platform plugin show product    # actions, abilities y ruta por guard (o --json)
 ```
 
+## Passkeys en escritorio
+
+La app JavaFX no puede ejecutar WebAuthn, así que delega la ceremonia en este
+SPA. La ruta pública `/passkey` recibe `mode` (`login`/`register`), `state`,
+`email`, `name` y `return`; solo acepta callbacks loopback HTTP
+(`127.0.0.1`, `localhost` o `[::1]`). En modo login devuelve el token por
+`return?state=...&token=...`; en modo register toma el token de la app desde el
+fragmento, registra la credencial y responde `?state=...&status=registered`.
+Los errores vuelven como `error`. El origen del SPA debe estar en
+`WEBAUTHN_ALLOWED_ORIGINS` de la API.
+
 ## Requisitos
 
 - El proyecto Laravel (demo) corriendo en `http://localhost:8000`.
@@ -102,7 +113,7 @@ CORS en desarrollo.
 
 | Sección | Endpoints |
 | --- | --- |
-| Auth | `POST /{platform}/api/v1/auth/login`, `GET /auth/me`, `POST /auth/logout` |
+| Auth | `POST /{platform}/api/v1/auth/login`, `GET /auth/me`, `POST /auth/logout`, `/auth/webauthn/*` |
 | Products | CRUD `/products`, `/products/select`, `/products/import`, `/products/export` |
 | Configuration | `GET /configuration` (visibilidad por token) |
 | Two-Factor | `/enable`, `/verify`, `/disable`, `/qr-code`, `/recovery-codes` |

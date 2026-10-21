@@ -67,7 +67,9 @@ public final class ApiClient {
 
     /** Performs a request and returns the envelope's {@code data}. */
     public JsonElement data(String method, String path, Map<String, Object> query, JsonElement body) {
-        return request(method, URI.create(baseUrl + path + QueryString.build(query)), body);
+        String suffix = path.startsWith("/") ? path : "/" + path;
+
+        return request(method, URI.create(baseUrl + suffix + QueryString.build(query)), body);
     }
 
     private JsonElement request(String method, URI uri, JsonElement body) {

@@ -107,9 +107,18 @@ platform demo add product --with-desktop-client --no-install
 platform demo add product --with-client --with-mobile-client --with-desktop-client
 ```
 
-Las passkeys/WebAuthn no se incluyen en el cliente de escritorio porque
-requieren integración con el navegador del sistema; el resto de la base de
-cuenta es paritario con la web.
+## Passkeys
+
+JavaFX no expone WebAuthn, así que la ceremonia ocurre en el navegador del
+sistema. La app abre `{frontend}/passkey?mode=login|register&state=...&return=...`
+y recibe el resultado en un callback loopback efímero
+(`http://127.0.0.1:<puerto>/callback`). El estado (`state`) es aleatorio y el
+receptor solo acepta loopback; el registro entrega el token de sesión en el
+fragmento. La URL del SPA se configura con
+`-Dshardev.frontend.url=http://...` o `SHARDEV_FRONTEND_URL` (default demo:
+admin `5173`, employee `5174`, web `5175`). El origen del SPA y el callback
+debe estar en `WEBAUTHN_ALLOWED_ORIGINS` de la API; el callback loopback no
+interviene en la ceremonia WebAuthn.
 
 ## Comandos
 
@@ -136,6 +145,7 @@ Requiere **JDK 21** (el wrapper descarga Gradle; JavaFX se resuelve como depende
 | Notificaciones | `GET {base}/auth/notifications` · `POST .../read-all` · `POST .../{id}/read` · `DELETE .../{id}` |
 | Deshabilitar | `POST {base}/auth/account/disable` · `POST {base}/auth/account/reactivate` |
 | Sesión | `GET {base}/auth/me` |
+| Passkeys | `GET {base}/auth/webauthn/credentials` · `DELETE .../{id}` |
 | Logout | `POST {base}/auth/logout` |
 | Listar | `GET {base}/products` |
 | Crear | `POST {base}/products` |

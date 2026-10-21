@@ -37,6 +37,18 @@ class AccountModelsTest {
     }
 
     @Test
+    void decodesPasskey() {
+        Passkey passkey = Passkey.fromJson(JsonParser.parseString("""
+                {"id":"p1","name":"MacBook","credential_id":"abc","created_at":"2026-01-01","last_used_at":null}
+                """).getAsJsonObject());
+
+        assertEquals("p1", passkey.id());
+        assertEquals("MacBook", passkey.name());
+        assertEquals("abc", passkey.credentialId());
+        assertEquals("2026-01-01", passkey.createdAt());
+    }
+
+    @Test
     void decodesInvitationSummary() {
         InvitationSummary invitation = InvitationSummary.fromJson(
                 JsonParser.parseString("{\"email\":\"ada@example.com\",\"guard\":\"web\"}").getAsJsonObject());

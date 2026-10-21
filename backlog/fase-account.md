@@ -119,9 +119,11 @@ El router monta las rutas públicas (`/login`, `/register`, `/forgot-password`,
 (`/preferences`, `/notifications`); `/register` solo es accesible con
 `--dart-define=PUBLIC=true` (default `web`). Login con email/password o código
 OTP, perfil editable con verificación, password y disable, preferencias y
-notificaciones. Las passkeys quedan fuera del móvil hasta añadir un plugin
-WebAuthn de plataforma. Verificación: `cd demo/mobile && flutter analyze &&
-./tool/test.sh` (core 9 tests, plugin_kit 6, product 5).
+notificaciones. Las passkeys usan el plugin `passkeys` (Credential Manager /
+ASAuthorization) mediante un seam testeable (`PasskeyClient`/`PasskeyService`);
+login passwordless desde el email y alta/baja en perfil. Verificación:
+`cd demo/mobile && flutter analyze && ./tool/test.sh` (core 13 tests,
+plugin_kit 6, product 5).
 
 ## Vistas base desktop
 
@@ -132,8 +134,16 @@ encadena login (password/OTP), registro, recuperación/reset, verificación e
 invitación sin tocar la shell; `ShellView` incorpora Preferencias y
 Notificaciones; `ProfileView` permite editar perfil, reenviar verificación,
 cambiar contraseña y deshabilitar la cuenta. La visibilidad se lee de
-`shardev.guard.public`/`SHARDEV_GUARD_PUBLIC` (default `web` público). Verificado
-con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
+`shardev.guard.public`/`SHARDEV_GUARD_PUBLIC` (default `web` público).
+
+Las passkeys de escritorio se delegan al navegador del sistema: la app abre
+`{frontend}/passkey` con `mode`, `state` y `return` (callback loopback efímero
+`http://127.0.0.1:<puerto>/callback`), el SPA ejecuta la ceremonia WebAuthn y
+devuelve el token o el estado por ese callback. El registro entrega el token
+actual en el fragmento. `PlatformConfig.frontendUrl(guard)` se configura con
+`-Dshardev.frontend.url`/`SHARDEV_FRONTEND_URL` (default demo: admin 5173,
+employee 5174, web 5175). Verificado con `cd demo/desktop && ./gradlew build`
+(compila las 3 apps + tests).
 
 ## Verificación
 
@@ -149,12 +159,12 @@ con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
   --guards=web:private,admin:public` y `platform guard add <g> --public|--private`
   persisten la visibilidad en `platform.json` y en `config/platforms.php`.
 - `demo/web`: `npm run typecheck`, `npm run lint`, `npm test`
-  → **25 passed** (6 archivos; incluye `webauthn`, auth, cuenta y social) y
-  `npm run build` (user/admin/employee).
+  → **30 passed** (7 archivos; incluye `webauthn`, auth, cuenta, social y el
+  puente de passkeys del desktop) y `npm run build` (user/admin/employee).
 - `demo/mobile`: `flutter analyze` (sin issues) y `./tool/test.sh`
   → core 13 + plugin_kit 6 + product 5 tests.
-- `demo/desktop`: `./gradlew build` (core/plugin-kit/product + apps) y
-  `./gradlew :packages:core:test` (modelos de cuenta y `email_verified`).
+- `demo/desktop`: `./gradlew build` → **30 tests** (core 19 + plugin_kit 6 +
+  product 5; incluye loopback, flujo passkey y `authenticateWithToken`).
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
   pasa la mayoría de las corridas.
@@ -176,6 +186,7 @@ con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
 13. Vistas base desktop ✅
 14. Login social web ✅
 15. Passkeys nativas mobile ✅ (plugin `passkeys`; asociación de dominio pendiente del host)
+16. Passkeys desktop ✅ (ceremonia en navegador del sistema + callback loopback)
 
 ## Vistas base web
 
@@ -207,6 +218,6 @@ Web monta `/auth/callback` (`SocialCallbackPage`): lee el token, lo canjea por
 `auth/me`, limpia el fragmento y entra al shell. Los botones solo aparecen en el
 guard `web`, que es el único con rutas sociales (`api/v1`). Ejemplo de `.env`:
 `FRONTEND_URL=http://localhost:5175` y
-`SOCIALITE_FRONTEND_REDIRECT=/auth/callback`. Mobile ya integra passkeys con el
-plugin `passkeys` (Dart + ceremonies); desktop sigue pendiente (WebAuthn en
-JavaFX no tiene equivalente maduro).
+`SOCIALITE_FRONTEND_REDIRECT=/auth/callback`. Mobile integra passkeys con el
+plugin `passkeys`; desktop delega la ceremonia al navegador del sistema con
+callback loopback (`/passkey` en el SPA).

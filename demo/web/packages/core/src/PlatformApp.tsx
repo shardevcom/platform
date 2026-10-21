@@ -17,6 +17,7 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 import { ResetPasswordPage } from "./pages/ResetPasswordPage"
 import { VerifyEmailPage } from "./pages/VerifyEmailPage"
 import { SocialCallbackPage } from "./pages/SocialCallbackPage"
+import { PasskeyBridgePage } from "./pages/PasskeyBridgePage"
 import { AcceptInvitationPage } from "./pages/AcceptInvitationPage"
 import { PreferencesPage } from "./pages/PreferencesPage"
 import { NotificationsPage } from "./pages/NotificationsPage"
@@ -93,6 +94,7 @@ export function PlatformApp({ guard, appName, plugins = [], public: isPublic = g
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/auth/callback" element={<SocialCallbackPage />} />
+              <Route path="/passkey" element={<PasskeyBridgePage guard={guard} />} />
               <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
               <Route element={<RequireAuth />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />

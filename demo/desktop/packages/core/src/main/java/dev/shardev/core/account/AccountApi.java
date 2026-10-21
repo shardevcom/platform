@@ -1,10 +1,13 @@
 package dev.shardev.core.account;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.shardev.core.api.ApiClient;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Account endpoints that are not part of the sign-in flow. */
 public final class AccountApi {
@@ -66,6 +69,26 @@ public final class AccountApi {
             body.addProperty("reason", reason);
         }
         api.data("POST", "auth/account/disable", null, body);
+    }
+
+    public List<Passkey> passkeys() {
+        JsonObject data = api.get("auth/webauthn/credentials").getAsJsonObject();
+        JsonArray items = data.has("items") && data.get("items").isJsonArray()
+                ? data.getAsJsonArray("items")
+                : new JsonArray();
+        List<Passkey> passkeys = new ArrayList<>();
+
+        for (JsonElement item : items) {
+            if (item.isJsonObject()) {
+                passkeys.add(Passkey.fromJson(item.getAsJsonObject()));
+            }
+        }
+
+        return passkeys;
+    }
+
+    public void removePasskey(String id) {
+        api.delete("auth/webauthn/credentials/" + encode(id));
     }
 
     public InvitationSummary invitation(String token) {

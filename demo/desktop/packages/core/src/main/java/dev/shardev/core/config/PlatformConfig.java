@@ -38,6 +38,31 @@ public final class PlatformConfig {
         return value.isBlank() ? guard == Guard.WEB : Boolean.parseBoolean(value);
     }
 
+    /**
+     * SPA base URL that runs the passkey ceremony for this guard.
+     *
+     * <p>{@code -Dshardev.frontend.url=...} or {@code SHARDEV_FRONTEND_URL};
+     * defaults to the demo app ports (admin 5173, employee 5174, web 5175).
+     */
+    public static String frontendUrl(Guard guard) {
+        String configured = firstNonBlank(
+                System.getProperty("shardev.frontend.url"),
+                System.getenv("SHARDEV_FRONTEND_URL"),
+                "");
+
+        if (!configured.isBlank()) {
+            return configured.endsWith("/")
+                    ? configured.substring(0, configured.length() - 1)
+                    : configured;
+        }
+
+        return switch (guard) {
+            case ADMIN -> "http://localhost:5173";
+            case EMPLOYEE -> "http://localhost:5174";
+            case WEB -> "http://localhost:5175";
+        };
+    }
+
     /** Window/app name; {@code -Dshardev.app.name=...}. */
     public static String appName() {
         return firstNonBlank(

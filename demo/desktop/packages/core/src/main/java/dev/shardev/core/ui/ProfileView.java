@@ -1,14 +1,20 @@
 package dev.shardev.core.ui;
 
 import dev.shardev.core.account.AccountApi;
+import dev.shardev.core.account.Passkey;
 import dev.shardev.core.auth.AuthUser;
+import java.util.List;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /** Account screen: profile edition, verification, password and disable. */
@@ -26,6 +32,8 @@ public final class ProfileView extends ScrollPane {
     private final PasswordField disablePassword = new PasswordField();
     private final Label verified = new Label();
     private final Label message = new Label();
+    private final VBox passkeysBox = new VBox(6);
+    private final Button addPasskey = new Button("Añadir passkey");
 
     public ProfileView(PlatformContext context, Runnable onLogout) {
         this.context = context;
@@ -55,6 +63,8 @@ public final class ProfileView extends ScrollPane {
         Button savePassword = new Button("Cambiar contraseña");
         savePassword.setOnAction(event -> savePassword(savePassword));
 
+        addPasskey.setOnAction(event -> addPasskey(addPasskey));
+
         Button disable = new Button("Deshabilitar cuenta");
         disable.setOnAction(event -> disable(disable));
 
@@ -78,6 +88,10 @@ public final class ProfileView extends ScrollPane {
                 confirmation,
                 savePassword,
                 new Separator(),
+                new Label("Passkeys"),
+                passkeysBox,
+                addPasskey,
+                new Separator(),
                 new Label("Deshabilitar cuenta"),
                 disablePassword,
                 disable,
@@ -87,6 +101,68 @@ public final class ProfileView extends ScrollPane {
 
         setContent(body);
         renderVerified(user);
+        loadPasskeys();
+    }
+
+    private void loadPasskeys() {
+        Async.run(account::passkeys, this::renderPasskeys,
+                failure -> message.setText(Errors.message(failure)));
+    }
+
+    private void renderPasskeys(List<Passkey> passkeys) {
+        passkeysBox.getChildren().clear();
+
+        if (passkeys.isEmpty()) {
+            passkeysBox.getChildren().add(new Label("No hay passkeys registradas."));
+            return;
+        }
+
+        for (Passkey passkey : passkeys) {
+            Label label = new Label(passkey.name() != null && !passkey.name().isBlank()
+                    ? passkey.name()
+                    : "Passkey");
+            Button remove = new Button("Eliminar");
+            remove.setOnAction(event -> removePasskey(passkey, remove));
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox row = new HBox(8, label, spacer, remove);
+            row.setAlignment(Pos.CENTER_LEFT);
+            passkeysBox.getChildren().add(row);
+        }
+    }
+
+    private void addPasskey(Button button) {
+        button.setDisable(true);
+        button.setText("Esperando passkey…");
+
+        Async.run(() -> {
+            context.passkeys().register(context.guard(), context.auth().token(), "Desktop");
+            return account.passkeys();
+        }, passkeys -> {
+            renderPasskeys(passkeys);
+            message.setText("Passkey añadida.");
+            button.setDisable(false);
+            button.setText("Añadir passkey");
+        }, failure -> {
+            message.setText(Errors.message(failure));
+            button.setDisable(false);
+            button.setText("Añadir passkey");
+        });
+    }
+
+    private void removePasskey(Passkey passkey, Button button) {
+        button.setDisable(true);
+
+        Async.run(() -> {
+            account.removePasskey(passkey.id());
+            return account.passkeys();
+        }, passkeys -> {
+            renderPasskeys(passkeys);
+            message.setText("Passkey eliminada.");
+        }, failure -> {
+            button.setDisable(false);
+            message.setText(Errors.message(failure));
+        });
     }
 
     private void saveProfile(Button save) {

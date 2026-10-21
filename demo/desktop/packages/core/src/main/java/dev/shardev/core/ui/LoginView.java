@@ -3,6 +3,7 @@ package dev.shardev.core.ui;
 import dev.shardev.core.account.AccountApi;
 import dev.shardev.core.auth.AuthService;
 import dev.shardev.core.config.PlatformConfig;
+import dev.shardev.core.passkeys.PasskeyBrowserFlow;
 import dev.shardev.pluginkit.Guard;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,10 +29,12 @@ public final class LoginView extends VBox {
         CODE
     }
 
+    private final Guard guard;
     private final TextField email;
     private final PasswordField password = new PasswordField();
     private final TextField code = new TextField();
     private final Button submit = new Button();
+    private final Button passkey = new Button("Entrar con passkey");
     private final Button sendCode = new Button("Enviar código");
     private final Label error = new Label();
     private Mode mode = Mode.PASSWORD;
@@ -40,11 +43,13 @@ public final class LoginView extends VBox {
             Guard guard,
             AuthService auth,
             AccountApi account,
+            PasskeyBrowserFlow passkeys,
             Runnable onAuthenticated,
             Runnable onForgot,
             Runnable onRegister,
             Runnable onInvitation,
             Runnable onVerifyEmail) {
+        this.guard = guard;
         getStyleClass().add("login");
         setAlignment(Pos.CENTER);
         setSpacing(12);
@@ -74,6 +79,9 @@ public final class LoginView extends VBox {
         submit.setDefaultButton(true);
         submit.setMaxWidth(360);
         submit.setOnAction(event -> submit(auth, onAuthenticated));
+
+        passkey.setMaxWidth(360);
+        passkey.setOnAction(event -> passkeyLogin(auth, passkeys, onAuthenticated));
 
         password.setOnAction(event -> submit.fire());
 
@@ -133,7 +141,7 @@ public final class LoginView extends VBox {
 
         renderSubmit();
 
-        getChildren().addAll(title, subtitle, email, modes, submit, error, links, secondary);
+        getChildren().addAll(title, subtitle, email, modes, submit, passkey, error, links, secondary);
     }
 
     private void submit(AuthService auth, Runnable onAuthenticated) {
@@ -149,6 +157,21 @@ public final class LoginView extends VBox {
                 failure -> {
                     submit.setDisable(false);
                     renderSubmit();
+                    showError(Errors.message(failure));
+                });
+    }
+
+    private void passkeyLogin(AuthService auth, PasskeyBrowserFlow passkeys, Runnable onAuthenticated) {
+        clearError();
+        passkey.setDisable(true);
+        passkey.setText("Esperando passkey…");
+
+        Async.run(
+                () -> auth.authenticateWithToken(passkeys.login(guard, email.getText().trim())),
+                user -> onAuthenticated.run(),
+                failure -> {
+                    passkey.setDisable(false);
+                    passkey.setText("Entrar con passkey");
                     showError(Errors.message(failure));
                 });
     }

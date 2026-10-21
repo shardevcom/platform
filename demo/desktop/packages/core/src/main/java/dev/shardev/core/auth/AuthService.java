@@ -98,6 +98,33 @@ public final class AuthService {
         return authenticate("auth/invitations/accept", body);
     }
 
+    /**
+     * Adopts a token issued outside the app (passkey ceremony in the system
+     * browser), persists it and resolves the current user.
+     */
+    public AuthUser authenticateWithToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new ApiError("Login response did not include a token", "NO_TOKEN", 0, null);
+        }
+
+        api.setToken(token);
+
+        try {
+            AuthUser user = AuthUser.fromJson(api.get("auth/me").getAsJsonObject());
+            tokens.write(guard, token);
+            state = AuthState.authenticated(user);
+
+            return user;
+        } catch (ApiError | IllegalStateException error) {
+            api.setToken(null);
+            throw error;
+        }
+    }
+
+    public String token() {
+        return api.token();
+    }
+
     /** Re-reads {@code auth/me}, e.g. after editing the profile. */
     public AuthUser refreshUser() {
         AuthUser user = AuthUser.fromJson(api.get("auth/me").getAsJsonObject());
