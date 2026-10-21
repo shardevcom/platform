@@ -21,6 +21,8 @@ final class SocialiteServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/socialite.php', 'socialite');
+
         $this->app->singleton(SocialiteRegistry::class, function ($app) {
             $registry = new SocialiteRegistry();
 
@@ -51,11 +53,43 @@ final class SocialiteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->bridgeProviderConfig();
+
         $this->publishes([
             __DIR__.'/../config/socialite.php' => config_path('socialite.php'),
         ], 'socialite-config');
 
         $this->loadRoutes();
+    }
+
+    /**
+     * Laravel Socialite reads `services.{provider}`, while this package keeps
+     * the providers under `socialite.providers`. Mirror the credentials so a
+     * single config block is enough.
+     */
+    private function bridgeProviderConfig(): void
+    {
+        foreach ((array) config('socialite.providers', []) as $key => $provider) {
+            if (! is_array($provider) || empty($provider['client_id'])) {
+                continue;
+            }
+
+            if (! empty(config("services.{$key}.client_id"))) {
+                continue;
+            }
+
+            $redirect = $provider['redirect'] ?? null;
+
+            if (is_string($redirect) && $redirect !== '' && ! str_contains($redirect, '://')) {
+                $redirect = rtrim((string) config('app.url'), '/').'/'.ltrim($redirect, '/');
+            }
+
+            config(["services.{$key}" => [
+                'client_id' => $provider['client_id'],
+                'client_secret' => $provider['client_secret'] ?? null,
+                'redirect' => $redirect,
+            ]]);
+        }
     }
 
     private function loadRoutes(): void

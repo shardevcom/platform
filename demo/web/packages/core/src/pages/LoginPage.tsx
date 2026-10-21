@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,6 +23,8 @@ import {
   TabsTrigger,
 } from "@shardev/ui"
 import type { Guard } from "@shardev/plugin-kit"
+
+import type { SocialProvider } from "../types"
 
 import { useAuth } from "../providers/AuthProvider"
 import { auth } from "../lib/endpoints"
@@ -69,6 +71,29 @@ export function LoginPage({
   const [notice, setNotice] = useState<string | null>(null)
   const [sendingCode, setSendingCode] = useState(false)
   const [passkeyBusy, setPasskeyBusy] = useState(false)
+  const [socialBusy, setSocialBusy] = useState<string | null>(null)
+  const [providers, setProviders] = useState<SocialProvider[]>([])
+
+  useEffect(() => {
+    let active = true
+
+    if (guard !== "web") {
+      return
+    }
+
+    auth
+      .socialProviders()
+      .then((result) => {
+        if (active) setProviders(result.providers)
+      })
+      .catch(() => {
+        // Social login is optional: a disabled provider must not block login.
+      })
+
+    return () => {
+      active = false
+    }
+  }, [guard])
 
   const passwordForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -117,6 +142,18 @@ export function LoginPage({
       navigate("/dashboard")
     } catch (err) {
       setError(errorMessage(err, "Código inválido o caducado"))
+    }
+  }
+
+  const onSocial = async (provider: string) => {
+    try {
+      setError(null)
+      setSocialBusy(provider)
+      const { redirect_url } = await auth.socialRedirect(provider)
+      window.location.assign(redirect_url)
+    } catch (err) {
+      setError(errorMessage(err, "No se pudo iniciar el acceso social"))
+      setSocialBusy(null)
     }
   }
 
@@ -224,6 +261,26 @@ export function LoginPage({
               </form>
             </TabsContent>
           </Tabs>
+
+          {providers.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-2">
+                {providers.map((provider) => (
+                  <Button
+                    key={provider.key}
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => void onSocial(provider.key)}
+                    disabled={socialBusy !== null}
+                  >
+                    {socialBusy === provider.key ? "Redirigiendo…" : `Continuar con ${provider.name}`}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
 
           {isWebAuthnAvailable() && (
             <>

@@ -38,7 +38,7 @@ es el login).
 | 10 | Invitaciones + verificación | ✅ nuevo | ✅ | ✅ |
 | 11 | OTP login | ✅ nuevo | ✅ | ✅ |
 | 12 | Passkeys/WebAuthn | ✅ nuevo | ✅ | ✅ |
-| 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ⏳ |
+| 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ✅ |
 | 14 | 2FA TOTP | ✅ existía | ✅ | ✅ existía |
 | 15 | Dashboard/widgets | ✅ existía | ✅ | ✅ existía |
 
@@ -139,16 +139,16 @@ con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
   `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8),
   `NotificationsEndpointTest` (6), `AccountLockEndpointTest` (7),
-  `InvitationEndpointTest` (7), `OtpEndpointTest` (8) y `WebAuthnEndpointTest`
-  (7, con `Tests\Support\WebAuthnAuthenticator`).
-- `composer test --working-dir=demo/api` → **272 passed (2996 assertions)**.
+  `InvitationEndpointTest` (7), `OtpEndpointTest` (8), `WebAuthnEndpointTest`
+  (7, con `Tests\Support\WebAuthnAuthenticator`) y `SocialiteEndpointTest` (6).
+- `composer test --working-dir=demo/api` → **278 passed (3015 assertions)**.
 - `composer test` (root) → **359 passed (1026 assertions)** (incluye visibilidad
   de guards en `new`/`add`/`config guard` y `guard list`).
 - `platform guard list` muestra `public`/`private` por guard; `platform new
   --guards=web:private,admin:public` y `platform guard add <g> --public|--private`
   persisten la visibilidad en `platform.json` y en `config/platforms.php`.
 - `demo/web`: `npm run typecheck`, `npm run lint`, `npm test`
-  → **21 passed** (5 archivos; incluye `webauthn`, auth y cuenta) y
+  → **25 passed** (6 archivos; incluye `webauthn`, auth, cuenta y social) y
   `npm run build` (user/admin/employee).
 - `demo/mobile`: `flutter analyze` (sin issues) y `./tool/test.sh`
   → core 9 + plugin_kit 6 + product 5 tests.
@@ -173,6 +173,7 @@ con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
 11. Vistas base web ✅
 12. Vistas base mobile ✅
 13. Vistas base desktop ✅
+14. Login social web ✅
 
 ## Vistas base web
 
@@ -187,5 +188,22 @@ del navegador (`navigator.credentials.create/get`) al payload que espera la API;
 `/accept-invitation`) y protegidas (`/preferences`, `/notifications`) con la prop
 `public`: los guards públicos muestran el enlace de registro, los privados solo
 invitación. `GuardClientScaffolder::web` inyecta `public={true|false}` en el
-`App.tsx` clonado según `platform.json`. El login social (OAuth) queda pendiente
-como paso aparte por el flujo de callback.
+`App.tsx` clonado según `platform.json`.
+
+### Login social (web)
+
+El paquete `socialite` expone `GET {prefix}/api/v1/auth/social/providers`
+(catálogo de drivers habilitados), `GET .../{provider}` (`redirect_url` al
+proveedor) y `GET .../{provider}/callback`. El callback sigue devolviendo JSON a
+clientes API (`Accept: application/json`) y, para navegaciones del navegador,
+redirige al SPA con el token en el fragmento
+(`{FRONTEND_URL}{SOCIALITE_FRONTEND_REDIRECT}#token=...`); el flag
+`SOCIALITE_FRONTEND_REDIRECT` vacío conserva el JSON. El modelo se resuelve con
+`socialite.user_model`, y `SocialiteServiceProvider` espeja
+`socialite.providers.*` en `services.*` para que baste un bloque de config.
+Web monta `/auth/callback` (`SocialCallbackPage`): lee el token, lo canjea por
+`auth/me`, limpia el fragmento y entra al shell. Los botones solo aparecen en el
+guard `web`, que es el único con rutas sociales (`api/v1`). Ejemplo de `.env`:
+`FRONTEND_URL=http://localhost:5175` y
+`SOCIALITE_FRONTEND_REDIRECT=/auth/callback`. Las passkeys nativas de
+mobile/desktop siguen pendientes (requieren plugin WebAuthn de plataforma).

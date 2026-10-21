@@ -25,6 +25,7 @@ interface AuthContextValue {
   loginWithPasskey: (credential: CredentialPayload) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
   acceptInvitation: (payload: Parameters<typeof account.acceptInvitation>[0]) => Promise<void>
+  completeSocialLogin: (token: string) => Promise<void>
   refreshUser: () => Promise<void>
   logout: () => Promise<void>
   /** True when the token's abilities grant the permission (supports `resource.*` and `*`). */
@@ -116,6 +117,21 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
     [guard, complete],
   )
 
+  const completeSocialLogin = useCallback(
+    async (token: string) => {
+      setPlatform(guard)
+      setToken(token)
+
+      try {
+        setUser(await auth.me())
+      } catch (error) {
+        setToken(null)
+        throw error
+      }
+    },
+    [guard],
+  )
+
   const refreshUser = useCallback(async () => {
     setUser(await auth.me())
   }, [])
@@ -151,11 +167,25 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
       loginWithPasskey,
       register,
       acceptInvitation,
+      completeSocialLogin,
       refreshUser,
       logout,
       can,
     }),
-    [user, guard, isLoading, login, loginWithOtp, loginWithPasskey, register, acceptInvitation, refreshUser, logout, can],
+    [
+      user,
+      guard,
+      isLoading,
+      login,
+      loginWithOtp,
+      loginWithPasskey,
+      register,
+      acceptInvitation,
+      completeSocialLogin,
+      refreshUser,
+      logout,
+      can,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -33,4 +33,30 @@ return [
     ],
 
     'default_redirect' => env('SOCIALITE_DEFAULT_REDIRECT', '/dashboard'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SPA callback
+    |--------------------------------------------------------------------------
+    |
+    | When the OAuth callback is a browser navigation, the API redirects here
+    | with the Passport token in the URL fragment (`#token=...`) instead of
+    | returning JSON. Leave empty to keep the JSON response.
+    |
+    */
+
+    'frontend_redirect' => env('SOCIALITE_FRONTEND_REDIRECT', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | User model
+    |--------------------------------------------------------------------------
+    |
+    | Class used to find or create the social account. Override it per app
+    | (e.g. a guard-specific model) or when `App\Models\User` is not the
+    | desired identity.
+    |
+    */
+
+    'user_model' => env('SOCIALITE_USER_MODEL', 'App\\Models\\User'),
 ];

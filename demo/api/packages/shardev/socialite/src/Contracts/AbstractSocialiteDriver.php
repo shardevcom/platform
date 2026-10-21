@@ -34,8 +34,15 @@ abstract class AbstractSocialiteDriver implements SocialiteDriver
 
     public function isEnabled(): bool
     {
-        $config = Config::get("socialite.providers.{$this->configKey}");
-        return $config['enabled'] ?? false;
+        $config = Config::get("socialite.providers.{$this->configKey}", []);
+
+        if (! ($config['enabled'] ?? false)) {
+            return false;
+        }
+
+        $clientId = $config['client_id'] ?? Config::get("services.{$this->configKey}.client_id");
+
+        return filled($clientId);
     }
 
     public function getScopes(): array
@@ -76,9 +83,12 @@ abstract class AbstractSocialiteDriver implements SocialiteDriver
         }
     }
 
-    public function findOrCreateUser(\Laravel\Socialite\Contracts\User $socialiteUser): \App\Models\User
-    {
-        $user = \App\Models\User::where('email', $socialiteUser->getEmail())->first();
+    public function findOrCreateUser(
+        \Laravel\Socialite\Contracts\User $socialiteUser
+    ): \Illuminate\Contracts\Auth\Authenticatable {
+        $model = (string) Config::get('socialite.user_model', \App\Models\User::class);
+
+        $user = $model::query()->where('email', $socialiteUser->getEmail())->first();
 
         if ($user) {
             $user->update([
@@ -89,7 +99,7 @@ abstract class AbstractSocialiteDriver implements SocialiteDriver
             return $user;
         }
 
-        return \App\Models\User::create([
+        return $model::query()->create([
             'name' => $socialiteUser->getName() ?? $socialiteUser->getEmail(),
             'email' => $socialiteUser->getEmail(),
             'email_verified_at' => now(),

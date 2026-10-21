@@ -10,6 +10,7 @@ import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
   RegisterPayload,
+  SocialProvider,
   TwoFactorSetup,
   User,
 } from "../types"
@@ -84,6 +85,12 @@ export const auth = {
 
   webauthnRegister: (credential: CredentialPayload, name?: string) =>
     apiData<Passkey>("auth/webauthn/register", { method: "POST", body: { credential, name } }),
+
+  socialProviders: () =>
+    apiData<{ providers: SocialProvider[] }>("auth/social/providers", { auth: false }),
+
+  socialRedirect: (provider: string) =>
+    apiData<{ redirect_url: string }>(`auth/social/${provider}`, { auth: false }),
 
   passkeys: () => apiData<{ items: Passkey[] }>("auth/webauthn/credentials"),
 

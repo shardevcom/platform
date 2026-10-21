@@ -24,6 +24,11 @@ export interface Pagination {
   last_page: number
 }
 
+export interface SocialProvider {
+  key: string
+  name: string
+}
+
 export interface User {
   id: string
   name: string | null

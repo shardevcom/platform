@@ -42,7 +42,9 @@ interface SocialiteDriver
     /**
      * Find or create a user from the socialite user data.
      */
-    public function findOrCreateUser(\Laravel\Socialite\Contracts\User $socialiteUser): \App\Models\User;
+    public function findOrCreateUser(
+        \Laravel\Socialite\Contracts\User $socialiteUser
+    ): \Illuminate\Contracts\Auth\Authenticatable;
 
     /**
      * Get the configuration key for this driver (e.g., 'google', 'microsoft').

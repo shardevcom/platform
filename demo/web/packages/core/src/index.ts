@@ -12,6 +12,7 @@ export { PlatformApp } from "./PlatformApp"
 export type { PlatformAppProps } from "./PlatformApp"
 
 export { LoginPage } from "./pages/LoginPage"
+export { SocialCallbackPage } from "./pages/SocialCallbackPage"
 export { RegisterPage } from "./pages/RegisterPage"
 export { ForgotPasswordPage } from "./pages/ForgotPasswordPage"
 export { ResetPasswordPage } from "./pages/ResetPasswordPage"

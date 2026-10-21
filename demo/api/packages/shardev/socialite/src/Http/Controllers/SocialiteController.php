@@ -29,6 +29,25 @@ final class SocialiteController
     ) {}
 
     /**
+     * Enabled providers, for clients that render the login buttons.
+     */
+    public function providers(): JsonResponse
+    {
+        $providers = [];
+
+        foreach ($this->socialiteRegistry->enabled() as $key => $driver) {
+            $providers[] = ['key' => $key, 'name' => $driver->name()];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'code' => 'OK',
+            'message' => '',
+            'data' => ['providers' => $providers],
+        ]);
+    }
+
+    /**
      * Redirect to the OAuth provider.
      */
     public function redirect(string $provider): JsonResponse
@@ -57,7 +76,10 @@ final class SocialiteController
             $redirectUrl = $driver->getRedirectUrl();
 
             return response()->json([
-                'redirect_url' => $redirectUrl,
+                'status' => 'success',
+                'code' => 'OK',
+                'message' => '',
+                'data' => ['redirect_url' => $redirectUrl],
             ]);
         } catch (\Throwable $e) {
             Log::error("Socialite redirect failed for {$provider}: " . $e->getMessage());
@@ -74,7 +96,7 @@ final class SocialiteController
     /**
      * Handle the OAuth callback.
      */
-    public function callback(string $provider, Request $request): JsonResponse
+    public function callback(string $provider, Request $request): JsonResponse|\Illuminate\Http\RedirectResponse
     {
         if (!$this->socialiteRegistry->has($provider)) {
             $error = ApiError::fromDomain(
@@ -105,17 +127,26 @@ final class SocialiteController
             // Personal access token (Passport)
             $token = $user->createToken('socialite-' . $provider, ['*'])->accessToken;
 
+            if (! $request->expectsJson() && ($frontend = $this->frontendRedirect($token)) !== null) {
+                return redirect()->away($frontend);
+            }
+
             // Return token and user info
             $redirectUrl = Config::get('socialite.default_redirect', '/dashboard') . "?token={$token}";
 
             return response()->json([
-                'token' => $token,
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
+                'status' => 'success',
+                'code' => 'OK',
+                'message' => '',
+                'data' => [
+                    'token' => $token,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'redirect_url' => $redirectUrl,
                 ],
-                'redirect_url' => $redirectUrl,
             ]);
         } catch (\Throwable $e) {
             Log::error("Socialite callback failed for {$provider}: " . $e->getMessage());
@@ -127,5 +158,27 @@ final class SocialiteController
 
             return response()->json($response->toArray(), 500);
         }
+    }
+
+    /**
+     * Absolute SPA URL carrying the token in the fragment, or null when the
+     * frontend callback is disabled.
+     */
+    private function frontendRedirect(string $token): ?string
+    {
+        $path = (string) Config::get('socialite.frontend_redirect', '');
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (! str_contains($path, '://')) {
+            $base = (string) Config::get('security.frontend.url', Config::get('app.url', ''));
+            $path = rtrim($base, '/').'/'.ltrim($path, '/');
+        }
+
+        $separator = str_contains($path, '#') ? '&' : '#';
+
+        return $path.$separator.'token='.urlencode($token);
     }
 }
