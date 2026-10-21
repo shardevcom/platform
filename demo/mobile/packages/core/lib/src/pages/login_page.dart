@@ -26,6 +26,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   LoginMode _mode = LoginMode.password;
   bool _submitting = false;
   bool _sendingCode = false;
+  bool _passkeyBusy = false;
 
   @override
   void initState() {
@@ -73,6 +74,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
+      }
+    }
+  }
+
+  Future<void> _passkeyLogin() async {
+    setState(() => _passkeyBusy = true);
+
+    try {
+      await ref.read(authProvider.notifier).loginWithPasskey(email: _email.text.trim());
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) {
+        setState(() => _passkeyBusy = false);
       }
     }
   }
@@ -188,6 +203,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(_mode == LoginMode.password ? 'Entrar' : 'Entrar con código'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _passkeyBusy ? null : _passkeyLogin,
+                    icon: const Icon(Icons.fingerprint),
+                    label: Text(_passkeyBusy ? 'Esperando passkey…' : 'Entrar con passkey'),
                   ),
                   const SizedBox(height: 8),
                   TextButton(

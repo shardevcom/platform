@@ -10,6 +10,8 @@ export 'src/api/api_client.dart';
 export 'src/api/envelope.dart';
 export 'src/auth/auth.dart';
 export 'src/config.dart';
+export 'src/passkeys/passkey_client.dart';
+export 'src/passkeys/passkey_service.dart';
 export 'src/providers.dart';
 export 'src/router/app_router.dart';
 export 'src/theme/app_theme.dart';

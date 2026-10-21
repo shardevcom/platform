@@ -5,6 +5,8 @@ import 'api/account_api.dart';
 import 'api/api_client.dart';
 import 'auth/auth.dart';
 import 'config.dart';
+import 'passkeys/passkey_client.dart';
+import 'passkeys/passkey_service.dart';
 
 /// The guard this build targets. Overridden in `main.dart` from `--dart-define`.
 final guardProvider = Provider<Guard>((ref) => PlatformConfig.guard);
@@ -28,6 +30,14 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
 /// Account endpoints (profile, password, preferences, notifications).
 final accountApiProvider = Provider<AccountApi>((ref) => AccountApi(ref.watch(apiClientProvider)));
+
+/// Platform WebAuthn authenticator (Android Credential Manager / iOS ASAuthorization).
+final passkeyClientProvider = Provider<PasskeyClient>((ref) => PlatformPasskeyClient());
+
+/// Passkey ceremonies shared by login and the account screen.
+final passkeyServiceProvider = Provider<PasskeyService>(
+  (ref) => PasskeyService(ref.watch(accountApiProvider), ref.watch(passkeyClientProvider)),
+);
 
 /// Auth state for the whole app.
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

@@ -108,8 +108,30 @@ platform demo add product --with-mobile-client --no-install
 platform demo add product --with-client --with-mobile-client   # web + mobile
 ```
 
-Las passkeys/WebAuthn no se incluyen en el cliente móvil porque requieren un
-plugin de plataforma; el resto de la base de cuenta es paritario con la web.
+### Passkeys (WebAuthn)
+
+El login sin contraseña usa el plugin [`passkeys`](https://pub.dev/packages/passkeys)
+(Android Credential Manager / iOS Authentication Services). `shardev_core`
+expone `PasskeyClient` (seam inyectable), `PasskeyService` (options de la API →
+ceremonia del dispositivo → verificación en la API) y
+`passkeyServiceProvider`; `AuthNotifier.loginWithPasskey` obtiene la assertion y
+la canjea por el token. El perfil lista, añade y elimina passkeys.
+
+Las carpetas `android/`/`ios/` no se versionan: tras `flutter create .` hay que
+asociar la app con el dominio del relying party antes de usar passkeys reales:
+
+- Android: publicar `https://{rp_id}/.well-known/assetlinks.json` con el package
+  y el SHA-256 del certificado; el origen nativo
+  (`android:apk-key-hash:...`) debe estar en `WEBAUTHN_ALLOWED_ORIGINS`.
+- iOS: entitlement `com.apple.developer.associated-domains` con
+  `webcredentials:{rp_id}`, y el origen nativo correspondiente en
+  `WEBAUTHN_ALLOWED_ORIGINS`.
+- API: `WEBAUTHN_RP_ID` debe ser el dominio registrable (no `localhost`) y
+  `APP_URL`/`WEBAUTHN_ALLOWED_ORIGINS` deben coincidir con ese dominio.
+
+Los tests cubren el contrato (options → credential → API) con un
+`PasskeyClient` falso; la ceremonia biométrica real requiere un emulador/
+dispositivo con cuenta y esas asociaciones.
 
 ## Comandos
 
@@ -120,7 +142,7 @@ flutter create .
 
 flutter pub get
 flutter analyze          # analiza app + packages + plugins desde la raíz
-./tool/test.sh           # corre `flutter test` en cada package (plugin_kit, core, product)
+./tool/test.sh           # pub get + `flutter test` en cada package (plugin_kit, core, product)
 flutter run --dart-define=GUARD=admin --dart-define=API_HOST=http://10.0.2.2:8000
 ```
 
@@ -138,6 +160,7 @@ flutter run --dart-define=GUARD=admin --dart-define=API_HOST=http://10.0.2.2:800
 | Preferencias | `GET/PUT {base}/auth/preferences` |
 | Notificaciones | `GET {base}/auth/notifications` · `POST .../read-all` · `POST .../{id}/read` · `DELETE .../{id}` |
 | Deshabilitar | `POST {base}/auth/account/disable` · `POST {base}/auth/account/reactivate` |
+| Passkeys | `POST .../webauthn/login/options` · `POST .../webauthn/login` · `GET/POST .../webauthn/register*` · `DELETE .../webauthn/credentials/{id}` |
 | Sesión | `GET {base}/auth/me` |
 | Logout | `POST {base}/auth/logout` |
 | Listar | `GET {base}/products` |

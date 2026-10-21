@@ -11,5 +11,7 @@ flutter pub get
 
 for package in packages/plugin_kit packages/core plugins/product; do
   echo "==> $package"
-  (cd "$package" && flutter test)
+  # Path packages keep their own package_config; resolve the dependency graph
+  # there too so core's passkeys plugin is visible to the plugin tests.
+  (cd "$package" && flutter pub get && flutter test)
 done

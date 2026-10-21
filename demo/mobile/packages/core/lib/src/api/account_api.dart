@@ -1,5 +1,43 @@
 import 'api_client.dart';
 
+/// A registered passkey (`GET auth/webauthn/credentials`).
+class Passkey {
+  const Passkey({
+    required this.id,
+    this.name,
+    this.credentialId,
+    this.createdAt,
+    this.lastUsedAt,
+  });
+
+  final String id;
+  final String? name;
+  final String? credentialId;
+  final String? createdAt;
+  final String? lastUsedAt;
+
+  factory Passkey.fromJson(Map<String, dynamic> json) => Passkey(
+        id: json['id']?.toString() ?? '',
+        name: json['name']?.toString(),
+        credentialId: json['credential_id']?.toString(),
+        createdAt: json['created_at']?.toString(),
+        lastUsedAt: json['last_used_at']?.toString(),
+      );
+}
+
+/// Passkey endpoints used by the account screen and the passwordless login.
+abstract interface class PasskeyApi {
+  Future<Map<String, dynamic>> passkeyRegistrationOptions();
+
+  Future<Map<String, dynamic>> passkeyLoginOptions({String? email});
+
+  Future<List<Passkey>> passkeys();
+
+  Future<Passkey> registerPasskey(Map<String, dynamic> credential, {String? name});
+
+  Future<void> removePasskey(String id);
+}
+
 /// Account preferences returned complete by `GET auth/preferences`.
 class Preferences {
   const Preferences({
@@ -89,10 +127,53 @@ class InvitationSummary {
 }
 
 /// Account endpoints that are not part of the sign-in flow.
-class AccountApi {
+class AccountApi implements PasskeyApi {
   const AccountApi(this._api);
 
   final ApiClient _api;
+
+  @override
+  Future<Map<String, dynamic>> passkeyRegistrationOptions() =>
+      _api.data<Map<String, dynamic>>('auth/webauthn/register/options', method: 'POST');
+
+  @override
+  Future<Map<String, dynamic>> passkeyLoginOptions({String? email}) =>
+      _api.data<Map<String, dynamic>>(
+        'auth/webauthn/login/options',
+        method: 'POST',
+        body: {
+          if (email != null && email.isNotEmpty) 'email': email,
+        },
+      );
+
+  @override
+  Future<List<Passkey>> passkeys() async {
+    final data = await _api.data<Map<String, dynamic>>('auth/webauthn/credentials');
+    final items = data['items'] as List? ?? const [];
+
+    return items
+        .whereType<Map>()
+        .map((item) => Passkey.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  @override
+  Future<Passkey> registerPasskey(Map<String, dynamic> credential, {String? name}) async {
+    final data = await _api.data<Map<String, dynamic>>(
+      'auth/webauthn/register',
+      method: 'POST',
+      body: {
+        'credential': credential,
+        if (name != null && name.isNotEmpty) 'name': name,
+      },
+    );
+
+    return Passkey.fromJson(data);
+  }
+
+  @override
+  Future<void> removePasskey(String id) =>
+      _api.data<Object?>('auth/webauthn/credentials/$id', method: 'DELETE');
 
   Future<void> updateProfile({String? name, String? email}) => _api.data<Object?>(
         'auth/profile',

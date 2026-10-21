@@ -75,6 +75,9 @@ return [
     | Relying Party identity and the browser origins allowed to run a ceremony.
     | `rp_id` must be the registrable domain the passkeys are bound to; the
     | allowed origins must match what the sysadmin configures in the client.
+    | Native clients also need their app origin here, e.g.
+    | `android:apk-key-hash:...` (Android) or the iOS app origin, alongside
+    | the web origin.
     |
     */
     'webauthn' => [

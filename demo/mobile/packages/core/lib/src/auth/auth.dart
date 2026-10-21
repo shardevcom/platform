@@ -94,6 +94,17 @@ class AuthNotifier extends Notifier<AuthState> {
         body: {'email': email, 'password': password, 'device_name': 'mobile'},
       );
 
+  /// Passwordless sign-in with a passkey. The email scopes the challenge to
+  /// that account's credentials (the server rejects an unscoped ceremony).
+  Future<void> loginWithPasskey({String? email}) async {
+    final credential = await ref.read(passkeyServiceProvider).authenticate(email: email);
+
+    await _authenticate(
+      'auth/webauthn/login',
+      body: {'credential': credential, 'device_name': 'mobile'},
+    );
+  }
+
   /// Passwordless sign-in with the code emailed to [email].
   Future<void> loginWithOtp(String email, String code) => _authenticate(
         'auth/otp/verify',

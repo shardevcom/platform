@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../api/account_api.dart';
 import '../api/envelope.dart';
 import '../providers.dart';
 
@@ -20,6 +21,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _confirmation = TextEditingController();
   bool _savingProfile = false;
   bool _savingPassword = false;
+  bool _loadingPasskeys = true;
+  bool _passkeyBusy = false;
+  List<Passkey> _passkeys = const [];
 
   @override
   void initState() {
@@ -27,6 +31,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final user = ref.read(authProvider).user;
     _name.text = user?.name ?? '';
     _email.text = user?.email ?? '';
+    _loadPasskeys();
   }
 
   @override
@@ -80,6 +85,41 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       _show(error is ApiError ? error.message : 'No se pudo cambiar la contraseña.');
     } finally {
       if (mounted) setState(() => _savingPassword = false);
+    }
+  }
+
+  Future<void> _loadPasskeys() async {
+    try {
+      final passkeys = await ref.read(passkeyServiceProvider).list();
+      if (mounted) setState(() => _passkeys = passkeys);
+    } catch (error) {
+      _show(error is ApiError ? error.message : 'No se pudieron cargar las passkeys.');
+    } finally {
+      if (mounted) setState(() => _loadingPasskeys = false);
+    }
+  }
+
+  Future<void> _addPasskey() async {
+    setState(() => _passkeyBusy = true);
+
+    try {
+      await ref.read(passkeyServiceProvider).register(name: 'Mobile');
+      await _loadPasskeys();
+      _show('Passkey añadida.');
+    } catch (error) {
+      _show(error is ApiError ? error.message : 'No se pudo registrar la passkey.');
+    } finally {
+      if (mounted) setState(() => _passkeyBusy = false);
+    }
+  }
+
+  Future<void> _removePasskey(Passkey passkey) async {
+    try {
+      await ref.read(passkeyServiceProvider).remove(passkey.id);
+      await _loadPasskeys();
+      _show('Passkey eliminada.');
+    } catch (error) {
+      _show(error is ApiError ? error.message : 'No se pudo eliminar la passkey.');
     }
   }
 
@@ -196,6 +236,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         FilledButton.tonal(
           onPressed: _savingPassword ? null : _savePassword,
           child: Text(_savingPassword ? 'Guardando…' : 'Cambiar contraseña'),
+        ),
+        const Divider(height: 40),
+        Text('Passkeys', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (_loadingPasskeys)
+          const Center(child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()))
+        else if (_passkeys.isEmpty)
+          const Text('No hay passkeys registradas en este dispositivo.')
+        else
+          for (final passkey in _passkeys)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.fingerprint),
+              title: Text(passkey.name ?? 'Passkey'),
+              subtitle: passkey.createdAt == null ? null : Text(passkey.createdAt!),
+              trailing: IconButton(
+                tooltip: 'Eliminar',
+                onPressed: () => _removePasskey(passkey),
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: _passkeyBusy ? null : _addPasskey,
+          icon: const Icon(Icons.add),
+          label: Text(_passkeyBusy ? 'Esperando passkey…' : 'Añadir passkey'),
         ),
         const Divider(height: 40),
         _Row(label: 'Guard', value: user?.guard ?? '—'),
