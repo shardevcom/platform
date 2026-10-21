@@ -1,4 +1,4 @@
-package dev.shardev.core.passkeys;
+package dev.shardev.core.browser;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -23,7 +23,7 @@ public final class SystemBrowserLauncher implements FrontendLauncher {
                 new ProcessBuilder(os.contains("mac") ? "open" : "xdg-open", uri.toString()).start();
             }
         } catch (IOException | UnsupportedOperationException error) {
-            throw new PasskeyFlowException("No se pudo abrir el navegador: " + error.getMessage());
+            throw new BrowserFlowException("No se pudo abrir el navegador: " + error.getMessage());
         }
     }
 }

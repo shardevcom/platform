@@ -24,6 +24,9 @@ final class SocialiteEndpointTest extends TestCase
 
     private User $user;
 
+    /** @var \ArrayObject<string, mixed> */
+    private \ArrayObject $captured;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -33,7 +36,8 @@ final class SocialiteEndpointTest extends TestCase
             'email' => 'ada@example.com',
         ]);
 
-        app(SocialiteRegistry::class)->register($this->driver());
+        $this->captured = new \ArrayObject();
+        app(SocialiteRegistry::class)->register($this->driver($this->captured));
     }
 
     public function test_it_lists_the_enabled_providers(): void
@@ -93,6 +97,68 @@ final class SocialiteEndpointTest extends TestCase
             ->assertJsonPath('data.user.id', $this->user->id);
     }
 
+    public function test_it_forwards_the_native_return_in_the_oauth_state(): void
+    {
+        $this->getJson('/api/v1/auth/social/fake?return='.urlencode('shardev://auth/callback'))
+            ->assertOk()
+            ->assertJsonPath('data.redirect_url', 'https://provider.example/oauth');
+
+        $this->assertArrayHasKey('state', $this->captured->getArrayCopy());
+        $this->assertNotEmpty($this->captured['state']);
+    }
+
+    public function test_it_redirects_native_clients_with_the_token_in_the_fragment(): void
+    {
+        $this->getJson('/api/v1/auth/social/fake?return='.urlencode('shardev://auth/callback'))
+            ->assertOk();
+
+        $response = $this->get(
+            '/api/v1/auth/social/fake/callback?code=ok&state='.urlencode((string) $this->captured['state']),
+            ['Accept' => 'text/html']
+        );
+
+        $response->assertRedirect();
+        $location = (string) $response->headers->get('Location');
+
+        $this->assertStringStartsWith('shardev://auth/callback#token=', $location);
+
+        $token = substr($location, strpos($location, 'token=') + 6);
+
+        $this->getJson('/api/v1/auth/me', ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonPath('data.email', 'ada@example.com');
+    }
+
+    public function test_it_returns_the_token_in_the_query_for_loopback_clients(): void
+    {
+        $return = 'http://127.0.0.1:9999/callback?state=x';
+
+        $this->getJson('/api/v1/auth/social/fake?return='.urlencode($return))->assertOk();
+
+        $response = $this->get(
+            '/api/v1/auth/social/fake/callback?code=ok&state='.urlencode((string) $this->captured['state']),
+            ['Accept' => 'text/html']
+        );
+
+        $response->assertRedirect();
+        $location = (string) $response->headers->get('Location');
+
+        $this->assertStringStartsWith($return.'&token=', $location);
+
+        $token = substr($location, strpos($location, 'token=') + 6);
+
+        $this->getJson('/api/v1/auth/me', ['Authorization' => 'Bearer '.$token])
+            ->assertOk()
+            ->assertJsonPath('data.email', 'ada@example.com');
+    }
+
+    public function test_it_rejects_an_external_return_url(): void
+    {
+        $this->getJson('/api/v1/auth/social/fake?return='.urlencode('https://evil.example/callback'))
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'VALIDATION_FAILED');
+    }
+
     public function test_an_unknown_provider_is_not_found(): void
     {
         $this->getJson('/api/v1/auth/social/nope')
@@ -100,13 +166,19 @@ final class SocialiteEndpointTest extends TestCase
             ->assertJsonPath('code', 'RESOURCE_NOT_FOUND');
     }
 
-    private function driver(): SocialiteDriver
+    /**
+     * @param \ArrayObject<string, mixed> $captured
+     */
+    private function driver(\ArrayObject $captured): SocialiteDriver
     {
         $user = $this->user;
 
-        return new class($user) implements SocialiteDriver
+        return new class($user, $captured) implements SocialiteDriver
         {
-            public function __construct(private readonly User $user) {}
+            public function __construct(
+                private readonly User $user,
+                private readonly \ArrayObject $captured,
+            ) {}
 
             public function key(): string
             {
@@ -123,8 +195,10 @@ final class SocialiteEndpointTest extends TestCase
                 return true;
             }
 
-            public function getRedirectUrl(): string
+            public function getRedirectUrl(?string $state = null): string
             {
+                $this->captured['state'] = $state;
+
                 return 'https://provider.example/oauth';
             }
 

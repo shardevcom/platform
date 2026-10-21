@@ -133,6 +133,23 @@ Los tests cubren el contrato (options → credential → API) con un
 `PasskeyClient` falso; la ceremonia biométrica real requiere un emulador/
 dispositivo con cuenta y esas asociaciones.
 
+### Login social
+
+El guard `web` muestra los proveedores habilitados por la API. El flujo usa
+[`flutter_web_auth_2`](https://pub.dev/packages/flutter_web_auth_2) para abrir
+el navegador del sistema: `SocialService` pide
+`GET {base}/auth/social/{provider}?return=shardev://auth/callback`, abre la URL
+del proveedor y recibe el token en el deep link. `AuthNotifier.loginWithSocial`
+lo valida con `auth/me` y lo persiste. Configura el callback con
+`--dart-define=SOCIAL_CALLBACK_URL=esquema://ruta` (default
+`shardev://auth/callback`).
+
+`android/`/`ios/` no se versionan: tras `flutter create .` declara el esquema
+(`android:scheme="shardev"` en un intent-filter de la actividad y
+`CFBundleURLTypes` en iOS) y añade el esquema a `SOCIALITE_NATIVE_SCHEMES` en la
+API. Las rutas sociales viven solo en `/api/v1`; en admin/employee no se muestra
+el bloque.
+
 ## Comandos
 
 ```bash
@@ -161,6 +178,7 @@ flutter run --dart-define=GUARD=admin --dart-define=API_HOST=http://10.0.2.2:800
 | Notificaciones | `GET {base}/auth/notifications` · `POST .../read-all` · `POST .../{id}/read` · `DELETE .../{id}` |
 | Deshabilitar | `POST {base}/auth/account/disable` · `POST {base}/auth/account/reactivate` |
 | Passkeys | `POST .../webauthn/login/options` · `POST .../webauthn/login` · `GET/POST .../webauthn/register*` · `DELETE .../webauthn/credentials/{id}` |
+| Login social | `GET /api/v1/auth/social/providers` · `GET .../{provider}?return=...` · callback al deep link |
 | Sesión | `GET {base}/auth/me` |
 | Logout | `POST {base}/auth/logout` |
 | Listar | `GET {base}/products` |

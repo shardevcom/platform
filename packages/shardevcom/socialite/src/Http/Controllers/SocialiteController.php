@@ -7,6 +7,7 @@ namespace Shardevcom\Socialite\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use Shardevcom\Core\Results\ApiError;
@@ -50,7 +51,7 @@ final class SocialiteController
     /**
      * Redirect to the OAuth provider.
      */
-    public function redirect(string $provider): JsonResponse
+    public function redirect(string $provider, Request $request): JsonResponse
     {
         if (!$this->socialiteRegistry->has($provider)) {
             $error = ApiError::fromDomain(
@@ -73,7 +74,23 @@ final class SocialiteController
         }
 
         try {
-            $redirectUrl = $driver->getRedirectUrl();
+            $return = $request->query('return');
+
+            if ($return !== null && (! is_string($return) || ($return !== '' && ! $this->isAllowedReturn($return)))) {
+                $error = ApiError::fromDomain(new \Shardevcom\Core\Exceptions\ValidationFailed([
+                    'return' => ['The return URL must be loopback or use an allowed native scheme.'],
+                ]));
+
+                return response()->json(
+                    ApiResponse::error($error, new \Shardevcom\Core\Results\ApiMeta('n/a', 'n/a'))->toArray(),
+                    422
+                );
+            }
+
+            $state = is_string($return) && $return !== ''
+                ? Crypt::encryptString($return)
+                : null;
+            $redirectUrl = $driver->getRedirectUrl($state);
 
             return response()->json([
                 'status' => 'success',
@@ -126,6 +143,11 @@ final class SocialiteController
 
             // Personal access token (Passport)
             $token = $user->createToken('socialite-' . $provider, ['*'])->accessToken;
+            $native = $this->nativeReturn($request->query('state'));
+
+            if ($native !== null) {
+                return redirect()->away($this->appendResult($native, ['token' => $token]));
+            }
 
             if (! $request->expectsJson() && ($frontend = $this->frontendRedirect($token)) !== null) {
                 return redirect()->away($frontend);
@@ -151,6 +173,12 @@ final class SocialiteController
         } catch (\Throwable $e) {
             Log::error("Socialite callback failed for {$provider}: " . $e->getMessage());
 
+            if ($native = $this->nativeReturn($request->query('state'))) {
+                return redirect()->away($this->appendResult($native, [
+                    'error' => 'No se pudo completar el acceso social.',
+                ]));
+            }
+
             $response = ApiResponse::error(
                 new \Shardevcom\Core\Exceptions\BusinessRuleViolation("OAuth callback failed: {$e->getMessage()}"),
                 new \Shardevcom\Core\Results\ApiMeta('n/a', 'n/a')
@@ -158,6 +186,77 @@ final class SocialiteController
 
             return response()->json($response->toArray(), 500);
         }
+    }
+
+    /**
+     * Decrypt the return target carried through the provider's OAuth state.
+     */
+    private function nativeReturn(?string $state): ?string
+    {
+        if (! is_string($state) || $state === '') {
+            return null;
+        }
+
+        try {
+            $return = Crypt::decryptString($state);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $this->isAllowedReturn($return) ? $return : null;
+    }
+
+    /**
+     * Whether a client may receive the OAuth token directly: loopback HTTP(S)
+     * for desktop apps or a configured custom scheme for native apps.
+     */
+    private function isAllowedReturn(string $return): bool
+    {
+        if ($return === '' || strlen($return) > 2048) {
+            return false;
+        }
+
+        $parts = parse_url($return);
+
+        if ($parts === false || empty($parts['scheme'])) {
+            return false;
+        }
+
+        $scheme = strtolower((string) $parts['scheme']);
+
+        if (in_array($scheme, ['http', 'https'], true)) {
+            return in_array(strtolower((string) ($parts['host'] ?? '')), ['127.0.0.1', 'localhost', '::1', '[::1]'], true);
+        }
+
+        $schemes = array_map(
+            static fn ($value): string => strtolower((string) $value),
+            (array) Config::get('socialite.native_schemes', ['shardev'])
+        );
+
+        return in_array($scheme, $schemes, true) && ! empty($parts['host']);
+    }
+
+    /**
+     * Append the result to the return target. Loopback URLs keep the token in
+     * the query (the browser's local server never sees the fragment); custom
+     * app schemes use the fragment so it stays out of server logs.
+     *
+     * @param array<string, string> $values
+     */
+    private function appendResult(string $url, array $values): string
+    {
+        $encoded = http_build_query($values, '', '&', PHP_QUERY_RFC3986);
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        if (in_array($scheme, ['http', 'https'], true)) {
+            $separator = str_contains($url, '?') ? '&' : '?';
+
+            return $url.$separator.$encoded;
+        }
+
+        $separator = str_contains($url, '#') ? '&' : '#';
+
+        return $url.$separator.$encoded;
     }
 
     /**

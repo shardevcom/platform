@@ -1,3 +1,5 @@
+import '../social/social_provider.dart';
+import '../social/social_service.dart';
 import 'api_client.dart';
 
 /// A registered passkey (`GET auth/webauthn/credentials`).
@@ -127,7 +129,7 @@ class InvitationSummary {
 }
 
 /// Account endpoints that are not part of the sign-in flow.
-class AccountApi implements PasskeyApi {
+class AccountApi implements PasskeyApi, SocialApi {
   const AccountApi(this._api);
 
   final ApiClient _api;
@@ -145,6 +147,27 @@ class AccountApi implements PasskeyApi {
           if (email != null && email.isNotEmpty) 'email': email,
         },
       );
+
+  @override
+  Future<List<SocialProvider>> socialProviders() async {
+    final data = await _api.data<Map<String, dynamic>>('auth/social/providers');
+    final items = data['providers'] as List? ?? const [];
+
+    return items
+        .whereType<Map>()
+        .map((item) => SocialProvider.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+  }
+
+  @override
+  Future<String> socialRedirect(String provider, {required String returnUrl}) async {
+    final data = await _api.data<Map<String, dynamic>>(
+      'auth/social/${Uri.encodeComponent(provider)}',
+      query: {'return': returnUrl},
+    );
+
+    return data['redirect_url']?.toString() ?? '';
+  }
 
   @override
   Future<List<Passkey>> passkeys() async {

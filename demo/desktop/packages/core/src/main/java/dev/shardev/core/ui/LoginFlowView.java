@@ -3,6 +3,7 @@ package dev.shardev.core.ui;
 import dev.shardev.core.account.AccountApi;
 import dev.shardev.core.auth.AuthService;
 import dev.shardev.core.passkeys.PasskeyBrowserFlow;
+import dev.shardev.core.social.SocialBrowserFlow;
 import dev.shardev.pluginkit.Guard;
 import javafx.scene.layout.StackPane;
 
@@ -13,6 +14,7 @@ public final class LoginFlowView extends StackPane {
     private final AuthService auth;
     private final AccountApi account;
     private final PasskeyBrowserFlow passkeys;
+    private final SocialBrowserFlow social;
     private final Runnable onAuthenticated;
 
     public LoginFlowView(
@@ -20,11 +22,13 @@ public final class LoginFlowView extends StackPane {
             AuthService auth,
             AccountApi account,
             PasskeyBrowserFlow passkeys,
+            SocialBrowserFlow social,
             Runnable onAuthenticated) {
         this.guard = guard;
         this.auth = auth;
         this.account = account;
         this.passkeys = passkeys;
+        this.social = social;
         this.onAuthenticated = onAuthenticated;
 
         showLogin();
@@ -36,6 +40,7 @@ public final class LoginFlowView extends StackPane {
                 auth,
                 account,
                 passkeys,
+                social,
                 onAuthenticated,
                 this::showForgot,
                 this::showRegister,

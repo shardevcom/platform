@@ -1,4 +1,4 @@
-package dev.shardev.core.passkeys;
+package dev.shardev.core.browser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,7 +36,7 @@ class LoopbackReceiverTest {
     @Test
     void timesOutWithoutACallback() {
         try (LoopbackReceiver receiver = LoopbackReceiver.start("state-1", Duration.ofMillis(100))) {
-            assertThrows(PasskeyFlowException.class, receiver::await);
+            assertThrows(BrowserFlowException.class, receiver::await);
         }
     }
 

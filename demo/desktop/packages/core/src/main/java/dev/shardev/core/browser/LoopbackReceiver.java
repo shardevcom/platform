@@ -1,4 +1,4 @@
-package dev.shardev.core.passkeys;
+package dev.shardev.core.browser;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -19,10 +19,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Single-use loopback callback for the browser-based passkey ceremony.
+ * Single-use loopback callback for browser-based flows (passkeys, OAuth).
  *
  * <p>Binds an ephemeral port on the loopback interface, validates the random
- * {@code state} and completes once with the values the SPA returns.
+ * {@code state} and completes once with the values the browser returns in the
+ * query string (fragments never reach an HTTP server).
  */
 public final class LoopbackReceiver implements AutoCloseable {
 
@@ -58,7 +59,7 @@ public final class LoopbackReceiver implements AutoCloseable {
 
             return receiver;
         } catch (IOException error) {
-            throw new PasskeyFlowException("No se pudo abrir el callback local: " + error.getMessage());
+            throw new BrowserFlowException("No se pudo abrir el callback local: " + error.getMessage());
         }
     }
 
@@ -70,12 +71,12 @@ public final class LoopbackReceiver implements AutoCloseable {
         try {
             return result.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException error) {
-            throw new PasskeyFlowException("La ceremonia de passkey caducó. Inténtalo de nuevo.");
+            throw new BrowserFlowException("La operación caducó. Inténtalo de nuevo.");
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
-            throw new PasskeyFlowException("La ceremonia de passkey se interrumpió.");
+            throw new BrowserFlowException("La operación se interrumpió.");
         } catch (ExecutionException error) {
-            throw new PasskeyFlowException(error.getCause() != null
+            throw new BrowserFlowException(error.getCause() != null
                     ? error.getCause().getMessage()
                     : error.getMessage());
         }
@@ -83,15 +84,15 @@ public final class LoopbackReceiver implements AutoCloseable {
 
     private void handle(HttpExchange exchange) throws IOException {
         try {
-            Map<String, String> query = parseQuery(exchange.getRequestURI().getRawQuery());
+            Map<String, String> values = parseQuery(exchange.getRequestURI().getRawQuery());
 
-            if (!state.equals(query.get("state"))) {
-                respond(exchange, 400, "Estado de passkey inválido.");
+            if (!state.equals(values.get("state"))) {
+                respond(exchange, 400, "Estado de la operación inválido.");
                 return;
             }
 
-            result.complete(new Callback(query.get("token"), query.get("status"), query.get("error")));
-            respond(exchange, 200, "Passkey completada. Puedes cerrar esta pestaña y volver a la app.");
+            result.complete(new Callback(values.get("token"), values.get("status"), values.get("error")));
+            respond(exchange, 200, "Operación completada. Puedes cerrar esta pestaña y volver a la app.");
         } catch (RuntimeException error) {
             respond(exchange, 500, "No se pudo completar la passkey.");
         }

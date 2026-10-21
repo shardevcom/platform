@@ -4,6 +4,8 @@ import dev.shardev.core.account.AccountApi;
 import dev.shardev.core.auth.AuthService;
 import dev.shardev.core.config.PlatformConfig;
 import dev.shardev.core.passkeys.PasskeyBrowserFlow;
+import dev.shardev.core.social.SocialBrowserFlow;
+import dev.shardev.core.social.SocialProvider;
 import dev.shardev.pluginkit.Guard;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,6 +16,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import java.util.List;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -35,6 +38,7 @@ public final class LoginView extends VBox {
     private final TextField code = new TextField();
     private final Button submit = new Button();
     private final Button passkey = new Button("Entrar con passkey");
+    private final VBox socialBox = new VBox(8);
     private final Button sendCode = new Button("Enviar código");
     private final Label error = new Label();
     private Mode mode = Mode.PASSWORD;
@@ -44,6 +48,7 @@ public final class LoginView extends VBox {
             AuthService auth,
             AccountApi account,
             PasskeyBrowserFlow passkeys,
+            SocialBrowserFlow social,
             Runnable onAuthenticated,
             Runnable onForgot,
             Runnable onRegister,
@@ -82,6 +87,9 @@ public final class LoginView extends VBox {
 
         passkey.setMaxWidth(360);
         passkey.setOnAction(event -> passkeyLogin(auth, passkeys, onAuthenticated));
+
+        socialBox.setFillWidth(true);
+        socialBox.setMaxWidth(360);
 
         password.setOnAction(event -> submit.fire());
 
@@ -141,7 +149,9 @@ public final class LoginView extends VBox {
 
         renderSubmit();
 
-        getChildren().addAll(title, subtitle, email, modes, submit, passkey, error, links, secondary);
+        getChildren().addAll(title, subtitle, email, modes, submit, passkey, socialBox, error, links, secondary);
+
+        loadSocial(account, social, auth, onAuthenticated);
     }
 
     private void submit(AuthService auth, Runnable onAuthenticated) {
@@ -172,6 +182,59 @@ public final class LoginView extends VBox {
                 failure -> {
                     passkey.setDisable(false);
                     passkey.setText("Entrar con passkey");
+                    showError(Errors.message(failure));
+                });
+    }
+
+    private void loadSocial(
+            AccountApi account,
+            SocialBrowserFlow social,
+            AuthService auth,
+            Runnable onAuthenticated) {
+        if (guard != Guard.WEB) {
+            return;
+        }
+
+        Async.run(
+                account::socialProviders,
+                providers -> renderSocial(providers, account, social, auth, onAuthenticated),
+                failure -> {
+                });
+    }
+
+    private void renderSocial(
+            List<SocialProvider> providers,
+            AccountApi account,
+            SocialBrowserFlow social,
+            AuthService auth,
+            Runnable onAuthenticated) {
+        socialBox.getChildren().clear();
+
+        for (SocialProvider provider : providers) {
+            Button button = new Button("Continuar con " + provider.name());
+            button.setMaxWidth(360);
+            button.setOnAction(event -> socialLogin(button, provider, account, social, auth, onAuthenticated));
+            socialBox.getChildren().add(button);
+        }
+    }
+
+    private void socialLogin(
+            Button button,
+            SocialProvider provider,
+            AccountApi account,
+            SocialBrowserFlow social,
+            AuthService auth,
+            Runnable onAuthenticated) {
+        clearError();
+        button.setDisable(true);
+        button.setText("Esperando al proveedor…");
+
+        Async.run(
+                () -> auth.authenticateWithToken(social.login(guard, account, provider.key())),
+                user -> onAuthenticated.run(),
+                failure -> {
+                    button.setDisable(false);
+                    button.setText("Continuar con " + provider.name());
                     showError(Errors.message(failure));
                 });
     }

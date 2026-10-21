@@ -90,6 +90,14 @@ fragmento, registra la credencial y responde `?state=...&status=registered`.
 Los errores vuelven como `error`. El origen del SPA debe estar en
 `WEBAUTHN_ALLOWED_ORIGINS` de la API.
 
+## Login social nativo
+
+La API también acepta `GET {prefix}/auth/social/{provider}?return=<callback>`
+para clientes nativos. El destino se cifra en el `state` OAuth y el callback
+redirige el token ahí. Solo se permiten callbacks loopback HTTP y los esquemas de
+`SOCIALITE_NATIVE_SCHEMES` (default `shardev`); la web sigue usando
+`/auth/callback` con el token en el fragmento.
+
 ## Requisitos
 
 - El proyecto Laravel (demo) corriendo en `http://localhost:8000`.
@@ -113,7 +121,7 @@ CORS en desarrollo.
 
 | Sección | Endpoints |
 | --- | --- |
-| Auth | `POST /{platform}/api/v1/auth/login`, `GET /auth/me`, `POST /auth/logout`, `/auth/webauthn/*` |
+| Auth | `POST /{platform}/api/v1/auth/login`, `GET /auth/me`, `POST /auth/logout`, `/auth/webauthn/*`, `/auth/social/*` |
 | Products | CRUD `/products`, `/products/select`, `/products/import`, `/products/export` |
 | Configuration | `GET /configuration` (visibilidad por token) |
 | Two-Factor | `/enable`, `/verify`, `/disable`, `/qr-code`, `/recovery-codes` |

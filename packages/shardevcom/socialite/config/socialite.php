@@ -36,6 +36,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Native callbacks
+    |--------------------------------------------------------------------------
+    |
+    | Custom schemes a native client may use as OAuth return target, e.g.
+    | `shardev://auth/callback`. Loopback HTTP URLs (127.0.0.1/localhost) are
+    | always allowed for desktop apps; every other host is rejected.
+    |
+    */
+
+    'native_schemes' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('SOCIALITE_NATIVE_SCHEMES', 'shardev'))
+    ))),
+
+    /*
+    |--------------------------------------------------------------------------
     | SPA callback
     |--------------------------------------------------------------------------
     |

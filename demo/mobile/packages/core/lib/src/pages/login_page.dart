@@ -6,6 +6,8 @@ import 'package:shardev_plugin_kit/shardev_plugin_kit.dart';
 import '../api/envelope.dart';
 import '../config.dart';
 import '../providers.dart';
+import '../social/social_provider.dart';
+import '../social/social_service.dart';
 
 /// Sign-in mode on the login screen.
 enum LoginMode { password, code }
@@ -27,12 +29,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _submitting = false;
   bool _sendingCode = false;
   bool _passkeyBusy = false;
+  String? _socialBusy;
+  List<SocialProvider> _providers = const [];
 
   @override
   void initState() {
     super.initState();
     _email = TextEditingController(text: _demoEmail(ref.read(guardProvider)));
     _password.text = 'password';
+    Future.microtask(_loadSocialProviders);
+  }
+
+  Future<void> _loadSocialProviders() async {
+    if (ref.read(guardProvider) != Guard.web) {
+      return;
+    }
+
+    try {
+      final providers = await ref.read(socialServiceProvider).providers();
+      if (mounted) {
+        setState(() => _providers = providers);
+      }
+    } catch (_) {
+      // Social login is optional: a disabled provider must not block login.
+    }
   }
 
   @override
@@ -55,7 +75,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _showError(Object error) {
-    final message = error is ApiError ? error.message : 'No se pudo completar la operación: $error';
+    final message = switch (error) {
+      ApiError() => error.message,
+      SocialAuthException() => error.message,
+      _ => 'No se pudo completar la operación: $error',
+    };
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
@@ -88,6 +112,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } finally {
       if (mounted) {
         setState(() => _passkeyBusy = false);
+      }
+    }
+  }
+
+  Future<void> _socialLogin(SocialProvider provider) async {
+    setState(() => _socialBusy = provider.key);
+
+    try {
+      await ref.read(authProvider.notifier).loginWithSocial(provider.key);
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) {
+        setState(() => _socialBusy = null);
       }
     }
   }
@@ -210,6 +248,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     icon: const Icon(Icons.fingerprint),
                     label: Text(_passkeyBusy ? 'Esperando passkey…' : 'Entrar con passkey'),
                   ),
+                  if (_providers.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    for (final provider in _providers) ...[
+                      OutlinedButton.icon(
+                        onPressed: _socialBusy == null ? () => _socialLogin(provider) : null,
+                        icon: const Icon(Icons.login),
+                        label: Text(
+                          _socialBusy == provider.key
+                              ? 'Esperando al proveedor…'
+                              : 'Continuar con ${provider.name}',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ],
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => context.go('/forgot-password'),

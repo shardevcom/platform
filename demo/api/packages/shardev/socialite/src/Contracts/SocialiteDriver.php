@@ -30,9 +30,13 @@ interface SocialiteDriver
     public function isEnabled(): bool;
 
     /**
-     * Get the OAuth redirect URL for this provider (the actual URL to redirect to).
+     * URL the browser must visit to start the provider's OAuth flow.
+     *
+     * @param  string|null  $state  Opaque value echoed back by the provider
+     *                              (used by native clients to receive the
+     *                              token on their own callback).
      */
-    public function getRedirectUrl(): string;
+    public function getRedirectUrl(?string $state = null): string;
 
     /**
      * Handle the OAuth callback and return the socialite user.

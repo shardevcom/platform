@@ -121,9 +121,11 @@ El router monta las rutas públicas (`/login`, `/register`, `/forgot-password`,
 OTP, perfil editable con verificación, password y disable, preferencias y
 notificaciones. Las passkeys usan el plugin `passkeys` (Credential Manager /
 ASAuthorization) mediante un seam testeable (`PasskeyClient`/`PasskeyService`);
-login passwordless desde el email y alta/baja en perfil. Verificación:
-`cd demo/mobile && flutter analyze && ./tool/test.sh` (core 13 tests,
-plugin_kit 6, product 5).
+login passwordless desde el email y alta/baja en perfil. El login social usa
+`flutter_web_auth_2` (Custom Tabs / ASWebAuthenticationSession) y el deep link
+`shardev://auth/callback`; `SocialService` resuelve providers, pide el redirect
+con `return` y canjea el token. Verificación: `cd demo/mobile && flutter analyze
+&& ./tool/test.sh` (core 18 tests, plugin_kit 6, product 5).
 
 ## Vistas base desktop
 
@@ -142,8 +144,12 @@ Las passkeys de escritorio se delegan al navegador del sistema: la app abre
 devuelve el token o el estado por ese callback. El registro entrega el token
 actual en el fragmento. `PlatformConfig.frontendUrl(guard)` se configura con
 `-Dshardev.frontend.url`/`SHARDEV_FRONTEND_URL` (default demo: admin 5173,
-employee 5174, web 5175). Verificado con `cd demo/desktop && ./gradlew build`
-(compila las 3 apps + tests).
+employee 5174, web 5175).
+
+El login social de escritorio usa el mismo patrón loopback: `GET
+auth/social/{provider}?return=http://127.0.0.1:...` devuelve la URL del
+proveedor, el navegador completa el OAuth y el token llega al callback local.
+Verificado con `cd demo/desktop && ./gradlew build` (compila las 3 apps + tests).
 
 ## Verificación
 
@@ -151,8 +157,8 @@ employee 5174, web 5175). Verificado con `cd demo/desktop && ./gradlew build`
   `EmailVerificationEndpointTest` (5), `AccountEndpointTest` (8),
   `NotificationsEndpointTest` (6), `AccountLockEndpointTest` (7),
   `InvitationEndpointTest` (7), `OtpEndpointTest` (8), `WebAuthnEndpointTest`
-  (7, con `Tests\Support\WebAuthnAuthenticator`) y `SocialiteEndpointTest` (6).
-- `composer test --working-dir=demo/api` → **278 passed (3015 assertions)**.
+  (7, con `Tests\Support\WebAuthnAuthenticator`) y `SocialiteEndpointTest` (10).
+- `composer test --working-dir=demo/api` → **282 passed (3031 assertions)**.
 - `composer test` (root) → **359 passed (1026 assertions)** (incluye visibilidad
   de guards en `new`/`add`/`config guard` y `guard list`).
 - `platform guard list` muestra `public`/`private` por guard; `platform new
@@ -162,9 +168,9 @@ employee 5174, web 5175). Verificado con `cd demo/desktop && ./gradlew build`
   → **30 passed** (7 archivos; incluye `webauthn`, auth, cuenta, social y el
   puente de passkeys del desktop) y `npm run build` (user/admin/employee).
 - `demo/mobile`: `flutter analyze` (sin issues) y `./tool/test.sh`
-  → core 13 + plugin_kit 6 + product 5 tests.
-- `demo/desktop`: `./gradlew build` → **30 tests** (core 19 + plugin_kit 6 +
-  product 5; incluye loopback, flujo passkey y `authenticateWithToken`).
+  → core 18 + plugin_kit 6 + product 5 tests.
+- `demo/desktop`: `./gradlew build` → **34 tests** (core 23 + plugin_kit 6 +
+  product 5; incluye loopback, passkeys, OAuth nativo y `authenticateWithToken`).
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
   pasa la mayoría de las corridas.
@@ -187,6 +193,8 @@ employee 5174, web 5175). Verificado con `cd demo/desktop && ./gradlew build`
 14. Login social web ✅
 15. Passkeys nativas mobile ✅ (plugin `passkeys`; asociación de dominio pendiente del host)
 16. Passkeys desktop ✅ (ceremonia en navegador del sistema + callback loopback)
+17. Login social mobile ✅ (deep link + navegador del sistema)
+18. Login social desktop ✅ (navegador del sistema + callback loopback)
 
 ## Vistas base web
 
@@ -218,6 +226,16 @@ Web monta `/auth/callback` (`SocialCallbackPage`): lee el token, lo canjea por
 `auth/me`, limpia el fragmento y entra al shell. Los botones solo aparecen en el
 guard `web`, que es el único con rutas sociales (`api/v1`). Ejemplo de `.env`:
 `FRONTEND_URL=http://localhost:5175` y
-`SOCIALITE_FRONTEND_REDIRECT=/auth/callback`. Mobile integra passkeys con el
-plugin `passkeys`; desktop delega la ceremonia al navegador del sistema con
-callback loopback (`/passkey` en el SPA).
+`SOCIALITE_FRONTEND_REDIRECT=/auth/callback`.
+
+Los clientes nativos no pasan por el SPA: `GET .../{provider}?return=<callback>`
+guarda el callback en el `state` OAuth (cifrado) y el callback final redirige el
+token a ese destino. Solo se aceptan `http(s)://127.0.0.1|localhost|[::1]` y los
+esquemas de `socialite.native_schemes` (`SOCIALITE_NATIVE_SCHEMES`, default
+`shardev`). En loopback el token va en la query (el navegador nunca envía el
+fragmento al servidor local); en un esquema nativo va en el fragmento. Mobile
+usa `flutter_web_auth_2` con `shardev://auth/callback`; desktop reutiliza el
+callback loopback. Las rutas sociales siguen viviendo solo en el guard `web`:
+los botones se muestran únicamente ahí. Mobile integra passkeys con el plugin
+`passkeys`; desktop delega la ceremonia al navegador del sistema con callback
+loopback (`/passkey` en el SPA).

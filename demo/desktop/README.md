@@ -120,6 +120,16 @@ admin `5173`, employee `5174`, web `5175`). El origen del SPA y el callback
 debe estar en `WEBAUTHN_ALLOWED_ORIGINS` de la API; el callback loopback no
 interviene en la ceremonia WebAuthn.
 
+## Login social
+
+El guard `web` lista `GET {base}/auth/social/providers` y abre el proveedor en
+el navegador del sistema con
+`GET {base}/auth/social/{provider}?return=http://127.0.0.1:<puerto>/callback`.
+El API guarda ese destino en el `state` OAuth y devuelve el token a la query del
+callback loopback; la app lo valida con `auth/me` y lo persiste. El callback
+debe ser loopback y el esquema nativo debe estar en
+`SOCIALITE_NATIVE_SCHEMES` (default `shardev`) si se usa uno.
+
 ## Comandos
 
 ```bash
@@ -146,6 +156,7 @@ Requiere **JDK 21** (el wrapper descarga Gradle; JavaFX se resuelve como depende
 | Deshabilitar | `POST {base}/auth/account/disable` · `POST {base}/auth/account/reactivate` |
 | Sesión | `GET {base}/auth/me` |
 | Passkeys | `GET {base}/auth/webauthn/credentials` · `DELETE .../{id}` |
+| Login social | `GET {base}/auth/social/providers` · `GET .../{provider}?return=...` |
 | Logout | `POST {base}/auth/logout` |
 | Listar | `GET {base}/products` |
 | Crear | `POST {base}/products` |

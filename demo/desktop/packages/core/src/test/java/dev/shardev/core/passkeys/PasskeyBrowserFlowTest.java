@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.shardev.core.browser.BrowserFlowException;
 import dev.shardev.pluginkit.Guard;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -58,8 +59,8 @@ class PasskeyBrowserFlowTest {
                 uri -> respond(uri, Map.of("error", "El usuario canceló")),
                 Duration.ofSeconds(5));
 
-        PasskeyFlowException error = assertThrows(
-                PasskeyFlowException.class,
+        BrowserFlowException error = assertThrows(
+                BrowserFlowException.class,
                 () -> flow.login(Guard.WEB, "ada@example.com"));
 
         assertEquals("El usuario canceló", error.getMessage());
@@ -70,7 +71,7 @@ class PasskeyBrowserFlowTest {
         PasskeyBrowserFlow flow = new PasskeyBrowserFlow(uri -> {
         }, Duration.ofMillis(100));
 
-        assertThrows(PasskeyFlowException.class, () -> flow.login(Guard.WEB, "ada@example.com"));
+        assertThrows(BrowserFlowException.class, () -> flow.login(Guard.WEB, "ada@example.com"));
     }
 
     private static void respond(URI opened, Map<String, String> values) {

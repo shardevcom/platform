@@ -7,6 +7,8 @@ import 'auth/auth.dart';
 import 'config.dart';
 import 'passkeys/passkey_client.dart';
 import 'passkeys/passkey_service.dart';
+import 'social/social_auth_client.dart';
+import 'social/social_service.dart';
 
 /// The guard this build targets. Overridden in `main.dart` from `--dart-define`.
 final guardProvider = Provider<Guard>((ref) => PlatformConfig.guard);
@@ -37,6 +39,14 @@ final passkeyClientProvider = Provider<PasskeyClient>((ref) => PlatformPasskeyCl
 /// Passkey ceremonies shared by login and the account screen.
 final passkeyServiceProvider = Provider<PasskeyService>(
   (ref) => PasskeyService(ref.watch(accountApiProvider), ref.watch(passkeyClientProvider)),
+);
+
+/// System browser used for the OAuth hand-off.
+final socialClientProvider = Provider<SocialAuthClient>((ref) => PlatformSocialAuthClient());
+
+/// Social login shared by the login screen and the auth notifier.
+final socialServiceProvider = Provider<SocialService>(
+  (ref) => SocialService(ref.watch(accountApiProvider), ref.watch(socialClientProvider)),
 );
 
 /// Auth state for the whole app.

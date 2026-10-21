@@ -6,6 +6,7 @@ import dev.shardev.core.auth.AuthService;
 import dev.shardev.core.auth.PreferencesTokenStore;
 import dev.shardev.core.config.PlatformConfig;
 import dev.shardev.core.passkeys.PasskeyBrowserFlow;
+import dev.shardev.core.social.SocialBrowserFlow;
 import dev.shardev.pluginkit.Guard;
 import dev.shardev.pluginkit.PluginDefinition;
 import dev.shardev.pluginkit.PluginRegistry;
@@ -30,6 +31,7 @@ public final class PlatformApp {
     private final AuthService auth;
     private final AccountApi account;
     private final PasskeyBrowserFlow passkeys;
+    private final SocialBrowserFlow social;
     private final StackPane root = new StackPane();
 
     public PlatformApp(Guard guard, List<PluginDefinition> plugins) {
@@ -39,6 +41,7 @@ public final class PlatformApp {
         this.auth = new AuthService(guard, api, new PreferencesTokenStore());
         this.account = new AccountApi(api);
         this.passkeys = new PasskeyBrowserFlow();
+        this.social = new SocialBrowserFlow();
     }
 
     public void start(Stage stage) {
@@ -69,7 +72,7 @@ public final class PlatformApp {
     }
 
     private void showLogin() {
-        root.getChildren().setAll(new LoginFlowView(guard, auth, account, passkeys, this::showShell));
+        root.getChildren().setAll(new LoginFlowView(guard, auth, account, passkeys, social, this::showShell));
     }
 
     private void showShell() {

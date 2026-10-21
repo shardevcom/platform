@@ -4,10 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.shardev.core.api.ApiClient;
+import dev.shardev.core.social.SocialProvider;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /** Account endpoints that are not part of the sign-in flow. */
 public final class AccountApi {
@@ -69,6 +71,29 @@ public final class AccountApi {
             body.addProperty("reason", reason);
         }
         api.data("POST", "auth/account/disable", null, body);
+    }
+
+    public List<SocialProvider> socialProviders() {
+        JsonObject data = api.get("auth/social/providers").getAsJsonObject();
+        JsonArray items = data.has("providers") && data.get("providers").isJsonArray()
+                ? data.getAsJsonArray("providers")
+                : new JsonArray();
+        List<SocialProvider> providers = new ArrayList<>();
+
+        for (JsonElement item : items) {
+            if (item.isJsonObject()) {
+                providers.add(SocialProvider.fromJson(item.getAsJsonObject()));
+            }
+        }
+
+        return providers;
+    }
+
+    public String socialRedirect(String provider, String returnUrl) {
+        JsonObject data = api.get("auth/social/" + encode(provider), Map.of("return", returnUrl))
+                .getAsJsonObject();
+
+        return data.get("redirect_url").getAsString();
     }
 
     public List<Passkey> passkeys() {

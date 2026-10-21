@@ -1,5 +1,9 @@
 package dev.shardev.core.passkeys;
 
+import dev.shardev.core.browser.BrowserFlowException;
+import dev.shardev.core.browser.FrontendLauncher;
+import dev.shardev.core.browser.LoopbackReceiver;
+import dev.shardev.core.browser.SystemBrowserLauncher;
 import dev.shardev.core.config.PlatformConfig;
 import dev.shardev.pluginkit.Guard;
 import java.net.URI;
@@ -38,7 +42,7 @@ public final class PasskeyBrowserFlow {
         LoopbackReceiver.Callback callback = run(guard, "login", email, null, null);
 
         if (callback.token() == null || callback.token().isBlank()) {
-            throw new PasskeyFlowException("La passkey no devolvió un token de acceso.");
+            throw new BrowserFlowException("La passkey no devolvió un token de acceso.");
         }
 
         return callback.token();
@@ -49,7 +53,7 @@ public final class PasskeyBrowserFlow {
         LoopbackReceiver.Callback callback = run(guard, "register", null, name, accessToken);
 
         if (!"registered".equals(callback.status())) {
-            throw new PasskeyFlowException("La passkey no confirmó el registro.");
+            throw new BrowserFlowException("La passkey no confirmó el registro.");
         }
     }
 
@@ -74,7 +78,7 @@ public final class PasskeyBrowserFlow {
             LoopbackReceiver.Callback callback = receiver.await();
 
             if (callback.error() != null && !callback.error().isBlank()) {
-                throw new PasskeyFlowException(callback.error());
+                throw new BrowserFlowException(callback.error());
             }
 
             return callback;

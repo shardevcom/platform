@@ -105,6 +105,25 @@ class AuthNotifier extends Notifier<AuthState> {
     );
   }
 
+  /// OAuth sign-in through the system browser. The provider returns a Passport
+  /// token to the app deep link, which is then validated with `auth/me`.
+  Future<void> loginWithSocial(String provider) async {
+    final token = await ref.read(socialServiceProvider).login(provider);
+
+    await _persistToken(token);
+
+    try {
+      final me = await _api.data<Map<String, dynamic>>('auth/me');
+      state = AuthState(loading: false, user: AuthUser.fromJson(me));
+    } catch (_) {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.remove(tokenKey);
+      ref.read(tokenProvider.notifier).state = null;
+      state = const AuthState(loading: false);
+      rethrow;
+    }
+  }
+
   /// Passwordless sign-in with the code emailed to [email].
   Future<void> loginWithOtp(String email, String code) => _authenticate(
         'auth/otp/verify',
@@ -162,15 +181,23 @@ class AuthNotifier extends Notifier<AuthState> {
       return;
     }
 
+    final user = result['user'];
+
+    await _adoptToken(
+      token,
+      user: user is Map ? AuthUser.fromJson(Map<String, dynamic>.from(user)) : null,
+    );
+  }
+
+  Future<void> _adoptToken(String token, {AuthUser? user}) async {
+    await _persistToken(token);
+    state = AuthState(loading: false, user: user);
+  }
+
+  Future<void> _persistToken(String token) async {
     ref.read(tokenProvider.notifier).state = token;
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(tokenKey, token);
-
-    final user = result['user'];
-    state = AuthState(
-      loading: false,
-      user: user is Map ? AuthUser.fromJson(Map<String, dynamic>.from(user)) : null,
-    );
   }
 
   Future<void> logout() async {

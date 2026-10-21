@@ -57,13 +57,17 @@ abstract class AbstractSocialiteDriver implements SocialiteDriver
         return $config['redirect'] ?? Config::get("socialite.default_redirect", '/dashboard');
     }
 
-    public function getRedirectUrl(): string
+    public function getRedirectUrl(?string $state = null): string
     {
         try {
             $driver = Socialite::driver($this->configKey);
 
             if ($scopes = $this->getScopes()) {
                 $driver->scopes($this->getScopes());
+            }
+
+            if ($state !== null) {
+                $driver->with(['state' => $state]);
             }
 
             return $driver->stateless()->redirect()->getTargetUrl();

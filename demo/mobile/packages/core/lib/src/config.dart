@@ -16,6 +16,13 @@ class PlatformConfig {
 
   static const String appName = String.fromEnvironment('APP_NAME', defaultValue: 'Shardev Mobile');
 
+  /// Deep link the API redirects to after an OAuth login. The scheme must match
+  /// the intent filter / URL type declared by the platform app.
+  static const String socialCallbackUrl =
+      String.fromEnvironment('SOCIAL_CALLBACK_URL', defaultValue: 'shardev://auth/callback');
+
+  static String get socialCallbackScheme => Uri.parse(socialCallbackUrl).scheme;
+
   /// `--dart-define=PUBLIC=true|false` mirrors `platform.json`; a web build is
   /// public by default, the rest are invitation-only.
   static const String _public = String.fromEnvironment('PUBLIC');
