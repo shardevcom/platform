@@ -3,9 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shardev_plugin_kit/shardev_plugin_kit.dart';
 
+import '../config.dart';
+import '../pages/accept_invitation_page.dart';
 import '../pages/dashboard_page.dart';
+import '../pages/forgot_password_page.dart';
 import '../pages/login_page.dart';
+import '../pages/notifications_page.dart';
+import '../pages/preferences_page.dart';
 import '../pages/profile_page.dart';
+import '../pages/register_page.dart';
+import '../pages/reset_password_page.dart';
+import '../pages/verify_email_page.dart';
 import '../providers.dart';
 import '../widgets/app_shell.dart';
 
@@ -25,6 +33,15 @@ final routerProvider = Provider<GoRouter>((ref) {
   final guard = ref.watch(guardProvider);
   final registry = createRegistry(ref.watch(pluginsProvider), guard);
 
+  const publicRoutes = {
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+    '/accept-invitation',
+  };
+
   return GoRouter(
     refreshListenable: notifier,
     initialLocation: '/login',
@@ -34,18 +51,49 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      final loggingIn = state.matchedLocation == '/login';
+      final location = state.matchedLocation;
 
       if (!auth.authenticated) {
-        return loggingIn ? null : '/login';
+        if (location == '/register' && !PlatformConfig.isPublic) {
+          return '/login';
+        }
+
+        return publicRoutes.contains(location) ? null : '/login';
       }
 
-      return loggingIn ? '/dashboard' : null;
+      return publicRoutes.contains(location) ? '/dashboard' : null;
     },
     routes: [
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => ResetPasswordPage(
+          token: state.uri.queryParameters['token'] ?? '',
+          email: state.uri.queryParameters['email'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        builder: (context, state) => VerifyEmailPage(
+          verifyUrl: state.uri.queryParameters['verify_url'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/accept-invitation',
+        builder: (context, state) => AcceptInvitationPage(
+          token: state.uri.queryParameters['token'] ?? '',
+        ),
       ),
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.matchedLocation, child: child),
@@ -57,6 +105,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: '/preferences',
+            builder: (context, state) => const PreferencesPage(),
+          ),
+          GoRoute(
+            path: '/notifications',
+            builder: (context, state) => const NotificationsPage(),
           ),
           for (final view in registry.views)
             GoRoute(

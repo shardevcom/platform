@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shardev_plugin_kit/shardev_plugin_kit.dart';
 
 import '../api/envelope.dart';
 import '../config.dart';
 import '../providers.dart';
+
+/// Sign-in mode on the login screen.
+enum LoginMode { password, code }
 
 /// Login against the build's guard. The token issued here is only valid for
 /// this platform, so the screen never asks which platform to use.
@@ -18,7 +22,10 @@ class LoginPage extends ConsumerStatefulWidget {
 class _LoginPageState extends ConsumerState<LoginPage> {
   late final TextEditingController _email;
   final _password = TextEditingController();
+  final _code = TextEditingController();
+  LoginMode _mode = LoginMode.password;
   bool _submitting = false;
+  bool _sendingCode = false;
 
   @override
   void initState() {
@@ -31,6 +38,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _code.dispose();
     super.dispose();
   }
 
@@ -45,26 +53,44 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
+  void _showError(Object error) {
+    final message = error is ApiError ? error.message : 'No se pudo completar la operación: $error';
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _submit() async {
     setState(() => _submitting = true);
 
     try {
-      await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text);
-    } on ApiError catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message)),
-        );
+      if (_mode == LoginMode.password) {
+        await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text);
+      } else {
+        await ref.read(authProvider.notifier).loginWithOtp(_email.text.trim(), _code.text.trim());
       }
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No se pudo iniciar sesión: $error')),
-        );
-      }
+      _showError(error);
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
+      }
+    }
+  }
+
+  Future<void> _sendCode() async {
+    setState(() => _sendingCode = true);
+
+    try {
+      await ref.read(accountApiProvider).requestOtp(_email.text.trim());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Si la cuenta existe, te enviamos un código de acceso.')),
+      );
+    } catch (error) {
+      _showError(error);
+    } finally {
+      if (mounted) {
+        setState(() => _sendingCode = false);
       }
     }
   }
@@ -96,7 +122,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  SegmentedButton<LoginMode>(
+                    segments: const [
+                      ButtonSegment(value: LoginMode.password, label: Text('Contraseña')),
+                      ButtonSegment(value: LoginMode.code, label: Text('Código')),
+                    ],
+                    selected: {_mode},
+                    onSelectionChanged: (selection) => setState(() => _mode = selection.first),
+                  ),
+                  const SizedBox(height: 24),
                   TextField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
@@ -107,16 +142,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) => _submitting ? null : _submit(),
-                    decoration: const InputDecoration(
-                      labelText: 'Contraseña',
-                      border: OutlineInputBorder(),
+                  if (_mode == LoginMode.password)
+                    TextField(
+                      controller: _password,
+                      obscureText: true,
+                      autofillHints: const [AutofillHints.password],
+                      onSubmitted: (_) => _submitting ? null : _submit(),
+                      decoration: const InputDecoration(
+                        labelText: 'Contraseña',
+                        border: OutlineInputBorder(),
+                      ),
+                    )
+                  else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _code,
+                            keyboardType: TextInputType.number,
+                            autofillHints: const [AutofillHints.oneTimeCode],
+                            decoration: const InputDecoration(
+                              labelText: 'Código',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: OutlinedButton(
+                            onPressed: _sendingCode ? null : _sendCode,
+                            child: Text(_sendingCode ? '...' : 'Enviar'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _submitting ? null : _submit,
@@ -126,8 +187,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Entrar'),
+                        : Text(_mode == LoginMode.password ? 'Entrar' : 'Entrar con código'),
                   ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => context.go('/forgot-password'),
+                    child: const Text('¿Olvidaste tu contraseña?'),
+                  ),
+                  if (PlatformConfig.isPublic)
+                    TextButton(
+                      onPressed: () => context.go('/register'),
+                      child: const Text('Crear una cuenta'),
+                    ),
                 ],
               ),
             ),

@@ -33,11 +33,16 @@ depende de `shardev_core` para llamar a la API.
 El guard se fija en tiempo de compilación con `--dart-define=GUARD=...`
 (por defecto `admin`). El prefijo de API sale de `Guard.apiBase`:
 
-| Guard | `--dart-define` | Prefijo API |
-| --- | --- | --- |
-| user/web | `GUARD=web` | `/api/v1` |
-| admin | `GUARD=admin` | `/admin/api/v1` |
-| employee | `GUARD=employee` | `/employee/api/v1` |
+| Guard | `--dart-define` | Prefijo API | Registro |
+| --- | --- | --- | --- |
+| user/web | `GUARD=web` | `/api/v1` | público (default) |
+| admin | `GUARD=admin` | `/admin/api/v1` | privado (default) |
+| employee | `GUARD=employee` | `/employee/api/v1` | privado (default) |
+
+`--dart-define=PUBLIC=true|false` refleja la visibilidad de `platform.json`: un
+guard público muestra el enlace de registro y acepta auto-registro; uno privado
+solo permite entrar por invitación. Sin el define, `web` es público y el resto
+privado.
 
 ```bash
 # Android emulator: el host de la API es 10.0.2.2 (no localhost)
@@ -103,6 +108,9 @@ platform demo add product --with-mobile-client --no-install
 platform demo add product --with-client --with-mobile-client   # web + mobile
 ```
 
+Las passkeys/WebAuthn no se incluyen en el cliente móvil porque requieren un
+plugin de plataforma; el resto de la base de cuenta es paritario con la web.
+
 ## Comandos
 
 ```bash
@@ -121,6 +129,15 @@ flutter run --dart-define=GUARD=admin --dart-define=API_HOST=http://10.0.2.2:800
 | Acción | REST |
 | --- | --- |
 | Login | `POST {base}/auth/login` |
+| Login OTP | `POST {base}/auth/otp/request` · `POST {base}/auth/otp/verify` |
+| Registro | `POST {base}/auth/register` |
+| Recuperación | `POST {base}/auth/forgot-password` · `POST {base}/auth/reset-password` |
+| Verificación | `GET {base}/auth/email/verify/{id}/{hash}` · `POST .../resend` |
+| Invitaciones | `POST {base}/auth/invitations` · `GET .../{token}` · `POST .../accept` |
+| Perfil | `PATCH {base}/auth/profile` · `PUT {base}/auth/password` |
+| Preferencias | `GET/PUT {base}/auth/preferences` |
+| Notificaciones | `GET {base}/auth/notifications` · `POST .../read-all` · `POST .../{id}/read` · `DELETE .../{id}` |
+| Deshabilitar | `POST {base}/auth/account/disable` · `POST {base}/auth/account/reactivate` |
 | Sesión | `GET {base}/auth/me` |
 | Logout | `POST {base}/auth/logout` |
 | Listar | `GET {base}/products` |

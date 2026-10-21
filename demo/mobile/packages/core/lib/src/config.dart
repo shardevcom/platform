@@ -16,5 +16,11 @@ class PlatformConfig {
 
   static const String appName = String.fromEnvironment('APP_NAME', defaultValue: 'Shardev Mobile');
 
+  /// `--dart-define=PUBLIC=true|false` mirrors `platform.json`; a web build is
+  /// public by default, the rest are invitation-only.
+  static const String _public = String.fromEnvironment('PUBLIC');
+
   static Guard get guard => Guard.fromId(guardId);
+
+  static bool get isPublic => _public.isEmpty ? guard == Guard.web : _public == 'true';
 }

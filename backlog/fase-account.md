@@ -106,6 +106,22 @@ singleton): `platform_webauthn_credentials` (migración del paquete) guarda el
 y el login es passwordless. Los challenges se cachean por su valor codificado,
 son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
 
+## Vistas base mobile
+
+`demo/mobile/packages/core` espeja la web: `api/account_api.dart` (modelos
+`Preferences`, `AccountNotification`, `NotificationsFeed`, `InvitationSummary`
+y endpoints de perfil, password, preferencias, notificaciones, invitaciones,
+OTP y recuperación); `AuthNotifier` añade `loginWithOtp`, `register`,
+`acceptInvitation` y `refreshUser` (persistiendo el token igual que el login).
+El router monta las rutas públicas (`/login`, `/register`, `/forgot-password`,
+`/reset-password`, `/verify-email`, `/accept-invitation`) y protegidas
+(`/preferences`, `/notifications`); `/register` solo es accesible con
+`--dart-define=PUBLIC=true` (default `web`). Login con email/password o código
+OTP, perfil editable con verificación, password y disable, preferencias y
+notificaciones. Las passkeys quedan fuera del móvil hasta añadir un plugin
+WebAuthn de plataforma. Verificación: `cd demo/mobile && flutter analyze &&
+./tool/test.sh` (core 9 tests, plugin_kit 6, product 5).
+
 ## Verificación
 
 - `demo/api`: `PasswordResetEndpointTest` (7), `RegistrationEndpointTest` (5),
@@ -122,6 +138,8 @@ son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
 - `demo/web`: `npm run typecheck`, `npm run lint`, `npm test`
   → **21 passed** (5 archivos; incluye `webauthn`, auth y cuenta) y
   `npm run build` (user/admin/employee).
+- `demo/mobile`: `flutter analyze` (sin issues) y `./tool/test.sh`
+  → core 9 + plugin_kit 6 + product 5 tests.
 - Flake preexistente (no de esta fase): `RateLimitTest` a veces falla con
   `Lcobucci\JWT ... The token was issued in the future` (clock skew de Passport);
   pasa la mayoría de las corridas.
@@ -139,6 +157,7 @@ son de un solo uso y expiran (`security.webauthn.challenge_ttl_seconds`).
 9. Passkeys ✅
 10. Flag público/privado en `platform.json` + `guard add` ✅
 11. Vistas base web ✅
+12. Vistas base mobile ✅
 
 ## Vistas base web
 

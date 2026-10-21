@@ -1,0 +1,188 @@
+import 'api_client.dart';
+
+/// Account preferences returned complete by `GET auth/preferences`.
+class Preferences {
+  const Preferences({
+    required this.theme,
+    required this.language,
+    required this.notifications,
+  });
+
+  final String theme;
+  final String language;
+  final Map<String, bool> notifications;
+
+  factory Preferences.fromJson(Map<String, dynamic> json) => Preferences(
+        theme: json['theme']?.toString() ?? 'system',
+        language: json['language']?.toString() ?? 'es',
+        notifications: (json['notifications'] as Map?)?.map(
+              (key, value) => MapEntry(key.toString(), value == true),
+            ) ??
+            const {},
+      );
+
+  Map<String, Object?> toJson() => {
+        'theme': theme,
+        'language': language,
+        'notifications': notifications,
+      };
+
+  Preferences copyWith({String? theme, String? language, Map<String, bool>? notifications}) => Preferences(
+        theme: theme ?? this.theme,
+        language: language ?? this.language,
+        notifications: notifications ?? this.notifications,
+      );
+}
+
+class AccountNotification {
+  const AccountNotification({
+    required this.id,
+    required this.type,
+    required this.data,
+    this.readAt,
+    this.createdAt,
+  });
+
+  final String id;
+  final String type;
+  final Map<String, dynamic> data;
+  final String? readAt;
+  final String? createdAt;
+
+  bool get read => readAt != null;
+
+  factory AccountNotification.fromJson(Map<String, dynamic> json) => AccountNotification(
+        id: json['id']?.toString() ?? '',
+        type: json['type']?.toString() ?? 'notification',
+        data: (json['data'] as Map?)?.map((key, value) => MapEntry(key.toString(), value)) ?? const {},
+        readAt: json['read_at']?.toString(),
+        createdAt: json['created_at']?.toString(),
+      );
+}
+
+class NotificationsFeed {
+  const NotificationsFeed({required this.items, required this.unreadCount});
+
+  final List<AccountNotification> items;
+  final int unreadCount;
+
+  factory NotificationsFeed.fromJson(Map<String, dynamic> json) => NotificationsFeed(
+        items: (json['items'] as List?)
+                ?.whereType<Map>()
+                .map((item) => AccountNotification.fromJson(Map<String, dynamic>.from(item)))
+                .toList() ??
+            const [],
+        unreadCount: int.tryParse(json['unread_count']?.toString() ?? '') ?? 0,
+      );
+}
+
+class InvitationSummary {
+  const InvitationSummary({required this.email, required this.guard});
+
+  final String email;
+  final String guard;
+
+  factory InvitationSummary.fromJson(Map<String, dynamic> json) => InvitationSummary(
+        email: json['email']?.toString() ?? '',
+        guard: json['guard']?.toString() ?? '',
+      );
+}
+
+/// Account endpoints that are not part of the sign-in flow.
+class AccountApi {
+  const AccountApi(this._api);
+
+  final ApiClient _api;
+
+  Future<void> updateProfile({String? name, String? email}) => _api.data<Object?>(
+        'auth/profile',
+        method: 'PATCH',
+        body: {
+          if (name != null) 'name': name,
+          if (email != null) 'email': email,
+        },
+      );
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String password,
+    required String passwordConfirmation,
+  }) =>
+      _api.data<Object?>(
+        'auth/password',
+        method: 'PUT',
+        body: {
+          'current_password': currentPassword,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        },
+      );
+
+  Future<Preferences> preferences() async {
+    final data = await _api.data<Map<String, dynamic>>('auth/preferences');
+    return Preferences.fromJson(data);
+  }
+
+  Future<Preferences> savePreferences(Preferences preferences) async {
+    final data = await _api.data<Map<String, dynamic>>(
+      'auth/preferences',
+      method: 'PUT',
+      body: preferences.toJson(),
+    );
+    return Preferences.fromJson(data);
+  }
+
+  Future<NotificationsFeed> notifications() async {
+    final data = await _api.data<Map<String, dynamic>>('auth/notifications');
+    return NotificationsFeed.fromJson(data);
+  }
+
+  Future<void> readNotification(String id) =>
+      _api.data<Object?>('auth/notifications/$id/read', method: 'POST');
+
+  Future<void> readAllNotifications() =>
+      _api.data<Object?>('auth/notifications/read-all', method: 'POST');
+
+  Future<void> deleteNotification(String id) =>
+      _api.data<Object?>('auth/notifications/$id', method: 'DELETE');
+
+  Future<void> disable({required String currentPassword, String? reason}) => _api.data<Object?>(
+        'auth/account/disable',
+        method: 'POST',
+        body: {
+          'current_password': currentPassword,
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        },
+      );
+
+  Future<InvitationSummary> invitation(String token) async {
+    final data = await _api.data<Map<String, dynamic>>('auth/invitations/${Uri.encodeComponent(token)}');
+    return InvitationSummary.fromJson(data);
+  }
+
+  Future<void> requestOtp(String email) =>
+      _api.data<Object?>('auth/otp/request', method: 'POST', body: {'email': email});
+
+  Future<void> forgotPassword(String email) =>
+      _api.data<Object?>('auth/forgot-password', method: 'POST', body: {'email': email});
+
+  Future<void> resetPassword({
+    required String token,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) =>
+      _api.data<Object?>(
+        'auth/reset-password',
+        method: 'POST',
+        body: {
+          'token': token,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        },
+      );
+
+  Future<void> resendVerification() =>
+      _api.data<Object?>('auth/email/verify/resend', method: 'POST');
+}

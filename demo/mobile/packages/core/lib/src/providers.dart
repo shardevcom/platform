@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shardev_plugin_kit/shardev_plugin_kit.dart';
 
+import 'api/account_api.dart';
 import 'api/api_client.dart';
 import 'auth/auth.dart';
 import 'config.dart';
@@ -24,6 +25,9 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     token: () => ref.read(tokenProvider),
   );
 });
+
+/// Account endpoints (profile, password, preferences, notifications).
+final accountApiProvider = Provider<AccountApi>((ref) => AccountApi(ref.watch(apiClientProvider)));
 
 /// Auth state for the whole app.
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

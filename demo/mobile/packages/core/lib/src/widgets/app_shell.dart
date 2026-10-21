@@ -32,7 +32,9 @@ class AppShell extends ConsumerWidget {
       const _Entry('Dashboard', '/dashboard', Icons.dashboard_outlined, 0),
       for (final item in registry.nav)
         _Entry(item.label, item.to, item.icon ?? Icons.extension_outlined, item.order),
+      const _Entry('Preferencias', '/preferences', Icons.tune, 85),
       const _Entry('Perfil', '/profile', Icons.person_outline, 90),
+      const _Entry('Notificaciones', '/notifications', Icons.notifications_outlined, 95),
     ]..sort((a, b) => a.order.compareTo(b.order));
 
     return Scaffold(

@@ -11,6 +11,7 @@ class AuthUser {
     this.name,
     this.email,
     this.guard,
+    this.emailVerified = false,
     this.abilities = const [],
   });
 
@@ -18,6 +19,7 @@ class AuthUser {
   final String? name;
   final String? email;
   final String? guard;
+  final bool emailVerified;
   final List<String> abilities;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
@@ -25,6 +27,7 @@ class AuthUser {
         name: json['name'] as String?,
         email: json['email'] as String?,
         guard: json['guard'] as String?,
+        emailVerified: json['email_verified'] == true,
         abilities: (json['abilities'] as List?)?.map((e) => e.toString()).toList() ?? const [],
       );
 
@@ -86,12 +89,61 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password) async {
-    final result = await _api.data<Map<String, dynamic>>(
-      'auth/login',
-      method: 'POST',
-      body: {'email': email, 'password': password, 'device_name': 'mobile'},
-    );
+  Future<void> login(String email, String password) => _authenticate(
+        'auth/login',
+        body: {'email': email, 'password': password, 'device_name': 'mobile'},
+      );
+
+  /// Passwordless sign-in with the code emailed to [email].
+  Future<void> loginWithOtp(String email, String code) => _authenticate(
+        'auth/otp/verify',
+        body: {'email': email, 'code': code, 'device_name': 'mobile'},
+      );
+
+  /// Self-registration; only offered when the guard is public.
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) =>
+      _authenticate(
+        'auth/register',
+        body: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'device_name': 'mobile',
+        },
+      );
+
+  /// Accepts an invitation and leaves the new account signed in.
+  Future<void> acceptInvitation({
+    required String token,
+    required String name,
+    required String password,
+    required String passwordConfirmation,
+  }) =>
+      _authenticate(
+        'auth/invitations/accept',
+        body: {
+          'token': token,
+          'name': name,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'device_name': 'mobile',
+        },
+      );
+
+  /// Re-reads `auth/me`, e.g. after the profile or verification state changed.
+  Future<void> refreshUser() async {
+    final me = await _api.data<Map<String, dynamic>>('auth/me');
+    state = AuthState(loading: false, user: AuthUser.fromJson(me));
+  }
+
+  Future<void> _authenticate(String path, {required Map<String, Object?> body}) async {
+    final result = await _api.data<Map<String, dynamic>>(path, method: 'POST', body: body);
 
     final token = result['access_token']?.toString();
     if (token == null || token.isEmpty) {
