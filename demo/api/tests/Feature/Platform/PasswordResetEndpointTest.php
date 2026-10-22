@@ -92,7 +92,7 @@ final class PasswordResetEndpointTest extends TestCase
         $this->postJson('/admin/api/v1/auth/login', [
             'email' => $admin->email,
             'password' => 'new-secret-password',
-        ])->assertOk();
+        ])->assertOk()->assertJsonPath('data.two_factor_enrollment_required', true);
     }
 
     public function test_reset_password_rejects_an_invalid_token(): void

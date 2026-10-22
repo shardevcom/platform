@@ -9,6 +9,7 @@ use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Shardevcom\Core\Contracts\SecondFactorGate;
 use Shardevcom\Core\Results\ApiError;
 use Shardevcom\Core\Results\ApiResponse;
 use Shardevcom\Security\Authentication\AccessTokenIssuer;
@@ -38,6 +39,7 @@ final class AuthController
         private readonly AccessTokenIssuer $tokens,
         private readonly UserPresenter $presenter,
         private readonly AccountLock $locks,
+        private readonly SecondFactorGate $secondFactor,
     ) {}
 
     public function login(Request $request): JsonResponse
@@ -76,6 +78,12 @@ final class AuthController
         // anyone who does not already know its password.
         if ($this->locks->isDisabled($platform['guard'], $user->getAuthIdentifier())) {
             return $this->error('ACCOUNT_DISABLED', 'This account has been disabled.', [], 403);
+        }
+
+        $challenge = $this->secondFactor->challenge($user, (string) $platform['guard']);
+
+        if ($challenge !== null) {
+            return $this->ok($challenge, 'Two-factor authentication required.');
         }
 
         $capabilities = $this->tokens->issue($user, (string) $request->input('device_name', 'spa'));

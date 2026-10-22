@@ -124,7 +124,7 @@ CORS en desarrollo.
 | Auth | `POST /{platform}/api/v1/auth/login`, `GET /auth/me`, `POST /auth/logout`, `/auth/webauthn/*`, `/auth/social/*` |
 | Products | CRUD `/products`, `/products/select`, `/products/import`, `/products/export` |
 | Configuration | `GET /configuration` (visibilidad por token) |
-| Two-Factor | `/enable`, `/verify`, `/disable`, `/qr-code`, `/recovery-codes` |
+| Two-Factor | login: `/auth/2fa/challenge`, `/auth/2fa/setup`, `/auth/2fa/setup/confirm`; cuenta: `/enable`, `/verify`, `/disable`, `/qr-code`, `/recovery-codes` |
 | Widgets | `GET /api/v1/widgets` |
 | GraphQL | `POST /graphql` (queries y mutaciones) |
 

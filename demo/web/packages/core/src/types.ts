@@ -115,6 +115,22 @@ export interface LoginResponse {
   user: User
 }
 
+/** Password login succeeded, but a privileged guard still needs a second step. */
+export interface TwoFactorChallenge {
+  two_factor_required?: true
+  two_factor_enrollment_required?: true
+  challenge_token?: string
+  enrollment_token?: string
+  methods: Array<"totp" | "recovery_code">
+  expires_in: number
+}
+
+export type LoginResult = LoginResponse | TwoFactorChallenge
+
+export function isLoginResponse(result: LoginResult): result is LoginResponse {
+  return typeof (result as LoginResponse).access_token === "string"
+}
+
 /** Per-provider outcome returned by the configuration and widgets endpoints. */
 export interface ProviderResult<T = unknown> {
   status: "success" | "error"
@@ -126,7 +142,13 @@ export type ProviderResults = Record<string, ProviderResult>
 
 export interface TwoFactorSetup {
   secret: string
+  otpauth_url?: string
   qr_code: string
   recovery_codes: string[]
   instructions?: string
+}
+
+export interface TwoFactorRecoveryStatus {
+  remaining: number
+  warning?: string
 }

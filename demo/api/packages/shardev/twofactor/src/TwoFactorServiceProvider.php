@@ -6,8 +6,9 @@ namespace Shardevcom\TwoFactor;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Shardevcom\Core\Contracts\SecondFactorGate;
 use Shardevcom\TwoFactor\Http\Controllers\TwoFactorController;
-use Shardevcom\TwoFactor\Http\Controllers\StepUpChallengeController;
+use Shardevcom\TwoFactor\Http\Controllers\TwoFactorLoginController;
 use Shardevcom\TwoFactor\Http\Middleware\RequireStepUpMfa;
 
 /**
@@ -19,7 +20,8 @@ final class TwoFactorServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(\Shardevcom\TwoFactor\StepUpMfa::class);
+        $this->app->singleton(TwoFactorService::class);
+        $this->app->singleton(SecondFactorGate::class, TwoFactorService::class);
         $this->app->singleton(\Shardevcom\TwoFactor\Http\Middleware\RequireStepUpMfa::class);
     }
 
@@ -47,6 +49,20 @@ final class TwoFactorServiceProvider extends ServiceProvider
             $guard = $platform['guard'];
             $prefix = $platform['prefix'] !== '' ? $platform['prefix'].'/api/v1' : 'api/v1';
             $middleware = array_merge(['bind.guard'], $platform['middleware'] ?? []);
+
+            Route::middleware($middleware)
+                ->prefix($prefix)
+                ->group(function () use ($guard) {
+                    Route::post('auth/2fa/challenge', [TwoFactorLoginController::class, 'challenge'])
+                        ->defaults('guard', $guard)
+                        ->name('auth.2fa.challenge.'.$guard);
+                    Route::post('auth/2fa/setup', [TwoFactorLoginController::class, 'setup'])
+                        ->defaults('guard', $guard)
+                        ->name('auth.2fa.setup.'.$guard);
+                    Route::post('auth/2fa/setup/confirm', [TwoFactorLoginController::class, 'confirm'])
+                        ->defaults('guard', $guard)
+                        ->name('auth.2fa.setup.confirm.'.$guard);
+                });
 
             // Standard 2FA routes
             Route::middleware($middleware)

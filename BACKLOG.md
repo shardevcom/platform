@@ -429,6 +429,7 @@
 - **Estimación:** S
 
 ### T-CASA-009 — Auth — MFA (segundo factor) para guards privilegiados
+- **Estado:** DONE (2026-10). Login privilegiado sin 2FA confirmado devuelve challenge/enrolamiento y **no** emite PAT; recovery codes hasheados y de un solo uso; `remember` no salta el segundo factor. Implementado en API + web + mobile + desktop (ver `backlog/fase-casa.md`, T-CASA-009).
 - **Descripción:** Segundo factor obligatorio para `admin` y `employee`; opcional para `web`. Preferible TOTP/WebAuthn sobre SMS. Credenciales hasheadas, códigos de recuperación hasheados y de un solo uso, y paso a `remember` no debe saltar el segundo factor.
 - **Dependencias:** T-005
 - **Criterio de aceptación:** Test: login admin sin segundo factor no obtiene sesión privilegiada; código de recuperación usado no se reutiliza; segundo factor obligatorio también con cookie `remember`.

@@ -14,7 +14,19 @@ return [
 
     'enabled' => env('TWOFACTOR_ENABLED', true),
 
+    /*
+    | Guards that cannot receive a token until the second factor is satisfied.
+    | `web` stays optional; add it explicitly if a deployment needs MFA there.
+    */
+    'required_guards' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('TWOFACTOR_REQUIRED_GUARDS', 'admin,employee'))
+    )),
+
     'issuer' => env('TWOFACTOR_ISSUER', 'Shardev Platform'),
+
+    // Lifetime of the opaque challenge/enrollment token issued by login.
+    'challenge_ttl_minutes' => env('TWOFACTOR_CHALLENGE_TTL_MINUTES', 10),
 
     'window' => env('TWOFACTOR_WINDOW', 1), // Number of 30-second windows to allow (1 = 30 seconds before/after)
 

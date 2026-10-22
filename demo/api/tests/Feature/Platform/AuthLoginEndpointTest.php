@@ -8,7 +8,9 @@ use App\Models\AdminUser;
 use App\Models\User;
 use DateInterval;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Passport\Passport;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 /**
@@ -50,11 +52,24 @@ final class AuthLoginEndpointTest extends TestCase
 
     public function test_admin_token_is_accepted_by_the_admin_api(): void
     {
+        $secret = 'JBSWY3DPEHPK3PXP';
         $admin = AdminUser::factory()->create(['password' => 'secret-password']);
+        $admin->forceFill([
+            'two_factor_secret' => $secret,
+            'two_factor_recovery_codes' => json_encode([Hash::make('RECOVERY-ONE')]),
+            'two_factor_confirmed_at' => now(),
+        ])->save();
 
-        $token = $this->postJson('/admin/api/v1/auth/login', [
+        $challenge = $this->postJson('/admin/api/v1/auth/login', [
             'email' => $admin->email,
             'password' => 'secret-password',
+        ])->assertOk()
+            ->assertJsonPath('data.two_factor_required', true)
+            ->json('data.challenge_token');
+
+        $token = $this->postJson('/admin/api/v1/auth/2fa/challenge', [
+            'challenge_token' => $challenge,
+            'code' => (new Google2FA())->getCurrentOtp($secret),
         ])->assertOk()->json('data.access_token');
 
         $this->withHeader('Authorization', 'Bearer '.$token)

@@ -2,6 +2,9 @@ package dev.shardev.core.ui;
 
 import dev.shardev.core.account.AccountApi;
 import dev.shardev.core.auth.AuthService;
+import dev.shardev.core.auth.LoginResult;
+import dev.shardev.core.auth.TwoFactorChallenge;
+import dev.shardev.core.auth.TwoFactorSetup;
 import dev.shardev.core.config.PlatformConfig;
 import dev.shardev.core.passkeys.PasskeyBrowserFlow;
 import dev.shardev.core.social.SocialBrowserFlow;
@@ -14,7 +17,9 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Tab;
+import javafx.scene.Node;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import java.util.List;
 import javafx.scene.layout.HBox;
@@ -42,6 +47,7 @@ public final class LoginView extends VBox {
     private final Button sendCode = new Button("Enviar código");
     private final Label error = new Label();
     private Mode mode = Mode.PASSWORD;
+    private List<Node> loginNodes = List.of();
 
     public LoginView(
             Guard guard,
@@ -150,6 +156,7 @@ public final class LoginView extends VBox {
         renderSubmit();
 
         getChildren().addAll(title, subtitle, email, modes, submit, passkey, socialBox, error, links, secondary);
+        loginNodes = List.copyOf(getChildren());
 
         loadSocial(account, social, auth, onAuthenticated);
     }
@@ -159,16 +166,137 @@ public final class LoginView extends VBox {
         submit.setDisable(true);
         submit.setText("Entrando…");
 
+        if (mode == Mode.CODE) {
+            Async.run(
+                    () -> auth.loginWithOtp(email.getText().trim(), code.getText().trim()),
+                    user -> onAuthenticated.run(),
+                    this::submitFailed);
+            return;
+        }
+
         Async.run(
-                () -> mode == Mode.PASSWORD
-                        ? auth.login(email.getText().trim(), password.getText())
-                        : auth.loginWithOtp(email.getText().trim(), code.getText().trim()),
-                user -> onAuthenticated.run(),
-                failure -> {
+                () -> auth.login(email.getText().trim(), password.getText(), false),
+                result -> {
                     submit.setDisable(false);
                     renderSubmit();
-                    showError(Errors.message(failure));
-                });
+                    if (result.challenge() != null) {
+                        showTwoFactor(result.challenge(), auth, onAuthenticated);
+                    } else {
+                        onAuthenticated.run();
+                    }
+                },
+                this::submitFailed);
+    }
+
+    private void submitFailed(Throwable failure) {
+        submit.setDisable(false);
+        renderSubmit();
+        showError(Errors.message(failure));
+    }
+
+    private void showTwoFactor(TwoFactorChallenge challenge, AuthService auth, Runnable onAuthenticated) {
+        VBox pane = new VBox(12);
+        pane.setAlignment(Pos.CENTER);
+        pane.setMaxWidth(360);
+
+        Label heading = new Label(challenge.enrollment()
+                ? "Configura tu segundo factor"
+                : "Verificación en dos pasos");
+        heading.getStyleClass().add("login-title");
+        pane.getChildren().add(heading);
+
+        if (challenge.enrollment()) {
+            TwoFactorSetup setup = challenge.setup();
+            Label hint = new Label(
+                    "Añade esta clave a tu app de autenticación y guarda los recovery codes.");
+            hint.setWrapText(true);
+            pane.getChildren().add(hint);
+
+            if (setup != null) {
+                TextArea secret = new TextArea(setup.secret());
+                secret.setEditable(false);
+                secret.setWrapText(true);
+                secret.setMaxWidth(360);
+                secret.setPrefRowCount(2);
+                pane.getChildren().addAll(new Label("Clave TOTP"), secret);
+
+                if (!setup.recoveryCodes().isEmpty()) {
+                    Label codes = new Label(String.join("  ·  ", setup.recoveryCodes()));
+                    codes.setWrapText(true);
+                    codes.setMaxWidth(360);
+                    pane.getChildren().addAll(new Label("Recovery codes"), codes);
+                }
+            }
+        } else {
+            Label hint = new Label("Introduce el código de tu app de autenticación.");
+            hint.setWrapText(true);
+            pane.getChildren().add(hint);
+        }
+
+        TextField twoFactorCode = new TextField();
+        twoFactorCode.setPromptText("Código TOTP");
+        twoFactorCode.setMaxWidth(360);
+        pane.getChildren().add(twoFactorCode);
+
+        Button confirm = new Button(challenge.enrollment() ? "Activar y entrar" : "Verificar y entrar");
+        confirm.setDefaultButton(true);
+        confirm.setMaxWidth(360);
+        pane.getChildren().add(confirm);
+
+        boolean[] recovery = {false};
+        if (!challenge.enrollment()) {
+            Button toggle = new Button("Usar un recovery code");
+            toggle.setOnAction(event -> {
+                recovery[0] = !recovery[0];
+                twoFactorCode.setPromptText(recovery[0] ? "Recovery code" : "Código TOTP");
+                toggle.setText(recovery[0] ? "Usar código TOTP" : "Usar un recovery code");
+            });
+            pane.getChildren().add(toggle);
+        }
+
+        Label challengeError = new Label();
+        challengeError.getStyleClass().add("error");
+        challengeError.setWrapText(true);
+        challengeError.setMaxWidth(360);
+        challengeError.setVisible(false);
+        challengeError.setManaged(false);
+        pane.getChildren().add(challengeError);
+
+        Button cancel = new Button("Cancelar");
+        cancel.setOnAction(event -> getChildren().setAll(loginNodes));
+        pane.getChildren().add(cancel);
+
+        confirm.setOnAction(event -> {
+            String codeValue = twoFactorCode.getText().trim();
+            if (codeValue.isEmpty()) {
+                return;
+            }
+
+            confirm.setDisable(true);
+            confirm.setText("Verificando…");
+            challengeError.setVisible(false);
+            challengeError.setManaged(false);
+
+            Async.run(
+                    () -> challenge.enrollment()
+                            ? auth.confirmTwoFactorSetup(challenge.token(), codeValue)
+                            : auth.verifyTwoFactor(
+                                    challenge.token(),
+                                    codeValue,
+                                    recovery[0] ? "recovery_code" : "totp"),
+                    user -> onAuthenticated.run(),
+                    failure -> {
+                        confirm.setDisable(false);
+                        confirm.setText(challenge.enrollment()
+                                ? "Activar y entrar"
+                                : "Verificar y entrar");
+                        challengeError.setText(Errors.message(failure));
+                        challengeError.setVisible(true);
+                        challengeError.setManaged(true);
+                    });
+        });
+
+        getChildren().setAll(pane);
     }
 
     private void passkeyLogin(AuthService auth, PasskeyBrowserFlow passkeys, Runnable onAuthenticated) {

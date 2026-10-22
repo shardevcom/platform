@@ -39,7 +39,7 @@ es el login).
 | 11 | OTP login | ✅ nuevo | ✅ | ✅ |
 | 12 | Passkeys/WebAuthn | ✅ nuevo | ✅ | ✅ |
 | 13 | Login social | ✅ Google/Microsoft (global) | ✅ | ✅ |
-| 14 | 2FA TOTP | ✅ existía | ✅ | ✅ existía |
+| 14 | 2FA TOTP (obligatorio admin/employee; challenge/enrolamiento en login) | ✅ T-CASA-009 | ✅ | ✅ panel de enrolamiento/challenge |
 | 15 | Dashboard/widgets | ✅ existía | ✅ | ✅ existía |
 
 ## Endpoints nuevos (paquete `security`)

@@ -9,6 +9,7 @@ export 'src/api/account_api.dart';
 export 'src/api/api_client.dart';
 export 'src/api/envelope.dart';
 export 'src/auth/auth.dart';
+export 'src/auth/two_factor.dart';
 export 'src/config.dart';
 export 'src/passkeys/passkey_client.dart';
 export 'src/passkeys/passkey_service.dart';

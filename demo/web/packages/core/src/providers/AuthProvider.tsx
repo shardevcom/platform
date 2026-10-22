@@ -13,14 +13,17 @@ import {
 import type { Guard } from "@shardev/plugin-kit"
 import { getToken, setPlatform, setToken } from "../lib/api"
 import { account, auth, type CredentialPayload } from "../lib/endpoints"
-import type { LoginResponse, RegisterPayload, User } from "../types"
+import { isLoginResponse, type LoginResponse, type LoginResult, type RegisterPayload, type TwoFactorSetup, type User } from "../types"
 
 interface AuthContextValue {
   user: User | null
   guard: Guard
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, remember?: boolean) => Promise<LoginResult>
+  verifyTwoFactor: (token: string, code: string, type?: "totp" | "recovery_code") => Promise<void>
+  startTwoFactorSetup: (enrollmentToken: string) => Promise<TwoFactorSetup>
+  confirmTwoFactorSetup: (enrollmentToken: string, code: string) => Promise<void>
   loginWithOtp: (email: string, code: string) => Promise<void>
   loginWithPasskey: (credential: CredentialPayload) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
@@ -78,11 +81,36 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
   }, [])
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, remember = false) => {
       setPlatform(guard)
-      complete(await auth.login(email, password))
+      const result = await auth.login(email, password, "spa", remember)
+
+      if (isLoginResponse(result)) {
+        complete(result)
+      }
+
+      return result
     },
     [guard, complete],
+  )
+
+  const verifyTwoFactor = useCallback(
+    async (token: string, code: string, type: "totp" | "recovery_code" = "totp") => {
+      complete(await auth.twoFactorChallenge(token, code, type))
+    },
+    [complete],
+  )
+
+  const startTwoFactorSetup = useCallback(
+    (enrollmentToken: string) => auth.twoFactorSetup(enrollmentToken),
+    [],
+  )
+
+  const confirmTwoFactorSetup = useCallback(
+    async (enrollmentToken: string, code: string) => {
+      complete(await auth.twoFactorSetupConfirm(enrollmentToken, code))
+    },
+    [complete],
   )
 
   const loginWithOtp = useCallback(
@@ -163,6 +191,9 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
       isAuthenticated: user !== null,
       isLoading,
       login,
+      verifyTwoFactor,
+      startTwoFactorSetup,
+      confirmTwoFactorSetup,
       loginWithOtp,
       loginWithPasskey,
       register,
@@ -177,6 +208,9 @@ export function AuthProvider({ guard, children }: { guard: Guard; children: Reac
       guard,
       isLoading,
       login,
+      verifyTwoFactor,
+      startTwoFactorSetup,
+      confirmTwoFactorSetup,
       loginWithOtp,
       loginWithPasskey,
       register,

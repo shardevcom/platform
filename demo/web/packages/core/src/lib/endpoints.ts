@@ -3,6 +3,7 @@ import type {
   AccountNotification,
   InvitationSummary,
   LoginResponse,
+  LoginResult,
   NotificationsPayload,
   Passkey,
   Preferences,
@@ -11,6 +12,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegisterPayload,
   SocialProvider,
+  TwoFactorRecoveryStatus,
   TwoFactorSetup,
   User,
 } from "../types"
@@ -24,11 +26,32 @@ export interface CredentialPayload {
 }
 
 export const auth = {
-  login: (email: string, password: string, deviceName = "spa") =>
-    apiData<LoginResponse>("auth/login", {
+  login: (email: string, password: string, deviceName = "spa", remember = false) =>
+    apiData<LoginResult>("auth/login", {
       method: "POST",
       auth: false,
-      body: { email, password, device_name: deviceName },
+      body: { email, password, device_name: deviceName, remember },
+    }),
+
+  twoFactorChallenge: (token: string, code: string, type: "totp" | "recovery_code" = "totp", deviceName = "spa") =>
+    apiData<LoginResponse>("auth/2fa/challenge", {
+      method: "POST",
+      auth: false,
+      body: { challenge_token: token, code, type, device_name: deviceName },
+    }),
+
+  twoFactorSetup: (enrollmentToken: string) =>
+    apiData<TwoFactorSetup>("auth/2fa/setup", {
+      method: "POST",
+      auth: false,
+      body: { enrollment_token: enrollmentToken },
+    }),
+
+  twoFactorSetupConfirm: (enrollmentToken: string, code: string, deviceName = "spa") =>
+    apiData<LoginResponse>("auth/2fa/setup/confirm", {
+      method: "POST",
+      auth: false,
+      body: { enrollment_token: enrollmentToken, code, device_name: deviceName },
     }),
 
   register: (payload: RegisterPayload) =>
@@ -170,18 +193,21 @@ export const widgets = {
 }
 
 export const twoFactor = {
-  enable: () => apiData<TwoFactorSetup>("enable", { method: "POST" }),
+  enable: () => apiData<TwoFactorSetup>("auth/2fa/enable", { method: "POST" }),
 
-  verify: (code: string) => apiData<null>("verify", { method: "POST", body: { code } }),
+  verify: (code: string) => apiData<null>("auth/2fa/verify", { method: "POST", body: { code } }),
 
-  disable: (password: string, code?: string) =>
-    apiData<null>("disable", { method: "POST", body: { password, code } }),
+  disable: (password: string, options: { code?: string; recoveryCode?: string } = {}) =>
+    apiData<null>("auth/2fa/disable", {
+      method: "POST",
+      body: { password, code: options.code, recovery_code: options.recoveryCode },
+    }),
 
-  qrCode: () => apiData<{ qr_code: string }>("qr-code"),
+  qrCode: () => apiData<{ qr_code: string }>("auth/2fa/qr-code"),
 
-  recoveryCodes: () => apiData<{ recovery_codes: string[] }>("recovery-codes"),
+  recoveryCodes: () => apiData<TwoFactorRecoveryStatus>("auth/2fa/recovery-codes"),
 
-  regenerate: () => apiData<{ recovery_codes: string[] }>("regenerate-recovery-codes", { method: "POST" }),
+  regenerate: () => apiData<{ recovery_codes: string[] }>("auth/2fa/regenerate-recovery-codes", { method: "POST" }),
 }
 
 export const graphql = {

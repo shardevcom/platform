@@ -24,7 +24,7 @@ import {
 } from "@shardev/ui"
 import type { Guard } from "@shardev/plugin-kit"
 
-import type { SocialProvider } from "../types"
+import { isLoginResponse, type SocialProvider, type TwoFactorSetup } from "../types"
 
 import { useAuth } from "../providers/AuthProvider"
 import { auth } from "../lib/endpoints"
@@ -66,8 +66,17 @@ export function LoginPage({
   public?: boolean
 }) {
   const navigate = useNavigate()
-  const { login, loginWithOtp, loginWithPasskey } = useAuth()
+  const { login, verifyTwoFactor, startTwoFactorSetup, confirmTwoFactorSetup, loginWithOtp, loginWithPasskey } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [twoFactor, setTwoFactor] = useState<{
+    token: string
+    enrollment: boolean
+    setup?: TwoFactorSetup
+  } | null>(null)
+  const [twoFactorCode, setTwoFactorCode] = useState("")
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false)
+  const [twoFactorBusy, setTwoFactorBusy] = useState(false)
+  const [remember, setRemember] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [sendingCode, setSendingCode] = useState(false)
   const [passkeyBusy, setPasskeyBusy] = useState(false)
@@ -108,11 +117,60 @@ export function LoginPage({
   const onPassword = async (data: LoginForm) => {
     try {
       setError(null)
-      await login(data.email, data.password)
-      navigate("/dashboard")
+      const result = await login(data.email, data.password, remember)
+
+      if (isLoginResponse(result)) {
+        navigate("/dashboard")
+        return
+      }
+
+      if (result.two_factor_enrollment_required && result.enrollment_token) {
+        setTwoFactorBusy(true)
+        const setup = await startTwoFactorSetup(result.enrollment_token)
+        setTwoFactor({ token: result.enrollment_token, enrollment: true, setup })
+      } else if (result.two_factor_required && result.challenge_token) {
+        setTwoFactor({ token: result.challenge_token, enrollment: false })
+      } else {
+        setError("La respuesta de autenticación no incluyó un segundo factor válido.")
+      }
     } catch (err) {
       setError(errorMessage(err, "Error al iniciar sesión"))
+    } finally {
+      setTwoFactorBusy(false)
     }
+  }
+
+  const onTwoFactor = async (event: React.FormEvent) => {
+    event.preventDefault()
+
+    if (!twoFactor) return
+
+    try {
+      setError(null)
+      setTwoFactorBusy(true)
+
+      if (twoFactor.enrollment) {
+        await confirmTwoFactorSetup(twoFactor.token, twoFactorCode)
+      } else {
+        await verifyTwoFactor(
+          twoFactor.token,
+          twoFactorCode,
+          useRecoveryCode ? "recovery_code" : "totp",
+        )
+      }
+
+      navigate("/dashboard")
+    } catch (err) {
+      setError(errorMessage(err, "Código de verificación inválido"))
+    } finally {
+      setTwoFactorBusy(false)
+    }
+  }
+
+  const resetTwoFactor = () => {
+    setTwoFactor(null)
+    setTwoFactorCode("")
+    setUseRecoveryCode(false)
   }
 
   const onSendCode = async () => {
@@ -192,6 +250,77 @@ export function LoginPage({
             </div>
           )}
 
+          {twoFactor ? (
+            <form onSubmit={onTwoFactor} className="space-y-4 pt-2">
+              <div className="space-y-1 text-center">
+                <h3 className="text-lg font-semibold">
+                  {twoFactor.enrollment ? "Configura tu segundo factor" : "Verificación en dos pasos"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {twoFactor.enrollment
+                    ? "Escanea el QR con tu app de autenticación y guarda los recovery codes."
+                    : "Introduce el código de tu app de autenticación."}
+                </p>
+              </div>
+
+              {twoFactor.setup && (
+                <div className="space-y-3">
+                  <div
+                    className="mx-auto w-44 rounded-md border bg-white p-2"
+                    dangerouslySetInnerHTML={{ __html: twoFactor.setup.qr_code }}
+                  />
+                  <p className="break-all text-center font-mono text-xs text-muted-foreground">
+                    {twoFactor.setup.secret}
+                  </p>
+                  <div>
+                    <p className="mb-1 text-sm font-medium">Recovery codes</p>
+                    <div className="grid grid-cols-2 gap-1 font-mono text-xs">
+                      {twoFactor.setup.recovery_codes.map((code) => (
+                        <span key={code} className="rounded bg-muted px-2 py-1">{code}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="two-factor-code">
+                  {useRecoveryCode ? "Recovery code" : "Código TOTP"}
+                </Label>
+                <Input
+                  id="two-factor-code"
+                  value={twoFactorCode}
+                  onChange={(event) => setTwoFactorCode(event.target.value.trim())}
+                  inputMode={useRecoveryCode ? "text" : "numeric"}
+                  autoComplete="one-time-code"
+                  maxLength={useRecoveryCode ? undefined : 6}
+                  autoFocus
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={twoFactorBusy || twoFactorCode.length === 0}>
+                {twoFactorBusy ? "Verificando..." : twoFactor.enrollment ? "Activar y entrar" : "Verificar y entrar"}
+              </Button>
+
+              {!twoFactor.enrollment && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    setUseRecoveryCode((value) => !value)
+                    setTwoFactorCode("")
+                  }}
+                >
+                  {useRecoveryCode ? "Usar código TOTP" : "Usar un recovery code"}
+                </Button>
+              )}
+
+              <Button type="button" variant="ghost" className="w-full" onClick={resetTwoFactor}>
+                Cancelar
+              </Button>
+            </form>
+          ) : (
           <Tabs defaultValue="password">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="password">Contraseña</TabsTrigger>
@@ -226,8 +355,18 @@ export function LoginPage({
                   )}
                 </div>
 
-                <Button type="submit" className="w-full" disabled={passwordForm.formState.isSubmitting}>
-                  {passwordForm.formState.isSubmitting ? "Iniciando..." : "Iniciar sesión"}
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                    disabled={passwordForm.formState.isSubmitting}
+                  />
+                  Recordarme (el segundo factor sigue siendo obligatorio)
+                </label>
+
+                <Button type="submit" className="w-full" disabled={passwordForm.formState.isSubmitting || twoFactorBusy}>
+                  {passwordForm.formState.isSubmitting || twoFactorBusy ? "Iniciando..." : "Iniciar sesión"}
                 </Button>
               </form>
             </TabsContent>
@@ -261,6 +400,7 @@ export function LoginPage({
               </form>
             </TabsContent>
           </Tabs>
+          )}
 
           {providers.length > 0 && (
             <>

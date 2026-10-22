@@ -19,6 +19,7 @@ export function TwoFactorPage() {
   const [code, setCode] = useState("")
   const [password, setPassword] = useState("")
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([])
+  const [recoveryRemaining, setRecoveryRemaining] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
 
   const run = (fn: () => Promise<void>) => async () => {
@@ -45,7 +46,7 @@ export function TwoFactorPage() {
   })
 
   const disable = run(async () => {
-    await twoFactor.disable(password, code || undefined)
+    await twoFactor.disable(password, { code: code || undefined })
     toast.success("2FA deshabilitado")
     setSetup(null)
     setPassword("")
@@ -54,12 +55,15 @@ export function TwoFactorPage() {
 
   const loadRecovery = run(async () => {
     const result = await twoFactor.recoveryCodes()
-    setRecoveryCodes(result.recovery_codes)
+    setRecoveryRemaining(result.remaining)
+    setRecoveryCodes([])
+    toast.success(`Quedan ${result.remaining} recovery codes.`)
   })
 
   const regenerate = run(async () => {
     const result = await twoFactor.regenerate()
     setRecoveryCodes(result.recovery_codes)
+    setRecoveryRemaining(result.recovery_codes.length)
     toast.success("Recovery codes regenerados")
   })
 
@@ -119,7 +123,7 @@ export function TwoFactorPage() {
             <CardTitle className="flex items-center gap-2 text-base">
               <ShieldOff className="h-5 w-5 text-destructive" /> Deshabilitar
             </CardTitle>
-            <CardDescription>POST /disable requiere tu contraseña (y código si está confirmado).</CardDescription>
+            <CardDescription>POST /disable requiere tu contraseña y un código TOTP o recovery code.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-1">
@@ -127,7 +131,7 @@ export function TwoFactorPage() {
               <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="dcode">Código (opcional)</Label>
+              <Label htmlFor="dcode">Código TOTP / recovery code</Label>
               <Input id="dcode" value={code} onChange={(e) => setCode(e.target.value)} />
             </div>
             <Button variant="destructive" onClick={() => void disable()} disabled={busy || !password}>
@@ -141,7 +145,9 @@ export function TwoFactorPage() {
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle className="text-base">Recovery codes</CardTitle>
-            <CardDescription>GET /recovery-codes · POST /regenerate-recovery-codes</CardDescription>
+            <CardDescription>
+              GET /recovery-codes (solo quedan {recoveryRemaining ?? "?"}) · POST /regenerate-recovery-codes
+            </CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => void loadRecovery()} disabled={busy}>

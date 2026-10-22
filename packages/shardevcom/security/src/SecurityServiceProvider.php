@@ -49,6 +49,11 @@ final class SecurityServiceProvider extends ServiceProvider
         // adapter's createToken() (issuance).
         $this->app->singleton(ScopeCatalogue::class);
 
+        $this->app->bindIf(
+            \Shardevcom\Core\Contracts\SecondFactorGate::class,
+            \Shardevcom\Security\Authentication\NullSecondFactorGate::class
+        );
+
         // WebAuthn wiring: one bridge keeps the (expensive) serializer around.
         $this->app->singleton(\Shardevcom\Security\WebAuthn\WebAuthnBridge::class);
     }
