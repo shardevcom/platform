@@ -85,6 +85,8 @@ final class GuardScaffolder
             }
         }
 
+        (new DockerScaffolder($this->context->filesystem))->write($workspace->root, $manifest);
+
         if ($migrate) {
             $this->migrate($api);
 

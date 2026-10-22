@@ -39,6 +39,9 @@ final class NewCommandTest extends TestCase
         JSON,
         '/framework/packages/shardevcom/widgets/src/WidgetsServiceProvider.php' => '<?php',
         '/framework/demo/web/package.json' => '{"name":"shardev-web"}',
+        '/framework/demo/web/apps/user/vite.config.ts' => 'createAppConfig(import.meta.dirname, 5175)',
+        '/framework/demo/web/apps/admin/vite.config.ts' => 'createAppConfig(import.meta.dirname, 5173)',
+        '/framework/demo/web/apps/employee/vite.config.ts' => 'createAppConfig(import.meta.dirname, 5174)',
         '/framework/demo/web/apps/admin/src/main.tsx' => 'console.log(1)',
     ];
 
@@ -358,6 +361,47 @@ final class NewCommandTest extends TestCase
         $manifest = $filesystem->readJson(self::WORKSPACE.'/platform.json');
         $this->assertArrayHasKey('web', $manifest['components']);
         $this->assertArrayNotHasKey('mobile', $manifest['components']);
+    }
+
+    public function test_writes_docker_for_the_api_and_web_components(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app', '--with=api,web'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile(self::WORKSPACE.'/docker-compose.yml'));
+        $this->assertTrue($filesystem->isFile(self::WORKSPACE.'/DOCKER.md'));
+        $this->assertTrue($filesystem->isFile(self::PROJECT.'/Dockerfile'));
+        $this->assertTrue($filesystem->isFile(self::WORKSPACE.'/web/Dockerfile'));
+        $this->assertTrue($filesystem->isExecutable(self::PROJECT.'/docker-entrypoint.sh'));
+        $this->assertTrue($filesystem->isExecutable(self::WORKSPACE.'/web/docker-entrypoint.sh'));
+
+        $compose = $filesystem->read(self::WORKSPACE.'/docker-compose.yml');
+
+        $this->assertStringContainsString('  api:', $compose);
+        $this->assertStringContainsString('  web:', $compose);
+        $this->assertStringContainsString('WEB_APPS: "user admin employee"', $compose);
+        $this->assertStringContainsString('- "${WEB_USER_PORT:-5175}:5175"', $compose);
+        $this->assertStringContainsString('- "${WEB_ADMIN_PORT:-5173}:5173"', $compose);
+        $this->assertStringContainsString('- "${WEB_EMPLOYEE_PORT:-5174}:5174"', $compose);
+    }
+
+    public function test_an_api_only_workspace_does_not_expose_web_in_docker(): void
+    {
+        $filesystem = $this->filesystem();
+
+        $exit = $this->execute(['platform', 'new', 'new-app'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertTrue($filesystem->isFile(self::WORKSPACE.'/docker-compose.yml'));
+        $this->assertFalse($filesystem->isFile(self::WORKSPACE.'/web/Dockerfile'));
+
+        $compose = $filesystem->read(self::WORKSPACE.'/docker-compose.yml');
+
+        $this->assertStringContainsString('  api:', $compose);
+        $this->assertStringNotContainsString('  web:', $compose);
+        $this->assertStringNotContainsString('WEB_APPS', $compose);
     }
 
     public function test_rejects_an_unknown_component(): void

@@ -135,6 +135,29 @@ final class WorkspaceCommandTest extends TestCase
         $this->assertArrayNotHasKey('web', $filesystem->readJson(self::ROOT.'/platform.json')['components']);
     }
 
+    public function test_remove_web_regenerates_the_compose_without_that_service(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $exit = $this->execute(['platform', 'remove', 'web'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $compose = $filesystem->read(self::ROOT.'/docker-compose.yml');
+        $this->assertStringContainsString('  api:', $compose);
+        $this->assertStringNotContainsString('  web:', $compose);
+    }
+
+    public function test_remove_api_drops_the_docker_environment(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $exit = $this->execute(['platform', 'remove', 'api'], $filesystem);
+
+        $this->assertSame(0, $exit);
+        $this->assertFalse($filesystem->isFile(self::ROOT.'/docker-compose.yml'));
+        $this->assertFalse($filesystem->isFile(self::ROOT.'/DOCKER.md'));
+    }
+
     public function test_commands_require_a_workspace(): void
     {
         $recorder = RecordingPrinter::create();

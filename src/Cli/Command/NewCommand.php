@@ -140,6 +140,10 @@ final class NewCommand implements CommandInterface
             'platform dev api',
         ]);
 
+        if ($manifest->has('api')) {
+            $printer->note('Docker: docker compose up --build (see DOCKER.md).');
+        }
+
         return 0;
     }
 

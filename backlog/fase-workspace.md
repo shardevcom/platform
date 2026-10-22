@@ -266,15 +266,47 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 `vite.config.ts`). `MOBILE_API_HOST` por defecto `http://10.0.2.2:$API_PORT`
 (emulador Android).
 
+## Docker (desarrollo)
+
+`WorkspaceScaffolder` escribe un entorno Docker de desarrollo a partir del
+manifiesto (`DockerScaffolder`) cuando el workspace tiene un componente `api`:
+
+- `api/Dockerfile` (PHP 8.4 + Composer + `gd`/`intl`/`zip`) y
+  `api/docker-entrypoint.sh`: copia `.env.example`, crea SQLite, instala Composer
+  si falta `vendor/` (`--no-scripts`), genera la clave, descubre paquetes y
+  migra; después arranca `php artisan serve` en `0.0.0.0:8000`.
+- `web/Dockerfile` (Node 22) y `web/docker-entrypoint.sh`: instala
+  `node_modules` si falta, y lanza un Vite por app (`WEB_APPS`) con
+  `--host 0.0.0.0`; los puertos salen de `apps/<app>/vite.config.ts`
+  (`createAppConfig(..., <port>)`, con fallback a 5175/5173/5174).
+- `docker-compose.yml` en la raíz: `api` (8000) y `web` (un puerto por guard),
+  `PLATFORM_BACKEND=http://api:8000`, healthcheck del API, bind mounts del código
+  y volúmenes `api-vendor`/`web-node_modules` para no mezclar dependencias.
+- `DOCKER.md` con arranque, URLs, hot reload, reinstalación y limpieza.
+
+El compose se regenera en `new`, `add`, `remove`, `guard add`, `config guard`,
+`config enable`/`disable`; si desaparece la API se eliminan `docker-compose.yml`
+y `DOCKER.md` para no dejar servicios obsoletos. Mobile y desktop no se
+containerizan.
+
+Verificado con Docker 29.6.2 / Compose v5.3.1: `docker compose config` válido;
+`docker build` de las imágenes API y web; arranque real del API con un
+`demo/api` sin `vendor/` (instala, descubre, migra y responde `200`) y de la app
+web `user` (Vite responde `200`).
+
 ## Verificación
 
-- `composer test` (root): **351 tests / 1010 assertions** — OK.
+- `composer test` (root): **368 tests / 1103 assertions** — OK.
   - `WorkspaceManifestTest` (round-trip de `platform.json`, listas de guards,
     clave legacy `guard`, `locate`).
   - `NewCommandTest` (reescrito): el workspace se crea con manifiesto y la API
     vive en `api/`; `--with` selecciona componentes; los clientes espejan los
     platforms de la API y `--guards` los fija (api incluida aparte); deja
-    `platform.sh` ejecutable en la raíz.
+    `platform.sh` ejecutable en la raíz y genera Docker solo para los
+    componentes presentes.
+  - `DockerScaffolderTest`: servicios/volúmenes/healthcheck, puertos leídos de
+    `vite.config.ts` con fallback, assets por componente, ausencia de web en un
+    workspace API-only y retirada del compose cuando no hay API.
   - `WorkspaceCommandTest`: status/install/build/dev/add/remove por manifiesto,
     `--guard` servido (build) o rechazado con el guard desconocido (build/dev),
     incluyendo "no es un workspace".
@@ -301,7 +333,8 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
   - `WorkspaceScriptTest`: contrato del shell (`#!/usr/bin/env bash`, lee
     `platform.json`, verbos del router presentes) + `bash -n` sobre el template.
   - `ConfigCommandTest`: `config` muestra el workspace y `config name|guard|enable|disable`
-    editan `platform.json` (nombre inválido, guard en la API y fuera de workspace fallan).
+    editan `platform.json` (nombre inválido, guard en la API y fuera de workspace fallan);
+    `guard`/`enable`/`disable` regeneran `docker-compose.yml`.
 - `php bin/platform` lista `new/add/remove/install/build/dev/status` y `guard`.
 - `platform guard add partner --no-clients --no-migrate` sobre `demo/` genera
   artefactos válidos (modelo, migraciones, `PartnerUserSeeder`, `plugin.json`
@@ -321,6 +354,9 @@ El estado en marcha vive en `.platform/run/*.pid` y `.platform/logs/*.log`
 - `platform.sh`: `bash -n` OK; en `demo/` (`./platform.sh help|status|doctor`)
   `status` lista los 4 componentes con sus guards y `doctor` sale con exit 1
   cuando falta toolchain/dependencias mostrando el `fix` sugerido.
+- Docker: `docker compose config` OK; `docker build` de API/web OK; API desde
+  `demo/api` sin `vendor/` responde `200` tras instalar/migrar y Vite `user`
+  responde `200`.
 - `platform config` en `demo/` muestra el manifiesto; `config disable desktop`,
   `config guard web employee` y la vuelta a `config enable desktop` editan
   `platform.json` correctamente (restaurado tras la prueba).

@@ -281,6 +281,10 @@ final class ConfigCommandTest extends TestCase
             ['employee' => ['public' => false], 'admin' => ['public' => false]],
             $filesystem->readJson('/app/platform.json')['components']['web']['guards']
         );
+        $this->assertStringContainsString(
+            'WEB_APPS: "employee admin"',
+            $filesystem->read('/app/docker-compose.yml')
+        );
     }
 
     public function test_sets_guard_visibility(): void
@@ -327,9 +331,11 @@ final class ConfigCommandTest extends TestCase
 
         $this->execute(['platform', 'config', 'disable', 'web'], $filesystem);
         $this->assertFalse($filesystem->readJson('/app/platform.json')['components']['web']['enabled']);
+        $this->assertStringNotContainsString('  web:', $filesystem->read('/app/docker-compose.yml'));
 
         $this->execute(['platform', 'config', 'enable', 'web'], $filesystem);
         $this->assertTrue($filesystem->readJson('/app/platform.json')['components']['web']['enabled']);
+        $this->assertStringContainsString('  web:', $filesystem->read('/app/docker-compose.yml'));
     }
 
     public function test_workspace_config_requires_a_workspace(): void

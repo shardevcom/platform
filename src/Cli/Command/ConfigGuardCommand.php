@@ -11,6 +11,7 @@ use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
 use Shardevcom\Cli\Workspace\ComponentType;
+use Shardevcom\Cli\Workspace\DockerScaffolder;
 
 /**
  * `platform config guard <component> <list>`: sets the guards a component serves.
@@ -84,7 +85,10 @@ final class ConfigGuardCommand implements CommandInterface
             return 0;
         }
 
-        $workspace->manifest->with($target->withGuards($list))->save($context->filesystem, $workspace->root);
+        $manifest = $workspace->manifest->with($target->withGuards($list));
+        $manifest->save($context->filesystem, $workspace->root);
+
+        (new DockerScaffolder($context->filesystem))->write($workspace->root, $manifest);
 
         $printer->success("Component '{$component}' now serves: ".implode(', ', array_keys($list)).'.');
         $printer->note('Run platform dev/build <component> to use the new guards.');

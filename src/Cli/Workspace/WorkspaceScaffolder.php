@@ -55,6 +55,8 @@ final class WorkspaceScaffolder
         $manifest = $this->syncGuards($manifest, $target, $mirrorClientGuards);
         $manifest->save($this->context->filesystem, $target);
 
+        (new DockerScaffolder($this->context->filesystem))->write($target, $manifest);
+
         return $manifest;
     }
 
@@ -70,7 +72,11 @@ final class WorkspaceScaffolder
         }
 
         $this->createComponent($workspace->root, $component, $laravelConstraint, $noInteraction, $installDependencies);
-        $workspace->manifest->with($component)->save($this->context->filesystem, $workspace->root);
+
+        $manifest = $workspace->manifest->with($component);
+        $manifest->save($this->context->filesystem, $workspace->root);
+
+        (new DockerScaffolder($this->context->filesystem))->write($workspace->root, $manifest);
     }
 
     private function createComponent(

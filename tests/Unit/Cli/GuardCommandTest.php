@@ -235,6 +235,17 @@ final class GuardCommandTest extends TestCase
         $this->assertArrayNotHasKey('partner', $plugin['guards']);
     }
 
+    public function test_add_refreshes_the_docker_web_apps(): void
+    {
+        $filesystem = $this->workspaceFiles();
+
+        $this->execute(['platform', 'guard', 'add', 'partner', '--no-migrate'], $filesystem);
+
+        $compose = $filesystem->read(self::ROOT.'/docker-compose.yml');
+        $this->assertStringContainsString('WEB_APPS: "admin partner"', $compose);
+        $this->assertStringContainsString('- "${WEB_PARTNER_PORT:-5176}:5176"', $compose);
+    }
+
     public function test_add_refuses_a_guard_the_workspace_already_has(): void
     {
         $recorder = RecordingPrinter::create();

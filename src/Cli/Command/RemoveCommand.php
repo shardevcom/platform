@@ -9,6 +9,7 @@ use Shardevcom\Cli\Console\Printer;
 use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
+use Shardevcom\Cli\Workspace\DockerScaffolder;
 
 /**
  * `platform remove <component>`: drops a component from the workspace.
@@ -70,7 +71,10 @@ final class RemoveCommand implements CommandInterface
             $context->filesystem->delete($workspace->componentPath($component->name));
         }
 
-        $workspace->manifest->without($name)->save($context->filesystem, $workspace->root);
+        $manifest = $workspace->manifest->without($name);
+        $manifest->save($context->filesystem, $workspace->root);
+
+        (new DockerScaffolder($context->filesystem))->write($workspace->root, $manifest);
 
         $printer->success("Component '{$name}' removed from the workspace.");
 

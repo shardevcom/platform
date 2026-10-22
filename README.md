@@ -759,6 +759,8 @@ independiente con su propio toolchain.
 mi-proyecto/
 ├── platform.json     # fuente de verdad (name, platform, components + guards)
 ├── platform.sh       # shell de control (levantar/parar/build/doctor)
+├── docker-compose.yml # entorno de desarrollo (si hay api)
+├── DOCKER.md         # URLs, hot reload y limpieza
 ├── api/              # Laravel 12 (componente)
 ├── web/              # Vite/React (componente)
 ├── mobile/           # Flutter (componente)
@@ -838,6 +840,22 @@ añadir un componente o un guard:
 El estado de los procesos vive en `.platform/` (PIDs y logs) y está en
 `.gitignore`.
 
+### Docker (desarrollo)
+
+Si el workspace tiene API, `platform new` también deja un `docker-compose.yml`
+con `api` (8000) y `web` (un puerto por guard: user 5175, admin 5173, employee
+5174), más `api/Dockerfile`, `web/Dockerfile` y sus entrypoints:
+
+```bash
+docker compose up --build     # primera vez: instala deps y migra
+```
+
+El código va montado desde el host (hot reload: PHP al recargar, Vite al
+guardar). Las dependencias viven en los volúmenes `api-vendor` y
+`web-node_modules`; `docker compose down -v` las borra y el siguiente arranque
+las reinstala. Los puertos se pueden cambiar en `docker-compose.yml` o con
+`API_PORT` y `WEB_<APP>_PORT`. Mobile y desktop no se containerizan.
+
 `Context::projectRoot()` resuelve al componente `api`, de modo que `config`,
 `demo add`, `package make` y `doctor` siguen operando sobre Laravel. `doctor`
 añade dos suites: **Workspace** (falla si un componente no está en
@@ -855,4 +873,4 @@ proyecto recién generado.
 
 ---
 
-*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil, 18 Cliente desktop, 19 Workspace.*
+*Documentación generada desde `BACKLOG.md` + `backlog/`. Ver `backlog/00-index.md` para reglas de ejecución. Secciones: 1-12 (visión + DX), 13 Smoke Test, 14 Uso rápido, 15 Observabilidad (T-121), 16 Hardening (T-122), 17 Cliente móvil, 18 Cliente desktop, 19 Workspace + Docker.*

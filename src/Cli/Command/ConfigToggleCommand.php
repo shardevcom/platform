@@ -9,6 +9,7 @@ use Shardevcom\Cli\Console\Printer;
 use Shardevcom\Cli\Exception\InvalidInput;
 use Shardevcom\Cli\Input\Input;
 use Shardevcom\Cli\Input\InputDefinition;
+use Shardevcom\Cli\Workspace\DockerScaffolder;
 
 /**
  * `platform config enable|disable <component>`: toggles a component in the
@@ -69,7 +70,10 @@ final class ConfigToggleCommand implements CommandInterface
             return 0;
         }
 
-        $workspace->manifest->with($component->withEnabled($this->enable))->save($context->filesystem, $workspace->root);
+        $manifest = $workspace->manifest->with($component->withEnabled($this->enable));
+        $manifest->save($context->filesystem, $workspace->root);
+
+        (new DockerScaffolder($context->filesystem))->write($workspace->root, $manifest);
 
         $printer->success("Component '{$name}' ".($this->enable ? 'enabled' : 'disabled').'.');
 
