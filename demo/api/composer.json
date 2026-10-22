@@ -37,6 +37,7 @@
             "Shardevcom\\Application\\": "packages/shardev/application/src/",
             "Shardevcom\\Authorization\\": "packages/shardev/authorization/src/",
             "Shardevcom\\Catalog\\": "packages/shardev/catalog/src/",
+            "Shardevcom\\Communications\\": "packages/shardev/communications/src/",
             "Shardevcom\\Configuration\\": "packages/shardev/configuration/src/",
             "Shardevcom\\Core\\": "packages/shardev/core/src/",
             "Shardevcom\\Documentation\\": "packages/shardev/documentation/src/",

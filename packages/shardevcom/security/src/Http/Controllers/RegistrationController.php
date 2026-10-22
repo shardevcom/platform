@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shardevcom\Security\Http\Controllers;
 
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -80,6 +81,8 @@ final class RegistrationController
         if ($user === null) {
             return $this->error('REGISTRATION_UNAVAILABLE', 'This platform cannot create accounts.', [], 500);
         }
+
+        event(new Registered($user));
 
         if (($platform['features']['verification'] ?? false) && method_exists($user, 'sendEmailVerificationNotification')) {
             $user->sendEmailVerificationNotification();

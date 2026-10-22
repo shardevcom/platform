@@ -1,0 +1,21 @@
+{
+    "name": "shardev/communications",
+    "description": "Multi-channel communications: event channel matrix, per-channel templates, opt-out preferences, delivery log and admin alerts",
+    "type": "platform-package",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Shardevcom\\Communications\\": "src/"
+        }
+    },
+    "extra": {
+        "platform": {
+            "provider": "Shardevcom\\Communications\\CommunicationServiceProvider"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "shardev/core": "@dev",
+        "shardev/resources": "@dev"
+    }
+}
